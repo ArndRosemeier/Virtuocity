@@ -7,12 +7,13 @@ vision behind this lives in [vision.md](vision.md).
 
 ## Packages
 
-| Package                  | Role                                                                 |
-| ------------------------ | -------------------------------------------------------------------- |
-| `@virtuocity/core`       | Concepts and extension points. No UI, no network, no other packages. |
-| `@virtuocity/openrouter` | `ModelProvider` for OpenRouter, reports model, tokens and cost.      |
-| `@virtuocity/skill-dice` | Example code-only skill (dice notation, `dice.requested` event).     |
-| `@virtuocity/app`        | Vite + React web app. Decides which modules are installed.           |
+| Package                          | Role                                                                   |
+| -------------------------------- | ---------------------------------------------------------------------- |
+| `@virtuocity/core`               | Concepts and extension points. No UI, no network, no other packages.   |
+| `@virtuocity/openrouter`         | `ModelProvider` for OpenRouter, reports model, tokens and cost.        |
+| `@virtuocity/skill-conversation` | Conversation skill: lets an actor speak in character via a text model. |
+| `@virtuocity/skill-dice`         | Example code-only skill (dice notation, `dice.requested` event).       |
+| `@virtuocity/app`                | Vite + React web app. Decides which modules are installed.             |
 
 New skills, game modes and providers are new packages under `packages/`.
 
@@ -50,12 +51,24 @@ app ──► any module ──► core
 - **Renderers** (`output.ts`): every output kind has one active renderer,
   mostly plain code; skills can `replace` it.
 - **Director** (`turns.ts`): picks the next speaker when the human passes.
+  The default (`least-recent`) is registered by `coreModule`.
+- **SessionRuntime** (`runtime.ts`): a running session. Actors `join` and
+  `leave` at any time; `post` adds a message; `pass` lets the director pick one
+  AI turn; `runTurn` lets a chosen actor speak. Each call runs at most one AI
+  turn, then the session pauses. Every event is delivered to the `onEvent` of
+  each skill whose `listensTo` names it.
 - **Panels**: UI slots that modules fill; the core layout is a feed plus slots.
 
 The core is UI-agnostic: `ModuleHost<R, C>` is generic over the render type and
 component type. The app fixes them to React (`packages/app/src/types.ts`).
 
+## Turn flow in the app
+
+After every turn the session pauses. The human can **Act** (post, then the
+director picks one character to answer), **Pass** (the director picks one
+character), or press a character's name to let exactly that one speak.
+
 ## Not built yet
 
-The turn loop (pause after every turn, act / pass / choose), the conversation
-and summarizer skills, game modes, session save/load and file export.
+Game modes, summarizer / key facts / lore skills, message editing and
+branching in the UI, session save/load and file export.

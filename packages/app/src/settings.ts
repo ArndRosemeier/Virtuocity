@@ -1,18 +1,25 @@
-const KEY = 'virtuocity.openrouterKey';
+/** Settings live in this browser only; the OpenRouter key never leaves it except to OpenRouter. */
+export interface Setting {
+  readonly key: string;
+  readonly fallback: string;
+}
 
-/** The OpenRouter key stays in this browser only. */
-export function readApiKey(): string {
+export const API_KEY: Setting = { key: 'virtuocity.openrouterKey', fallback: '' };
+/** OpenRouter's auto router until a model is picked. */
+export const TEXT_MODEL: Setting = { key: 'virtuocity.model.text', fallback: 'openrouter/auto' };
+
+export function readSetting(setting: Setting): string {
   try {
-    return localStorage.getItem(KEY) ?? '';
+    return localStorage.getItem(setting.key) || setting.fallback;
   } catch {
-    return '';
+    return setting.fallback;
   }
 }
 
-export function writeApiKey(value: string): void {
+export function writeSetting(setting: Setting, value: string): void {
   try {
-    localStorage.setItem(KEY, value);
+    localStorage.setItem(setting.key, value);
   } catch {
-    // Storage can be unavailable (private mode); the key then lives for this page only.
+    // Storage can be unavailable (private mode); the value then lasts for this page only.
   }
 }

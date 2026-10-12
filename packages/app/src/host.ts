@@ -1,16 +1,21 @@
-import type { ComponentType, ReactNode } from 'react';
-import { ModuleHost, loadModules } from '@virtuocity/core';
+import { ModuleHost, coreModule, loadModules } from '@virtuocity/core';
 import { openRouterModule } from '@virtuocity/openrouter';
+import { conversationModule } from '@virtuocity/skill-conversation';
 import { diceModule } from '@virtuocity/skill-dice';
+import { castPanelModule } from './CastPanel';
 import { defaultRenderersModule } from './renderers';
-import { readApiKey } from './settings';
-import type { AppHost, AppModule } from './types';
+import { API_KEY, readSetting } from './settings';
+import type { AppHost, AppModule, PanelProps } from './types';
+import type { ComponentType, ReactNode } from 'react';
 
 /** The one place that decides which modules are installed. */
 export function createHost(): AppHost {
-  return loadModules(new ModuleHost<ReactNode, ComponentType>(), [
+  return loadModules(new ModuleHost<ReactNode, ComponentType<PanelProps>>(), [
+    coreModule as AppModule,
     defaultRenderersModule,
-    openRouterModule({ apiKey: readApiKey }) as AppModule,
+    castPanelModule,
+    openRouterModule({ apiKey: () => readSetting(API_KEY) }) as AppModule,
+    conversationModule as AppModule,
     diceModule as AppModule,
   ]);
 }
