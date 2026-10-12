@@ -1,4 +1,6 @@
 import type { Seat } from './actor';
+import type { ContractAdapter } from './adapter';
+import { ContractRegistry } from './contract-registry';
 import type { ModalityInfo } from './models';
 import type { Identified } from './registry';
 import { Registry } from './registry';
@@ -25,6 +27,8 @@ export interface PanelContribution<C = unknown> extends Identified {
 
 /** All extension points a module can plug into. */
 export class ModuleHost<R = unknown, C = unknown> {
+  readonly contracts = new ContractRegistry();
+  readonly adapters = new Registry<ContractAdapter>('contract adapter');
   readonly skills = new Registry<Skill>('skill');
   readonly modalities = new Registry<ModalityInfo>('modality');
   readonly gameModes = new Registry<GameMode>('game mode');

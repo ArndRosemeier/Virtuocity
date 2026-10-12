@@ -1,34 +1,26 @@
 import type { Actor } from './actor';
-import type { EventBus, VEvent } from './events';
+import type { ContractRef } from './contract-version';
+import { fulfils } from './contract';
+import type { VEvent } from './events';
+import type { Implementation } from './implementation';
 import type { ModelOverrides } from './models';
-import type { OutputPart } from './output';
-import type { CompletionRequest, CompletionResult } from './provider';
 import type { Identified } from './registry';
-import type { Message, MessageTree } from './session';
-import type { CallStats } from './stats';
+import type { SkillContext } from './skill-context';
 
-/** What a skill is allowed to touch while it runs. */
-export interface SkillContext {
-  readonly actor: Actor;
-  readonly bus: EventBus;
-  readonly messages: MessageTree;
-  /** Everyone currently in the session. */
-  readonly actors: readonly Actor[];
-  /** Adds a message from this actor to the story. */
-  post(parts: readonly OutputPart[], stats?: readonly CallStats[]): Promise<Message>;
-  /** Runs a model call. The model is already resolved for this skill and actor. */
-  complete(request: Omit<CompletionRequest, 'model'>): Promise<CompletionResult>;
-}
+export type { SkillContext } from './skill-context';
 
 /**
  * The single unit of capability. A skill may be backed by an LLM, by plain
- * code, or by both; the core treats them identically.
+ * code, or by both; the core treats them identically. What a skill promises
+ * to others is expressed by the contracts it implements.
  */
 export interface Skill extends Identified {
   readonly name: string;
   readonly backing: 'llm' | 'code' | 'hybrid';
   /** Model overrides that beat the actor's own overrides. */
   readonly models?: ModelOverrides;
+  /** Contracts this skill implements, built with `implement`. */
+  readonly implements?: readonly Implementation[];
   /** Event types this skill reacts to (used by silent and support actors). */
   readonly listensTo?: readonly string[];
   onEvent?(event: VEvent, ctx: SkillContext): Promise<void>;
@@ -38,4 +30,9 @@ export interface Skill extends Identified {
 
 export function canTakeTurns(actor: Actor, skills: (id: string) => Skill): boolean {
   return actor.skillIds.some((id) => skills(id).takeTurn !== undefined);
+}
+
+/** Skills that can fill a slot requiring `wanted`, directly or through a descendant contract. */
+export function implementersOf(skills: readonly Skill[], wanted: ContractRef): Skill[] {
+  return skills.filter((s) => (s.implements ?? []).some((i) => fulfils(i.contract, wanted)));
 }

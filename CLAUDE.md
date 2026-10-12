@@ -9,8 +9,12 @@ codebase modular and free of duplication; CI enforces most of them.
 - New behaviour goes into a module (a package under `packages/`) that plugs
   into a registry. Do not add features to `core` unless it is a new concept or
   extension point every module needs.
-- A module may import only `@virtuocity/core`. Modules talk to each other via
-  events (`defineEvent`) and registries, never imports.
+- A module may import only `@virtuocity/core`, `@virtuocity/ui` and contract
+  packages (`@virtuocity/contract-*`). Modules talk to each other via events
+  (`defineEvent`), registries and contract actions, never imports.
+- What a skill offers to others is a contract. Skills of the same kind share a
+  contract (or extend one) so they stay interchangeable; every implementation runs
+  its contract's conformance suite in its tests.
 - Before writing a helper, search for an existing one (`rg`). If two modules
   need the same logic, it belongs in `core` or in a shared module, not in two copies.
 - No `any`, no non-null assertions, no disabling lint rules or skipping tests to get green.

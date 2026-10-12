@@ -1,6 +1,11 @@
 import type { Actor } from './actor';
+import { resolveImplementation } from './adapter';
+import type { Contract } from './contract';
 import { EventBus, defineEvent } from './events';
 import type { VEvent } from './events';
+import { HumanTaskQueue } from './human-tasks';
+import type { Implementation } from './implementation';
+import { ContractError, invokeAction } from './implementation';
 import type { ModelOverrides } from './models';
 import { resolveModel } from './models';
 import type { ModuleHost } from './module';
@@ -8,6 +13,7 @@ import type { OutputPart } from './output';
 import { MessageTree } from './session';
 import type { Message } from './session';
 import type { Skill, SkillContext } from './skill';
+import type { InvokeAction } from './skill-context';
 import type { CallStats } from './stats';
 
 export const actorJoined = defineEvent<{ readonly actorId: string }>('actor.joined');
@@ -32,6 +38,8 @@ export interface SessionConfig {
 export class SessionRuntime {
   readonly bus = new EventBus();
   readonly messages = new MessageTree();
+  /** Contract actions waiting for a human to answer. */
+  readonly tasks = new HumanTaskQueue({ bus: this.bus });
   readonly #actors = new Map<string, Actor>();
   #speaking: string | undefined;
 
@@ -96,6 +104,45 @@ export class SessionRuntime {
     return next;
   }
 
+  /**
+   * Asks an actor to perform a contract action. AI actors answer through the
+   * skill implementing the contract (or a descendant, or via an adapter);
+   * human actors get a task to fill in.
+   */
+  readonly invoke: InvokeAction = async (actorId, contract, action, input) => {
+    // Results are validated against the contract's schemas; the casts only restore generics.
+    const actor = this.#actor(actorId);
+    const erased = contract as Contract;
+    if (actor.controller === 'human') {
+      return (await this.tasks.request(actorId, erased, action, input)) as never;
+    }
+    const found = this.#implementation(actor, erased);
+    if (!found) {
+      throw new ContractError('no-implementation', `"${actorId}" cannot serve "${contract.id}"`);
+    }
+    const ctx = this.#context(actor, found.candidate);
+    return (await invokeAction(found.implementation, action, input, ctx)) as never;
+  };
+
+  /** How an AI actor would serve `contract`, if it can. */
+  implementationFor(actorId: string, contract: Contract): Implementation | undefined {
+    return this.#implementation(this.#actor(actorId), contract)?.implementation;
+  }
+
+  #implementation(actor: Actor, contract: Contract) {
+    const skills = actor.skillIds
+      .map((id) => this.config.host.skills.find(id))
+      .filter((s): s is Skill => s !== undefined);
+    const adapters = this.config.host.adapters.list();
+    return resolveImplementation(skills, (s) => s.implements ?? [], contract, adapters);
+  }
+
+  #actor(actorId: string): Actor {
+    const actor = this.#actors.get(actorId);
+    if (!actor) throw new ContractError('no-implementation', `"${actorId}" is not in the session`);
+    return actor;
+  }
+
   #turnSkill(actor: Actor): Skill | undefined {
     return actor.skillIds.map((id) => this.config.host.skills.find(id)).find((s) => s?.takeTurn);
   }
@@ -107,6 +154,7 @@ export class SessionRuntime {
       messages: this.messages,
       actors: this.actors,
       post: (parts, stats) => this.post(actor.id, parts, stats),
+      invoke: this.invoke,
       complete: (request) => {
         const model = resolveModel(request.modality, {
           defaults: this.config.modelDefaults(),
