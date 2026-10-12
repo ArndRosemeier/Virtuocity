@@ -28,6 +28,8 @@ export interface Skill extends Identified {
   readonly character?: boolean;
   /** What can be set per actor, built with `defineSettings`; the app renders a form from it. */
   readonly settings?: SettingsSchema;
+  /** Removed skills this one takes over: actors that had them get this skill instead. */
+  readonly replaces?: readonly SkillReplacement[];
   /** Contracts this skill implements, built with `implement`. */
   readonly implements?: readonly Implementation[];
   /** Event types this skill reacts to (used by silent and support actors). */
@@ -35,6 +37,12 @@ export interface Skill extends Identified {
   onEvent?(event: VEvent, ctx: SkillContext): Promise<void>;
   /** Present on skills that let an actor take a turn, e.g. conversation. */
   takeTurn?(ctx: SkillContext): Promise<void>;
+}
+
+/** A removed skill and how its per-actor settings become this skill's. */
+export interface SkillReplacement {
+  readonly skillId: string;
+  readonly settings?: (old: unknown) => unknown;
 }
 
 export function canTakeTurns(actor: Actor, skills: (id: string) => Skill): boolean {

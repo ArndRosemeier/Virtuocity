@@ -159,3 +159,21 @@ describe('older libraries', () => {
     );
   });
 });
+
+describe('upgrading actors', () => {
+  const upgrade = (actor: Actor): Actor => ({
+    ...actor,
+    skillIds: actor.skillIds.map((id) => (id === 'old' ? 'new' : id)),
+  });
+  const old = { ...mira, skillIds: ['old'] };
+
+  it('upgrades stored actors when migrating, and incoming ones when adopting', async () => {
+    const store = memoryStore<unknown>();
+    await library(store).saveActor(old);
+    const lib = new Library(store, { upgrade });
+    await lib.migrate();
+    expect((await lib.actors())[0]?.skillIds).toEqual(['new']);
+    const [adopted] = await lib.adopt([old], keep);
+    expect(adopted?.skillIds).toEqual(['new']);
+  });
+});

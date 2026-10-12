@@ -11,6 +11,13 @@ export interface Release {
 
 export const RELEASES: readonly Release[] = [
   {
+    build: 25,
+    date: '2026-10-12',
+    changes: [
+      'One premise skill, now just called "Premise": you write the opening yourself, and Transform by AI turns a few words into a full premise. "Premise (from a prompt)" is gone; actors that used it now use Premise, with what you had asked for as their premise text.',
+    ],
+  },
+  {
     build: 24,
     date: '2026-10-12',
     changes: [

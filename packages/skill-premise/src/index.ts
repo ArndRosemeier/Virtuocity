@@ -9,10 +9,8 @@ import {
   textContent,
 } from '@virtuocity/core';
 import { deliverPremise } from './deliver';
-import { premisePrompt } from './prompt';
-import { fixedPremiseSettings, promptedPremiseSettings } from './settings';
+import { fixedPremiseSettings } from './settings';
 
-export * from './prompt';
 export * from './settings';
 
 /**
@@ -39,42 +37,33 @@ function fixedPremise(ctx: SkillContext) {
   return Promise.resolve(text(premise.trim()));
 }
 
-async function promptedPremise(ctx: SkillContext) {
-  const settings = readSettings(promptedPremiseSettings, ctx.settings);
-  const messages = premisePrompt(ctx.actor, ctx.cast, settings);
-  const { text: premise } = await ctx.complete({ modality: 'text', messages });
-  if (!premise.trim()) throw new Error('The model returned an empty premise.');
-  return text(premise.trim());
-}
-
 const implementing = (
   run: (ctx: SkillContext) => Promise<ReturnType<typeof text>>,
 ): Implementation[] => [implement(premiseContract, { premise: (_input, ctx) => run(ctx) })];
 
-/** Opens every session with the same premise, written by you. */
+/** What a removed "Premise (from a prompt)" actor had asked for becomes its premise text. */
+const fromPrompt = (old: unknown): unknown => {
+  const prompt = (old as { prompt?: unknown } | null)?.prompt;
+  return typeof prompt === 'string' ? { premise: prompt } : undefined;
+};
+
+/**
+ * Opens every session with the same premise, written by you (Transform by AI
+ * can turn a few words into one). It replaced "Premise (from a prompt)".
+ */
 export const fixedPremiseSkill = premiseSkill({
   id: 'fixed-premise',
-  name: 'Premise (fixed text)',
+  name: 'Premise',
   backing: 'code',
   settings: fixedPremiseSettings,
+  replaces: [{ skillId: 'prompted-premise', settings: fromPrompt }],
   implements: implementing(fixedPremise),
-});
-
-/** Opens every session with a fresh premise, written by a model from your prompt. */
-export const promptedPremiseSkill = premiseSkill({
-  id: 'prompted-premise',
-  name: 'Premise (from a prompt)',
-  backing: 'llm',
-  modalities: ['text'],
-  settings: promptedPremiseSettings,
-  implements: implementing(promptedPremise),
 });
 
 export const premiseModule: VirtuocityModule = {
   id: 'skill-premise',
   register: (host) => {
     host.contracts.register(premiseContract);
-    host.skills.register(promptedPremiseSkill);
     host.skills.register(fixedPremiseSkill);
   },
 };

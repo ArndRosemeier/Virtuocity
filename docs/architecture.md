@@ -61,7 +61,10 @@ app ──► any module ──► ui ──────────► core
   come only from its skills; any actor can take any seat.
 - **Skill** (`skill.ts`): one interface, backed by `llm`, `code` or `hybrid`.
   `onEvent` for reacting (silent and support actors), `takeTurn` for actors that
-  speak. Conversation is just a skill with `takeTurn`.
+  speak. Conversation is just a skill with `takeTurn`. A skill that takes over
+  a removed one lists it in `replaces`; `upgradeActor` (`skill-upgrade.ts`)
+  moves actors onto it, and the app's `Library` applies that to stored actors
+  and to every actor it adopts, sessions' casts included.
 - **Models** (`models.ts`): `resolveModel` picks skill override, then actor
   override, then the core default for the modality.
 - **Assist** (`runtime.assist`): a model call made for the person, not an actor
@@ -308,8 +311,9 @@ or saved setup and its cast has joined, never when a saved session loads
 kind, so a premise may be text, a picture or sound. `skill-premise` listens for
 `sessionStarted`, and for its own `actorJoined` outside a start, and while the
 session is still empty invokes the premise contract on its own actor and posts
-the result as the opening. Two implementations ship: a fixed text written
-in the actor's settings, and one a model writes from a prompt.
+the result as the opening. One implementation ships, "Premise": a text
+written in the actor's settings (Transform by AI turns a few words into one).
+It replaced "Premise (from a prompt)", whose prompt becomes the text.
 
 ## Spaces
 
