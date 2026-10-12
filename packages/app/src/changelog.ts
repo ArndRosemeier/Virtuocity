@@ -11,6 +11,13 @@ export interface Release {
 
 export const RELEASES: readonly Release[] = [
   {
+    build: 13,
+    date: '2026-10-12',
+    changes: [
+      'Fixed: image-only models (such as Muse Image) failed with "Use the /api/v1/images endpoint instead". Virtuocity now sends them to OpenRouter\'s image endpoint, with cost shown as usual.',
+    ],
+  },
+  {
     build: 12,
     date: '2026-10-12',
     changes: [
