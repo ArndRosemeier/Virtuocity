@@ -3,6 +3,7 @@ import { resolveImplementation } from './adapter';
 import { CAST, castDoc } from './cast';
 import type { Contract } from './contract';
 import { EventBus, defineEvent } from './events';
+import { FlowRunner } from './flow-runner';
 import type { VEvent } from './events';
 import { HumanTaskQueue } from './human-tasks';
 import type { Implementation } from './implementation';
@@ -51,6 +52,8 @@ export class SessionRuntime {
   readonly workspace: Workspace;
   /** Contract actions waiting for a human to answer. */
   readonly tasks: HumanTaskQueue;
+  /** Runs flows (turn-taking, pipelines, game loops) one at a time. */
+  readonly flows: FlowRunner;
   readonly #newId: () => string;
   readonly #now: () => number;
   readonly #spent: CallStats[] = [];
@@ -63,6 +66,7 @@ export class SessionRuntime {
     const ids = { newId: this.#newId, now: this.#now };
     this.workspace = new Workspace({ bus, policies: () => config.host.policies.list(), ...ids });
     this.tasks = new HumanTaskQueue({ bus, ...ids });
+    this.flows = new FlowRunner(this, (id) => config.host.flows.get(id));
     this.bus.on('*', (event) => this.#dispatch(event));
   }
 
@@ -182,13 +186,10 @@ export class SessionRuntime {
     }
   }
 
-  /** The human passes: the director picks one AI actor to take a turn. */
-  async pass(): Promise<Actor | undefined> {
+  /** Asks the session's director which AI actor should speak next. */
+  pickNext(): Promise<Actor | undefined> {
     const director = this.config.host.directors.get(this.config.directorId);
-    const candidates = this.speakers();
-    const next = await director.pickNext({ candidates, transcript: this.transcript() });
-    if (next) await this.runTurn(next.id);
-    return next;
+    return director.pickNext({ candidates: this.speakers(), transcript: this.transcript() });
   }
 
   /**
@@ -250,7 +251,12 @@ export class SessionRuntime {
           skill: skill.models,
         });
         const provider = this.config.host.providers.get(this.config.providerId);
-        const result = await provider.complete({ ...request, model });
+        const signal = request.signal ?? this.flows.signal;
+        const result = await provider.complete({
+          ...request,
+          model,
+          ...(signal ? { signal } : {}),
+        });
         this.#spent.push(result.stats);
         return result;
       },

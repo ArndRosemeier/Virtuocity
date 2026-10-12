@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createAssetStore } from '@virtuocity/core';
 import { AppActionsContext } from './actions';
 import type { AppActions } from './actions';
@@ -23,6 +23,10 @@ export function App() {
   const [settingsTab, setSettingsTab] = useState<SettingsTab | null>(null);
   const [newCharacter, setNewCharacter] = useState(false);
   useTheme();
+  useEffect(() => {
+    // Dev builds expose the session for debugging in the browser console.
+    if (import.meta.env.DEV) Object.assign(window, { virtuocity: { host, session } });
+  }, [host, session]);
 
   const actions = useMemo<AppActions>(
     () => ({
