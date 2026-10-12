@@ -3,10 +3,12 @@ import { ModuleHost, coreModule, loadModules } from '@virtuocity/core';
 import { openRouterModule } from '@virtuocity/openrouter';
 import { conversationModule } from '@virtuocity/skill-conversation';
 import { diceModule } from '@virtuocity/skill-dice';
+import { illustratorModule } from '@virtuocity/skill-illustrator';
 import { reviewerModule } from '@virtuocity/skill-reviewer';
 import { writerModule } from '@virtuocity/skill-writer';
 import { bookPanelModule } from './BookPanel';
 import { castPanelModule } from './CastPanel';
+import { jobsPanelModule } from './JobsPanel';
 import { taskPanelModule } from './TaskPanel';
 import { defaultRenderersModule } from './renderers';
 import { API_KEY, readSetting } from './settings';
@@ -20,11 +22,13 @@ export function createHost(): AppHost {
     defaultRenderersModule,
     castPanelModule,
     taskPanelModule,
+    jobsPanelModule,
     openRouterModule({ apiKey: () => readSetting(API_KEY) }) as AppModule,
     conversationModule as AppModule,
     diceModule as AppModule,
     reviewerModule as AppModule,
     writerModule as AppModule,
+    illustratorModule as AppModule,
     bookRoomModule as AppModule,
     bookPanelModule,
   ]);

@@ -18,6 +18,8 @@ vision behind this lives in [vision.md](vision.md).
 | `@virtuocity/skill-reviewer`     | LLM skill implementing `reviewer@1` (and so `critic@1`).               |
 | `@virtuocity/contract-writing`   | `writer@1` contract.                                                   |
 | `@virtuocity/skill-writer`       | LLM skill implementing `writer@1`.                                     |
+| `@virtuocity/contract-visual`    | `illustrator@1` contract.                                              |
+| `@virtuocity/skill-illustrator`  | Image-model skill implementing `illustrator@1`; illustrates turns.     |
 | `@virtuocity/book-room`          | Walking skeleton: `manuscript` document and `book-pipeline` flow.      |
 | `@virtuocity/app`                | Vite + React web app. Decides which modules are installed.             |
 
@@ -189,6 +191,21 @@ request, schema)` asks for JSON matching a zod schema, then shows the model
   memory and emits `call.started`, `call.progressed` and `call.ended`. The app
   streams the speaking actor's text from it and lists calls under "Model calls".
 
+## Media and background jobs
+
+- **Media** (`media.ts`): image and audio calls return `media` (mime and bytes).
+  `storeMedia(ctx.assets, media)` keeps them in the session's content-addressed
+  asset store and returns `image` or `audio` parts that hold only the asset id,
+  so the operation log stays small and exports carry the files.
+- **Jobs** (`jobs.ts`): `ctx.startJob(label, run)` starts work beside the story
+  and returns at once; `runtime.jobs` lists jobs, reports progress and cancels
+  them through `control.signal` (pass it to model calls). A failed job never
+  throws; its error is shown in the app's "Background" panel. Skills reacting to
+  events should start a job for anything slow, because event delivery is awaited.
+- **Illustrator** (`contract-visual`, `skill-illustrator`): `illustrator@1`
+  draws a picture from a description. As an actor, the illustrator draws each
+  other actor's turn in a background job and posts the picture.
+
 ## Turn flow in the app
 
 After every turn the session pauses. The human can **Act** (post, then the
@@ -199,5 +216,6 @@ actor), or press an actor's name to let exactly that one speak.
 
 See the roadmap in the project's design notes. The book room (draft, review,
 approve chapters with a writer, a reviewer and you as editor) is the first
-walking skeleton. Next up: image and audio generation and background jobs. The app autosaves one session; a
+walking skeleton. Audio generation has the plumbing (parts, renderer) but no
+provider support yet. Next up: context assembly, profiles and skill settings. The app autosaves one session; a
 session library comes with blueprints.

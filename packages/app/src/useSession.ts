@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useReducer } from 'react';
-import type { Actor, KeyValueStore } from '@virtuocity/core';
+import type { Actor, AssetStore, KeyValueStore } from '@virtuocity/core';
 import { SessionRuntime, headMoved, stateChanged } from '@virtuocity/core';
 import type { AppHost } from './types';
 import { readModelDefaults } from './settings';
@@ -45,7 +45,11 @@ function autosave(session: SessionRuntime, store: KeyValueStore<unknown>): () =>
 }
 
 /** One running session for the page, restored from storage and saved on every change. */
-export function useSession(host: AppHost, store: KeyValueStore<unknown>): SessionRuntime {
+export function useSession(
+  host: AppHost,
+  store: KeyValueStore<unknown>,
+  assets: AssetStore,
+): SessionRuntime {
   const session = useMemo(
     () =>
       new SessionRuntime({
@@ -53,8 +57,9 @@ export function useSession(host: AppHost, store: KeyValueStore<unknown>): Sessio
         providerId: 'openrouter',
         directorId: 'least-recent',
         modelDefaults: () => readModelDefaults(host.modalities.list()),
+        assets,
       }),
-    [host],
+    [host, assets],
   );
   const [, refresh] = useReducer((n: number) => n + 1, 0);
   useEffect(() => session.bus.on('*', refresh), [session]);

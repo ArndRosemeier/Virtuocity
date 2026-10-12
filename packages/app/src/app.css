@@ -556,3 +556,51 @@
 .trace__message--answer .trace__role {
   color: var(--accent);
 }
+
+/* ---------- Pictures, sound and background jobs ---------- */
+.media-image {
+  margin: 0;
+}
+.media-image img,
+.media-image__loading {
+  display: block;
+  max-width: 100%;
+  max-height: 28rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+}
+.media-image__loading {
+  width: 18rem;
+  aspect-ratio: 1;
+  background: var(--surface);
+}
+.media-audio {
+  width: 100%;
+}
+.jobs {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.job {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+.job__text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.job[data-status='running'] .job__label::after {
+  content: ' …';
+  animation: blink 1.2s infinite var(--ease);
+}
+.job__error {
+  color: var(--danger);
+  overflow-wrap: anywhere;
+}

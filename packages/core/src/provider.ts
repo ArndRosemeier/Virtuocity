@@ -1,4 +1,5 @@
 import type { Identified } from './registry';
+import type { GeneratedMedia } from './media';
 import type { Modality } from './models';
 import type { CallStats } from './stats';
 
@@ -46,6 +47,8 @@ export interface CompletionRequest {
 export interface CompletionResult {
   readonly text: string;
   readonly toolCalls?: readonly ToolCall[];
+  /** Pictures or sound, for image and audio calls. */
+  readonly media?: readonly GeneratedMedia[];
   readonly stats: CallStats;
 }
 

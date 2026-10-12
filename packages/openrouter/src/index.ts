@@ -7,8 +7,8 @@ import type {
 } from '@virtuocity/core';
 import { fetchModels } from './models';
 import { readStream } from './stream';
-import type { Answer, WireToolCall, WireUsage } from './wire';
-import { fromWireCalls, requestBody, toResult } from './wire';
+import type { Answer, WireImage, WireToolCall, WireUsage } from './wire';
+import { fromWireCalls, fromWireImages, requestBody, toResult } from './wire';
 
 export * from './models';
 
@@ -27,6 +27,7 @@ interface OpenRouterResponse {
     readonly message: {
       readonly content: string | null;
       readonly tool_calls?: readonly WireToolCall[];
+      readonly images?: readonly WireImage[];
     };
   }[];
   readonly usage?: WireUsage;
@@ -38,6 +39,7 @@ function fromResponse(body: OpenRouterResponse): Answer {
     model: body.model,
     text: message?.content ?? '',
     toolCalls: fromWireCalls(message?.tool_calls),
+    media: fromWireImages(message?.images),
     usage: body.usage,
   };
 }

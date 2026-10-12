@@ -9,6 +9,7 @@ import { Header } from './Header';
 import { SettingsModal } from './SettingsModal';
 import type { SettingsTab } from './SettingsModal';
 import { Slot } from './Slot';
+import { AssetsContext } from './media';
 import { createHost } from './host';
 import { indexedDbStore } from './storage';
 import { useSession } from './useSession';
@@ -19,7 +20,7 @@ export function App() {
   const host = useMemo(createHost, []);
   const sessions = useMemo(() => indexedDbStore<unknown>('sessions'), []);
   const assets = useMemo(() => createAssetStore(indexedDbStore('assets')), []);
-  const session = useSession(host, sessions);
+  const session = useSession(host, sessions, assets);
   const [settingsTab, setSettingsTab] = useState<SettingsTab | null>(null);
   const [newActor, setNewActor] = useState(false);
   useTheme();
@@ -38,25 +39,27 @@ export function App() {
 
   return (
     <AppActionsContext.Provider value={actions}>
-      <div className="layout">
-        <Header session={session} assets={assets} />
-        <Feed host={host} session={session} />
-        <Slot name="side" host={host} session={session} />
-        <Composer session={session} />
-      </div>
-      <SettingsModal
-        key={settingsTab ?? 'closed'}
-        host={host}
-        open={settingsTab !== null}
-        initialTab={settingsTab ?? 'connection'}
-        onClose={() => setSettingsTab(null)}
-      />
-      <ActorDialog
-        host={host}
-        session={session}
-        open={newActor}
-        onClose={() => setNewActor(false)}
-      />
+      <AssetsContext.Provider value={assets}>
+        <div className="layout">
+          <Header session={session} assets={assets} />
+          <Feed host={host} session={session} />
+          <Slot name="side" host={host} session={session} />
+          <Composer session={session} />
+        </div>
+        <SettingsModal
+          key={settingsTab ?? 'closed'}
+          host={host}
+          open={settingsTab !== null}
+          initialTab={settingsTab ?? 'connection'}
+          onClose={() => setSettingsTab(null)}
+        />
+        <ActorDialog
+          host={host}
+          session={session}
+          open={newActor}
+          onClose={() => setNewActor(false)}
+        />
+      </AssetsContext.Provider>
     </AppActionsContext.Provider>
   );
 }

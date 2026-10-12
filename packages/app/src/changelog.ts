@@ -11,6 +11,15 @@ export interface Release {
 
 export const RELEASES: readonly Release[] = [
   {
+    build: 3,
+    date: '2026-10-12',
+    changes: [
+      'Illustrator: add an actor with the Illustrator skill and it paints each turn of the story. Pick an image model under Settings, Models.',
+      'Background panel: see what is being worked on beside the story, stop it, and see why something failed.',
+      'Pictures are saved with the session and included when you save to a file.',
+    ],
+  },
+  {
     build: 2,
     date: '2026-10-12',
     changes: [

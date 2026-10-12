@@ -1,4 +1,6 @@
-import type { Answer, WireUsage } from './wire';
+import type { GeneratedMedia } from '@virtuocity/core';
+import type { Answer, WireImage, WireUsage } from './wire';
+import { fromWireImages } from './wire';
 
 interface ToolCallDelta {
   readonly index: number;
@@ -6,14 +8,15 @@ interface ToolCallDelta {
   readonly function?: { readonly name?: string; readonly arguments?: string };
 }
 
+interface Delta {
+  readonly content?: string | null;
+  readonly tool_calls?: readonly ToolCallDelta[];
+  readonly images?: readonly WireImage[];
+}
+
 interface Chunk {
   readonly model?: string;
-  readonly choices?: readonly {
-    readonly delta?: {
-      readonly content?: string | null;
-      readonly tool_calls?: readonly ToolCallDelta[];
-    };
-  }[];
+  readonly choices?: readonly { readonly delta?: Delta }[];
   readonly usage?: WireUsage;
   readonly error?: { readonly message?: string };
 }
@@ -29,21 +32,28 @@ class Collector {
   model = '';
   text = '';
   usage: WireUsage | undefined;
+  readonly media: GeneratedMedia[] = [];
   readonly calls = new Map<number, PartialCall>();
 
   constructor(private readonly onText: (delta: string) => void) {}
 
   add(chunk: Chunk): void {
-    if (chunk.error)
+    if (chunk.error) {
       throw new Error(`OpenRouter stream failed: ${chunk.error.message ?? 'unknown error'}`);
+    }
     if (chunk.model) this.model = chunk.model;
     if (chunk.usage) this.usage = chunk.usage;
     const delta = chunk.choices?.[0]?.delta;
-    if (delta?.content) {
+    if (delta) this.#addDelta(delta);
+  }
+
+  #addDelta(delta: Delta): void {
+    if (delta.content) {
       this.text += delta.content;
       this.onText(delta.content);
     }
-    for (const part of delta?.tool_calls ?? []) this.#addCall(part);
+    for (const part of delta.tool_calls ?? []) this.#addCall(part);
+    this.media.push(...fromWireImages(delta.images));
   }
 
   #addCall(part: ToolCallDelta): void {
@@ -58,7 +68,8 @@ class Collector {
     const toolCalls = [...this.calls.entries()]
       .sort(([a], [b]) => a - b)
       .map(([index, c]) => ({ ...c, id: c.id || `call-${index}` }));
-    return { model: this.model, text: this.text, toolCalls, usage: this.usage };
+    const { model, text, media, usage } = this;
+    return { model, text, toolCalls, media, usage };
   }
 }
 
