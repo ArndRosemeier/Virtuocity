@@ -11,6 +11,14 @@ export interface Release {
 
 export const RELEASES: readonly Release[] = [
   {
+    build: 14,
+    date: '2026-10-12',
+    changes: [
+      'Roleplay can open with a premise. The new Premise actor never speaks; it only sets up where the story begins, as the first message, when a session starts.',
+      "Two kinds of premise, interchangeable because both fill the same premise contract: a fixed text you write yourself, or a fresh one a model writes from your prompt. Set either in the Premise actor's settings.",
+    ],
+  },
+  {
     build: 13,
     date: '2026-10-12',
     changes: [

@@ -280,6 +280,16 @@ lines into the last summary, the full chronicler rereads everything. Both run
 the contract's conformance suite. The app's Memory panel shows, edits and
 forgets summaries (a forgotten one is rebuilt after the next turn).
 
+## Premise
+
+`sessionStarted` (core) fires once when a session is started from a blueprint
+or saved setup and its cast has joined, never when a saved session loads.
+`contract-premise` defines `premise@1.0`, which returns output parts of any
+kind, so a premise may be text, a picture or sound. `skill-premise` listens for
+`sessionStarted`, invokes the premise contract on its own actor and posts the
+result as the story's opening. Two implementations ship: a fixed text written
+in the actor's settings, and one a model writes from a prompt.
+
 ## Library
 
 `Library` keeps actors and setups apart from any session, in an injected

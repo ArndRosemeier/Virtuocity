@@ -15,7 +15,7 @@ import { coreModule } from './core-module';
 import { implement } from './implementation';
 import { ModuleHost, loadModules } from './module';
 import { SessionRuntime } from './runtime';
-import { currentBlueprint, startBlueprint, startSavedSetup } from './setup';
+import { currentBlueprint, sessionStarted, startBlueprint, startSavedSetup } from './setup';
 import type { Skill } from './skill';
 
 const painter = defineContract({
@@ -123,14 +123,18 @@ describe('blueprints', () => {
     const { host, session } = stageSession();
     expect(currentBlueprint(session, host.blueprints)).toBeUndefined();
     const blueprint: Blueprint = stage;
+    const started: unknown[] = [];
+    session.bus.on(sessionStarted, (e) => void started.push(e.payload));
     await startBlueprint(session, blueprint, castBlueprint(stage, defaultChoices(stage, [talk])));
     expect(currentBlueprint(session, host.blueprints)?.id).toBe('stage');
     expect(session.actors.map((a) => a.id)).toEqual(['narrator']);
+    expect(started).toEqual([{ blueprintId: 'stage' }]);
     const saved = session.save();
     await session.workspace.load([], null);
     expect(currentBlueprint(session, host.blueprints)).toBeUndefined();
     await session.load(saved);
     expect(currentBlueprint(session, host.blueprints)?.id).toBe('stage');
+    expect(started).toHaveLength(1);
   });
 
   it('starts a saved setup with the layout of its blueprint, if installed', async () => {

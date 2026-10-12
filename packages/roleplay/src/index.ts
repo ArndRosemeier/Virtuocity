@@ -1,11 +1,13 @@
 import { summarizerContract } from '@virtuocity/contract-memory';
+import { premiseContract } from '@virtuocity/contract-premise';
 import { illustratorContract } from '@virtuocity/contract-visual';
 import type { VirtuocityModule } from '@virtuocity/core';
 import { defineBlueprint } from '@virtuocity/core';
 
 /**
- * A narrator and a companion tell a story with you; an illustrator paints it
- * and a chronicler remembers it, if skills for them are installed.
+ * A narrator and a companion tell a story with you. If skills for them are
+ * installed, a premise opens it, an illustrator paints it and a chronicler
+ * remembers it.
  */
 export const roleplayBlueprint = defineBlueprint({
   id: 'roleplay',
@@ -13,6 +15,12 @@ export const roleplayBlueprint = defineBlueprint({
   description:
     'A narrator sets the scene and a companion travels with you. Add an illustrator to see the story.',
   roles: [
+    {
+      id: 'premise',
+      personality: { name: 'Premise', description: 'Sets up where the story begins.' },
+      needs: [premiseContract],
+      optional: true,
+    },
     {
       id: 'narrator',
       personality: {
@@ -58,6 +66,7 @@ export const roleplayModule: VirtuocityModule = {
   register: (host) => {
     host.contracts.register(illustratorContract);
     host.contracts.register(summarizerContract);
+    host.contracts.register(premiseContract);
     host.blueprints.register(roleplayBlueprint);
   },
 };
