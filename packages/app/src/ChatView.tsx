@@ -19,12 +19,54 @@ interface MessageViewProps {
   readonly retry?: { readonly run: () => void; readonly busy: boolean } | undefined;
   /** Offers an edit button for the message's text; it is disabled while `busy`. */
   readonly edit?: MessageEdit | undefined;
+  /** Offers a delete button; it is disabled while `busy`. */
+  readonly remove?: { readonly run: () => void; readonly busy: boolean } | undefined;
 }
 
 interface MessageEdit {
   readonly text: string;
   readonly save: (text: string) => void;
   readonly busy: boolean;
+}
+
+/** Retry, Edit and Delete for one message, each shown only when offered. */
+function MessageButtons({
+  retry,
+  edit,
+  remove,
+  onEdit,
+}: Pick<MessageViewProps, 'retry' | 'edit' | 'remove'> & { onEdit: () => void }) {
+  return (
+    <>
+      {retry && (
+        <IconButton
+          size="sm"
+          icon="restart"
+          label="Retry: drop this and everything after it, then answer again"
+          disabled={retry.busy}
+          onClick={retry.run}
+        />
+      )}
+      {edit && (
+        <IconButton
+          size="sm"
+          icon="edit"
+          label="Edit this message"
+          disabled={edit.busy}
+          onClick={onEdit}
+        />
+      )}
+      {remove && (
+        <IconButton
+          size="sm"
+          icon="trash"
+          label="Delete this message; everything after it stays"
+          disabled={remove.busy}
+          onClick={remove.run}
+        />
+      )}
+    </>
+  );
 }
 
 /** One message under its speaker's name, its content drawn by the renderer for its kind. */
@@ -37,6 +79,7 @@ export function MessageView({
   live = false,
   retry,
   edit,
+  remove,
 }: MessageViewProps) {
   const [editing, setEditing] = useState(false);
   return (
@@ -50,24 +93,12 @@ export function MessageView({
         <header className="message__header">
           <h3 className="message__name">{name}</h3>
           {stats && <StatsBadge stats={stats} />}
-          {retry && (
-            <IconButton
-              size="sm"
-              icon="restart"
-              label="Retry: drop this and everything after it, then answer again"
-              disabled={retry.busy}
-              onClick={retry.run}
-            />
-          )}
-          {edit && !editing && (
-            <IconButton
-              size="sm"
-              icon="edit"
-              label="Edit this message"
-              disabled={edit.busy}
-              onClick={() => setEditing(true)}
-            />
-          )}
+          <MessageButtons
+            retry={retry}
+            edit={editing ? undefined : edit}
+            remove={remove}
+            onEdit={() => setEditing(true)}
+          />
         </header>
         {edit && editing ? (
           <MessageEditor
@@ -117,6 +148,9 @@ export function ChatViewPart({ host, view }: { host: AppHost; view: ChatView }) 
             stats={entry.stats}
             retry={retryOf(entry.id)}
             edit={editOf(entry.id)}
+            remove={
+              actions ? { run: () => actions.remove(entry.id), busy: actions.busy } : undefined
+            }
           />
           {entry.markers?.map((marker) => (
             <StoryMarkerLine key={marker.actorId} label={marker.label} actorId={marker.actorId} />

@@ -96,7 +96,8 @@ app ──► any module ──► ui ──────────► core
   AI turn; `runTurn` lets a chosen actor speak; `retryMessage` (`retry.ts`)
   rewinds to before an actor's message and lets that actor speak again;
   `editMessage` rewrites one message in place (the app's pencil button, for
-  text messages), leaving everything after it. `stop`
+  text messages), leaving everything after it; `removeMessage` takes one
+  message out (the trash button on every message), leaving everything after it. `stop`
   aborts the current turn's model calls and the running flow; a stopped turn
   ends quietly. Each call runs at most one AI
   turn, then the session pauses. `turn.started` / `turn.ended` events and
@@ -337,7 +338,11 @@ only AI actors (the narrator) know the setup.
 Some actors get their own space on screen, in the app's left slot.
 `contract-space` defines `space@1.0`: `fill` returns what the space shows now
 as output parts of any kind (it must be quick), and the optional `edit` takes
-what a person changed. The app's Spaces panel shows one space per actor whose
+what a person changed. The optional `discard` and `redo` throw away or make
+again what the space shows (the app's trash and retry buttons in the space's
+header); the Illustrator removes the picture from the scene and the story, or
+repaints it from the description it keeps in the picture's data and replaces
+every copy. The app's Spaces panel shows one space per actor whose
 skills implement the contract, asks for it again whenever the session's state
 moves, offers editing for spaces that provide `edit` and hold text, and can
 maximize any space to full screen, where its content stretches to fit. The

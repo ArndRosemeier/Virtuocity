@@ -76,6 +76,11 @@ export async function showOnChannel(
   await state.change(CHANNELS, channelsDoc, { type: 'show', channelId: channel.id, part });
 }
 
+/** Stops a channel showing anything. */
+export async function clearChannel(state: StateView, channel: Channel): Promise<void> {
+  await state.change(CHANNELS, channelsDoc, { type: 'clear', channelId: channel.id });
+}
+
 /** Everything the channels show now, as `state` may see it. */
 export function channelContents(state: Pick<StateView, 'read'>): ChannelsState['channels'] {
   return state.read(CHANNELS, channelsDoc).channels;

@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
 import { spaceContract } from '@virtuocity/contract-space';
 import type { Actor, OutputPart, SessionRuntime } from '@virtuocity/core';
 import { provides } from '@virtuocity/core';
 import { Avatar, Button, IconButton, TextArea } from '@virtuocity/ui';
+import { SpaceActions } from './SpaceActions';
 import { closeSpace, spaceElementId, useOpenSpaces } from './openSpaces';
 import type { AppModule, PanelProps } from './types';
 import type { Shown } from './useParts';
@@ -79,22 +81,25 @@ function Content({ host, shown }: Pick<PanelProps, 'host'> & { shown: Shown | un
   );
 }
 
-/** A space's name, with buttons to maximize it and, for on-demand spaces, to close it. */
+/** A space's name, its own actions, and buttons to maximize it and, for on-demand spaces, to close it. */
 function SpaceHeader({
   name,
   maximized,
   onToggle,
   onClose,
+  children,
 }: {
   name: string;
   maximized: boolean;
   onToggle: () => void;
   onClose: (() => void) | undefined;
+  children?: ReactNode;
 }) {
   return (
     <header className="space__header">
       <Avatar name={name} />
       <strong>{name}</strong>
+      {children}
       <IconButton
         size="sm"
         icon={maximized ? 'minimize' : 'maximize'}
@@ -106,6 +111,14 @@ function SpaceHeader({
       )}
     </header>
   );
+}
+
+/** Whether a space waits to be opened, and whether it shows anything. */
+function shownState(
+  shown: Shown<{ parts: readonly OutputPart[]; onDemand?: boolean | undefined }> | undefined,
+) {
+  const parts = shown && 'parts' in shown ? shown : undefined;
+  return { onDemand: parts?.onDemand === true, hasContent: (parts?.parts.length ?? 0) > 0 };
 }
 
 /** One actor's space: whatever its skill shows there. It can be maximized to full screen. */
@@ -123,7 +136,7 @@ function Space({ actor, host, session, open }: PanelProps & { actor: Actor; open
   const editable = implementation !== undefined && provides(implementation, 'edit');
   const edit = (parts: OutputPart[]) =>
     void session.invoke(actor.id, spaceContract, 'edit', { parts });
-  const onDemand = shown !== undefined && 'parts' in shown && shown.onDemand === true;
+  const { onDemand, hasContent } = shownState(shown);
   if (onDemand && !open) return null;
   return (
     <section className="space" id={spaceElementId(actor.id)} data-maximized={maximized}>
@@ -132,7 +145,9 @@ function Space({ actor, host, session, open }: PanelProps & { actor: Actor; open
         maximized={maximized}
         onToggle={() => setMaximized(!maximized)}
         onClose={onDemand ? () => closeSpace(actor.id) : undefined}
-      />
+      >
+        {hasContent && <SpaceActions session={session} actor={actor} />}
+      </SpaceHeader>
       <Content host={host} shown={shown} />
       {editable && shown && 'parts' in shown && textOnly(shown.parts) && (
         <Editor name={name} parts={shown.parts} onSave={edit} />

@@ -9,6 +9,15 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 37,
+    date: '2026-10-12',
+    changes: [
+      'Every message has a Delete button (trash). It takes only that message out of the story; everything after it stays.',
+      "An illustrator's space has Retry and Delete buttons. Retry paints the picture again from the same description and replaces it in the space and in the story. Delete removes it from both, and the space falls back to the previous picture.",
+      'Retry on a picture in the story works like any retry: it drops that picture and everything after it, then paints again.',
+    ],
+  },
+  {
     build: 36,
     date: '2026-10-12',
     changes: [

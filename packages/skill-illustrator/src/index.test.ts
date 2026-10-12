@@ -149,4 +149,29 @@ describe('illustrating a scene', () => {
     });
     await expect(runtime.runTurn('ink')).rejects.toThrow(/Nothing to paint yet/);
   });
+
+  it('throws a picture away from its space, the scene and the story', async () => {
+    const { runtime, ended } = session(() => ({ media: [png] }));
+    await play(runtime);
+    await ended;
+    const after = await runtime.invoke('ink', spaceContract, 'discard', {});
+    expect(after.parts).toEqual([]);
+    expect(runtime.transcript().map((m) => m.actorId)).toEqual(['narrator']);
+    expect(channelContents(runtime.workspace.view('user')).scene).toBeUndefined();
+  });
+
+  it('paints the picture again from the same description, replacing it everywhere', async () => {
+    let call = 0;
+    const other = { mime: 'image/png', bytes: new Uint8Array([137, 80, 78, 71, 1]) };
+    const { runtime, ended } = session(() => ({ media: [call++ === 0 ? png : other] }));
+    await play(runtime);
+    await ended;
+    const before = runtime.transcript().at(-1)?.data;
+    const after = await runtime.invoke('ink', spaceContract, 'redo', {});
+    const story = runtime.transcript();
+    expect(story).toHaveLength(2);
+    expect(story[1]?.data).not.toEqual(before);
+    expect(after.parts).toEqual([{ kind: IMAGE_PART, data: story[1]?.data }]);
+    expect(runtime.calls.list()[1]?.request.messages[0]?.content).toContain('A lantern flickers');
+  });
 });

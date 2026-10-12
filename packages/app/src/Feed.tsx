@@ -156,6 +156,7 @@ function useMessageActionsFor(session: SessionRuntime): MessageActions {
         return message?.kind === 'text' ? message.text : undefined;
       },
       edit: (id, text) => runSafely(() => session.editMessage(USER_ID, id, textContent(text))),
+      remove: (id) => runSafely(() => session.removeMessage(USER_ID, id)),
       busy,
     }),
     [session, busy],

@@ -38,6 +38,18 @@ export const spaceContract = defineContract({
       input: content,
       output: content,
     }),
+    discard: optionalAction({
+      description:
+        'A person threw away what the space shows, e.g. a picture, wherever else it appears too. Returns what it shows now.',
+      input: z.object({}),
+      output: content,
+    }),
+    redo: optionalAction({
+      description:
+        'A person wants what the space shows made again, e.g. the picture painted anew, replacing it wherever it appears. Returns what it shows now.',
+      input: z.object({}),
+      output: content,
+    }),
   },
   conformance: [
     {
@@ -48,6 +60,14 @@ export const spaceContract = defineContract({
           parts.every((p) => p.kind.trim() !== ''),
           'expected every part to say what kind it is',
         );
+      },
+    },
+    {
+      name: 'still fills its space after discarding, if it can discard',
+      run: async (t) => {
+        if (!t.implements('discard')) return;
+        const { parts } = await t.invoke('discard', {});
+        check(Array.isArray(parts), 'expected what the space shows after discarding');
       },
     },
     {

@@ -154,6 +154,14 @@ describe('SessionRuntime transcript', () => {
     expect(text(session)).toEqual(['one']);
   });
 
+  it('removes one message and keeps everything after it', async () => {
+    const session = setup();
+    const first = await session.post('user', textContent('one'));
+    await session.post('user', textContent('two'));
+    await session.removeMessage('user', first.id);
+    expect(text(session)).toEqual(['two']);
+  });
+
   it('keeps whispers out of other perspectives, including the skill context', async () => {
     const session = setup();
     await session.join(ai('bard', ['echo']));
