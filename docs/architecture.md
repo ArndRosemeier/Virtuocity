@@ -143,9 +143,10 @@ head, so all documents (transcript, outline, inventory, scene) move together.
   reducer `apply(state, op)` plus a zod validator for operations and a version.
   Operations must address stable ids, not positions, and reducers must ignore
   operations about things they don't have, because those may be hidden.
-- **Perspective.** An operation may name an `audience`. `workspace.read(docId,
-type, actorId)` folds only the operations that actor may see (their own, and
-  those without an audience or with them in it). Skills get `ctx.state`, a view
+- **Perspective.** An operation may name an `audience` and actors it is
+  `hiddenFrom`. `workspace.read(docId, type, actorId)` folds only the
+  operations that actor may see (their own, and others when they are not hidden
+  from them and there is no audience or they are in it). Skills get `ctx.state`, a view
   from their actor's perspective, and `ctx.transcript`, the transcript as their
   actor sees it. The UI reads the transcript from the human's perspective.
 - **Permissions.** Every `WritePolicy` in `host.policies` must allow a change.
@@ -315,7 +316,9 @@ kind, so a premise may be text, a picture or sound. `skill-premise` listens for
 session is still empty invokes the premise contract on its own actor and posts
 the result as the opening. One implementation ships, "Premise": a text
 written in the actor's settings (Transform by AI turns a few words into one).
-It replaced "Premise (from a prompt)", whose prompt becomes the text.
+It replaced "Premise (from a prompt)", whose prompt becomes the text. With
+"shown" off, the premise is posted hidden from the people in the session, so
+only AI actors (the narrator) know the setup.
 
 ## Spaces
 

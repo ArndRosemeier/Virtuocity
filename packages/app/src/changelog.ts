@@ -14,6 +14,13 @@ export const RELEASES: readonly Release[] = [
     build: 26,
     date: '2026-10-12',
     changes: [
+      'A Premise actor has a "Show the premise in the chat" setting. Turn it off and the premise stays hidden from you: only the AI actors see it, so the narrator knows the setup and you discover it as you play.',
+    ],
+  },
+  {
+    build: 26,
+    date: '2026-10-12',
+    changes: [
       'Actors now read the whole story by default, so nothing is cut from what they remember. You can still set a memory limit per actor in Edit actor › Conversation; leave it empty for no limit.',
       'Chroniclers no longer have a summary length. They write as much as the story needs and keep every detail that may still matter, so long sessions keep their history.',
     ],

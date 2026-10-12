@@ -12,7 +12,7 @@ import type { InvokeAction, SkillContext } from './skill-context';
 import { skillTools } from './skill-tools';
 import type { CallStats } from './stats';
 import type { Message } from './transcript';
-import type { Workspace } from './workspace';
+import type { ChangeOptions, Workspace } from './workspace';
 
 /** The parts of a session a skill context is built from. */
 export interface ContextSource {
@@ -24,7 +24,12 @@ export interface ContextSource {
   cast(): readonly Actor[];
   readonly invoke: InvokeAction;
   transcript(perspective?: string): readonly Message[];
-  post(actorId: string, content: Content, stats?: readonly CallStats[]): Promise<Message>;
+  post(
+    actorId: string,
+    content: Content,
+    stats?: readonly CallStats[],
+    options?: ChangeOptions,
+  ): Promise<Message>;
 }
 
 /** Everything one skill of one actor may touch while it runs. */
@@ -58,7 +63,7 @@ export function createSkillContext(
     actors: source.actors,
     cast,
     assets: source.assets,
-    post: (content, stats) => source.post(actor.id, content, stats),
+    post: (content, stats, options) => source.post(actor.id, content, stats, options),
     invoke: source.invoke,
     complete: extras.complete,
     tools: skillTools(extras.skills, skill, call),

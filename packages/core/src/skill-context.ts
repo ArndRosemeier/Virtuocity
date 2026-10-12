@@ -9,7 +9,7 @@ import type { Complete } from './provider';
 import type { Message } from './transcript';
 import type { CallStats } from './stats';
 import type { Tool } from './tools';
-import type { StateView } from './workspace';
+import type { ChangeOptions, StateView } from './workspace';
 
 /** Asks an actor to perform one action of a contract, typed by the contract. */
 export type InvokeAction = <A, K extends keyof A & string>(
@@ -34,7 +34,7 @@ export interface SkillContext {
   /** The cast: people and the actors who take turns talking. Support actors are left out. */
   readonly cast: readonly Actor[];
   /** Adds a message from this actor to the story: any content, with its text form. */
-  post(content: Content, stats?: readonly CallStats[]): Promise<Message>;
+  post(content: Content, stats?: readonly CallStats[], options?: ChangeOptions): Promise<Message>;
   /** Runs a model call. The model is already resolved for this skill and actor. */
   readonly complete: Complete;
   /**
