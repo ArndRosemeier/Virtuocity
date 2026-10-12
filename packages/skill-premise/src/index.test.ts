@@ -1,3 +1,4 @@
+import { textContent } from '@virtuocity/core';
 import { premiseContract } from '@virtuocity/contract-premise';
 import type { Actor, Skill } from '@virtuocity/core';
 import {
@@ -66,9 +67,7 @@ describe('opening a session', () => {
     await ended;
     const [opening] = runtime.transcript();
     expect(opening?.actorId).toBe('premise');
-    expect(opening?.parts).toEqual([
-      { kind: 'text', data: 'A lighthouse keeper finds a door in the rock.' },
-    ]);
+    expect(opening).toMatchObject(textContent('A lighthouse keeper finds a door in the rock.'));
     const request = runtime.calls.list()[0]?.request.messages[1]?.content;
     expect(request).toContain('about: Lighthouses');
     expect(request).toContain('wren: wren is here.');
@@ -79,16 +78,14 @@ describe('opening a session', () => {
     const settings = { 'fixed-premise': { premise: 'You wake on a moving train.' } };
     await startBlueprint(runtime, stage, [actor('premise', ['fixed-premise'], settings)]);
     await ended;
-    expect(runtime.transcript()[0]?.parts).toEqual([
-      { kind: 'text', data: 'You wake on a moving train.' },
-    ]);
+    expect(runtime.transcript()[0]).toMatchObject(textContent('You wake on a moving train.'));
     expect(runtime.calls.list()).toHaveLength(0);
   });
 
   it('stays silent when it joins a story that has already begun', async () => {
     const { runtime } = session();
     await runtime.join(actor('wren', ['quiet']));
-    await runtime.post('wren', [{ kind: 'text', data: 'Already going.' }]);
+    await runtime.post('wren', textContent('Already going.'));
     await startBlueprint(runtime, stage, [actor('premise', ['fixed-premise'])]);
     expect(runtime.jobs.list()).toHaveLength(0);
     expect(runtime.transcript()).toHaveLength(1);

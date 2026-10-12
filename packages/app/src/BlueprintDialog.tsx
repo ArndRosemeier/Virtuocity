@@ -18,7 +18,7 @@ import {
 import { Avatar, Button, Modal, Pill } from '@virtuocity/ui';
 import { useLibraryItems } from './library';
 import type { PanelProps } from './types';
-import { ensureUser } from './useSession';
+import { ensureCast } from './useSession';
 
 /** Starting without a blueprint: just you, adding actors yourself. */
 const EMPTY = '';
@@ -210,7 +210,7 @@ export function BlueprintDialog({
 
   const start = async () => {
     await session.workspace.load([], null);
-    await ensureUser(session);
+    await ensureCast(session);
     if (blueprint) await startBlueprint(session, blueprint, castBlueprint(blueprint, choices));
     else if (saved) await startSavedSetup(session, saved, host.blueprints);
     onClose();

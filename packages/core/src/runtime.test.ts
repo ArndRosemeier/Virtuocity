@@ -1,3 +1,4 @@
+import { textContent } from './output';
 import { describe, expect, it, vi } from 'vitest';
 import type { Actor } from './actor';
 import { coreModule } from './core-module';
@@ -13,7 +14,7 @@ const echo: Skill = {
   models: { text: 'skill-model' },
   async takeTurn(ctx) {
     const result = await ctx.complete({ modality: 'text', messages: [] });
-    await ctx.post([{ kind: 'text', data: result.text }], [result.stats]);
+    await ctx.post(textContent(result.text), [result.stats]);
   },
 };
 
@@ -66,7 +67,7 @@ describe('SessionRuntime', () => {
     const result = await session.flows.run('turn-taking', { kind: 'pass' });
     expect(result).toEqual({ outcome: 'paused', steps: 1 });
     const [message] = session.transcript();
-    expect(message?.parts[0]?.data).toBe('from skill-model');
+    expect(message?.data).toBe('from skill-model');
     expect(message?.stats?.[0]?.model).toBe('skill-model');
   });
 
@@ -76,7 +77,7 @@ describe('SessionRuntime', () => {
     expect(session.speakers()).toEqual([]);
     expect(await session.pickNext()).toBeUndefined();
     counter.seen = 0;
-    await session.post('user', [{ kind: 'text', data: 'hi' }]);
+    await session.post('user', textContent('hi'));
     expect(counter.seen).toBe(1);
   });
 
@@ -105,18 +106,18 @@ describe('SessionRuntime', () => {
 
 describe('SessionRuntime transcript', () => {
   const text = (session: SessionRuntime, perspective?: string) =>
-    session.transcript(perspective).map((m) => m.parts[0]?.data);
+    session.transcript(perspective).map((m) => m.data);
 
   it('edits messages and rewinds all state to a message, before it, or as a branch', async () => {
     const session = setup();
-    const first = await session.post('user', [{ kind: 'text', data: 'one' }]);
-    const second = await session.post('user', [{ kind: 'text', data: 'two' }]);
-    await session.editMessage('user', first.id, [{ kind: 'text', data: 'uno' }]);
+    const first = await session.post('user', textContent('one'));
+    const second = await session.post('user', textContent('two'));
+    await session.editMessage('user', first.id, textContent('uno'));
     expect(text(session)).toEqual(['uno', 'two']);
     // The edit came after both posts, so rewinding before `two` undoes it as well.
     await session.rewindToMessage(second.id, { before: true, keepBranch: true });
     expect(text(session)).toEqual(['one']);
-    await session.post('user', [{ kind: 'text', data: 'dos' }]);
+    await session.post('user', textContent('dos'));
     expect(text(session)).toEqual(['one', 'dos']);
     expect(session.workspace.log.leaves()).toHaveLength(2);
     await session.rewindToMessage(first.id);
@@ -126,8 +127,8 @@ describe('SessionRuntime transcript', () => {
   it('keeps whispers out of other perspectives, including the skill context', async () => {
     const session = setup();
     await session.join(ai('bard', ['echo']));
-    await session.post('user', [{ kind: 'text', data: 'hello all' }]);
-    await session.post('user', [{ kind: 'text', data: 'psst, rogue' }], undefined, {
+    await session.post('user', textContent('hello all'));
+    await session.post('user', textContent('psst, rogue'), undefined, {
       audience: ['rogue'],
     });
     expect(text(session, 'bard')).toEqual(['hello all']);
@@ -138,7 +139,7 @@ describe('SessionRuntime transcript', () => {
       name: 'Peek',
       backing: 'code',
       takeTurn: (ctx) => {
-        seen = ctx.transcript.map((m) => m.parts[0]?.data);
+        seen = ctx.transcript.map((m) => m.data);
         return Promise.resolve();
       },
     };
@@ -151,7 +152,7 @@ describe('SessionRuntime transcript', () => {
       modelDefaults: () => ({}),
     });
     await other.join(ai('bard', ['peek']));
-    await other.post('user', [{ kind: 'text', data: 'secret' }], undefined, { audience: ['x'] });
+    await other.post('user', textContent('secret'), undefined, { audience: ['x'] });
     await other.runTurn('bard');
     expect(seen).toEqual([]);
   });
@@ -159,7 +160,7 @@ describe('SessionRuntime transcript', () => {
   it('counts every AI call, even on branches that were thrown away', async () => {
     const session = setup();
     await session.join(ai('bard', ['echo']));
-    const first = await session.post('user', [{ kind: 'text', data: 'go' }]);
+    const first = await session.post('user', textContent('go'));
     await session.runTurn('bard');
     await session.rewindToMessage(first.id);
     await session.runTurn('bard');

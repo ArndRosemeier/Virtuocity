@@ -1,5 +1,5 @@
 import type { Skill, VirtuocityModule } from '@virtuocity/core';
-import { completeWithTools, readSettings, toolUseParts } from '@virtuocity/core';
+import { completeWithTools, readSettings, textContent, toolUseContent } from '@virtuocity/core';
 import { CONTEXT_SHARE, buildPrompt, conversationSettings } from './prompt';
 
 export * from './prompt';
@@ -22,9 +22,9 @@ export const conversationSkill: Skill = {
     const messages = buildPrompt(ctx.actor, ctx.actors, ctx.transcript, { settings, context });
     const request = { modality: 'text', messages };
     const { result, calls, runs } = await completeWithTools(ctx.complete, request, ctx.tools);
-    const text = { kind: 'text', data: result.text.trim() };
+    for (const run of runs) await ctx.post(toolUseContent(run));
     await ctx.post(
-      [...toolUseParts(runs), text],
+      textContent(result.text.trim()),
       calls.map((c) => c.stats),
     );
   },

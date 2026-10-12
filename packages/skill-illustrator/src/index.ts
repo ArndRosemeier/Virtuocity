@@ -51,11 +51,10 @@ async function illustrate(
 function latestPicture(ctx: SkillContext): { parts: OutputPart[] } {
   const scene = channelContents(ctx.state)[sceneChannel.id];
   if (scene?.actorId === ctx.actor.id) return { parts: [scene.part] };
-  const painted = ctx.transcript
-    .filter((m) => m.actorId === ctx.actor.id)
-    .flatMap((m) => m.parts.filter((p) => p.kind === IMAGE_PART));
-  const last = painted.at(-1);
-  return { parts: last ? [last] : [] };
+  const last = ctx.transcript
+    .filter((m) => m.actorId === ctx.actor.id && m.kind === IMAGE_PART)
+    .at(-1);
+  return { parts: last ? [{ kind: last.kind, data: last.data }] : [] };
 }
 
 /** Paints in the background; the picture becomes the scene, and joins the story if asked. */
@@ -64,7 +63,7 @@ function paint(ctx: SkillContext, description: string, inStory: boolean): void {
     const { picture, stats } = await illustrate(ctx, { description }, signal);
     const part = { kind: IMAGE_PART, data: picture };
     await showOnChannel(ctx.state, sceneChannel, part);
-    if (inStory) await ctx.post([part], [stats]);
+    if (inStory) await ctx.post({ ...part, text: picture.alt }, [stats]);
   });
 }
 

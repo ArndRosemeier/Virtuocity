@@ -10,12 +10,14 @@ const cover = (keepRecent: number, updateAfter: number, upTo?: string) =>
   linesToCover(lines, { keepRecent, updateAfter }, upTo, ten)?.map((l) => l.id);
 
 describe('storyLines', () => {
-  it('names speakers and leaves out messages without text', () => {
-    const message = (id: string, actorId: string, text?: string): Message => ({
+  it('names speakers, reads each message as text and leaves out empty ones', () => {
+    const message = (id: string, actorId: string, text = ''): Message => ({
       id,
       actorId,
       createdAt: 0,
-      parts: text ? [{ kind: 'text', data: text }] : [{ kind: 'image', data: {} }],
+      kind: text ? 'text' : 'image',
+      data: text || {},
+      text,
     });
     const actors = [
       {

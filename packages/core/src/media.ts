@@ -1,5 +1,5 @@
 import type { AssetStore } from './assets';
-import type { OutputPart } from './output';
+import type { Content } from './output';
 
 /** Pictures and sound a model produced, before they are stored. */
 export interface GeneratedMedia {
@@ -17,17 +17,18 @@ export interface MediaPartData {
 export const IMAGE_PART = 'image';
 export const AUDIO_PART = 'audio';
 
-/** Stores generated media and returns message parts that point at it. */
+/** Stores generated media and returns content that points at it, described by `alt`. */
 export async function storeMedia(
   assets: AssetStore,
   media: readonly GeneratedMedia[],
   alt?: string,
-): Promise<OutputPart<MediaPartData>[]> {
+): Promise<Content<MediaPartData>[]> {
   return Promise.all(
     media.map(async ({ mime, bytes }) => {
       const ref = await assets.put(bytes, mime);
       const kind = mime.startsWith('audio/') ? AUDIO_PART : IMAGE_PART;
-      return { kind, data: { assetId: ref.id, mime, ...(alt ? { alt } : {}) } };
+      const text = alt ?? (kind === IMAGE_PART ? 'A picture' : 'A sound');
+      return { kind, data: { assetId: ref.id, mime, ...(alt ? { alt } : {}) }, text };
     }),
   );
 }

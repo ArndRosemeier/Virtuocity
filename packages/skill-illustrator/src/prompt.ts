@@ -1,5 +1,5 @@
 import type { Actor, ChatMessage, Message } from '@virtuocity/core';
-import { defineProfileField, defineSettings, profileValue, textOf, z } from '@virtuocity/core';
+import { defineProfileField, defineSettings, profileValue, z } from '@virtuocity/core';
 
 export const illustratorSettings = defineSettings({
   style: z
@@ -62,6 +62,9 @@ export function illustratePrompt(
   return [{ role: 'user', content: content.filter(Boolean).join('\n\n') }];
 }
 
+/** What a message tells in words; pictures, tool calls and other kinds tell nothing to paint. */
+const told = (message: Message) => (message.kind === 'text' ? message.text.trim() : '');
+
 /**
  * The scene to paint after `actorId`'s turn, or `undefined` when it is not
  * time yet: only every `every` messages from others since the last picture.
@@ -74,13 +77,13 @@ export function sceneToPaint(
 ): string | undefined {
   const last = transcript.at(-1);
   if (!last || last.actorId !== actorId) return undefined;
-  const text = textOf(last);
+  const text = told(last);
   if (!text) return undefined;
   let since = 0;
   for (let i = transcript.length - 1; i >= 0; i--) {
     const message = transcript[i];
     if (!message || message.actorId === illustratorId) break;
-    if (textOf(message)) since++;
+    if (told(message)) since++;
   }
   return since % every === 0 ? text : undefined;
 }

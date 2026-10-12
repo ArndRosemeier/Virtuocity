@@ -1,3 +1,4 @@
+import { textContent } from '@virtuocity/core';
 import { summarizerContract } from '@virtuocity/contract-memory';
 import type { CompletionRequest, Skill } from '@virtuocity/core';
 import {
@@ -35,7 +36,7 @@ function narrator(known: string[]): Skill {
     backing: 'code',
     takeTurn: async (ctx) => {
       known.push(ctx.context(1000).text);
-      await ctx.post([{ kind: 'text', data: 'The rain keeps falling on the inn. '.repeat(30) }]);
+      await ctx.post(textContent('The rain keeps falling on the inn. '.repeat(30)));
     },
   };
 }

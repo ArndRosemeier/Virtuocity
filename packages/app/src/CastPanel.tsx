@@ -4,6 +4,8 @@ import { copyOfActor } from '@virtuocity/core';
 import { Avatar, Button, IconButton, Pill } from '@virtuocity/ui';
 import { useAppActions } from './actions';
 import { useLibrary } from './library';
+import { RendererSelect } from './RendererSelect';
+import { STORY_VIEW, currentRenderer, setRenderer } from './storyView';
 import type { AppModule, PanelProps } from './types';
 
 const SAVED_NOTE_MS = 2000;
@@ -54,7 +56,7 @@ function CastRow({ actor: a, speaking, saved, onSave, onCopy, onLeave }: CastRow
 }
 
 /** Who is in the scene; actors can join and leave at any time. */
-function CastPanel({ session }: PanelProps) {
+function CastPanel({ host, session }: PanelProps) {
   const { openNewActor, openEditActor } = useAppActions();
   const library = useLibrary();
   const [saved, setSaved] = useState<string | null>(null);
@@ -68,7 +70,8 @@ function CastPanel({ session }: PanelProps) {
       setSaved(actor.id);
       setTimeout(() => setSaved(null), SAVED_NOTE_MS);
     });
-  const cast = session.actors.filter((a) => a.controller === 'ai');
+  const cast = session.actors.filter((a) => a.controller === 'ai' && a.id !== STORY_VIEW);
+  const renderer = currentRenderer(session);
   return (
     <div className="cast">
       {cast.length === 0 && (
@@ -90,6 +93,15 @@ function CastPanel({ session }: PanelProps) {
       <Button icon="plus" onClick={openNewActor}>
         Add actor
       </Button>
+      {renderer !== undefined && (
+        <RendererSelect
+          host={host}
+          label="Story view"
+          hint="How this story is drawn."
+          value={renderer}
+          onChange={(skillId) => void setRenderer(session, skillId)}
+        />
+      )}
     </div>
   );
 }

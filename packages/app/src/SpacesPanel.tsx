@@ -1,32 +1,11 @@
-import { useCallback, useEffect, useReducer, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { spaceContract } from '@virtuocity/contract-space';
 import type { Actor, OutputPart, SessionRuntime } from '@virtuocity/core';
-import { headMoved, provides, stateChanged } from '@virtuocity/core';
+import { provides } from '@virtuocity/core';
 import { Avatar, Button, IconButton, TextArea } from '@virtuocity/ui';
 import type { AppModule, PanelProps } from './types';
-
-type Shown = { readonly parts: readonly OutputPart[] } | { readonly error: string };
-
-/** What an actor's space shows, asked for again whenever the session's state moves. */
-function useSpace(session: SessionRuntime, actorId: string): Shown | undefined {
-  const [shown, setShown] = useState<Shown>();
-  const [version, bump] = useReducer((n: number) => n + 1, 0);
-  useEffect(() => {
-    const offs = [session.bus.on(stateChanged, bump), session.bus.on(headMoved, bump)];
-    return () => offs.forEach((off) => off());
-  }, [session]);
-  useEffect(() => {
-    let live = true;
-    session.invoke(actorId, spaceContract, 'fill', {}).then(
-      ({ parts }) => live && setShown({ parts }),
-      (error: unknown) => live && setShown({ error: String(error) }),
-    );
-    return () => {
-      live = false;
-    };
-  }, [session, actorId, version]);
-  return shown;
-}
+import type { Shown } from './useParts';
+import { useParts } from './useParts';
 
 const textOnly = (parts: readonly OutputPart[]) => parts.every((p) => p.kind === 'text');
 const asText = (parts: readonly OutputPart[]) => parts.map((p) => String(p.data)).join('\n\n');
@@ -101,7 +80,11 @@ function Content({ host, shown }: Pick<PanelProps, 'host'> & { shown: Shown | un
 
 /** One actor's space: whatever its skill shows there. It can be maximized to full screen. */
 function Space({ actor, host, session }: PanelProps & { actor: Actor }) {
-  const shown = useSpace(session, actor.id);
+  const shown = useParts(
+    session,
+    () => session.invoke(actor.id, spaceContract, 'fill', {}),
+    actor.id,
+  );
   const [maximized, setMaximized] = useState(false);
   const restore = useCallback(() => setMaximized(false), []);
   useEscape(maximized, restore);

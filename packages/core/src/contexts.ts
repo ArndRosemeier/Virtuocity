@@ -5,7 +5,7 @@ import { assembleContext } from './context-assembly';
 import type { Contract } from './contract';
 import type { EventBus } from './events';
 import type { JobQueue } from './jobs';
-import type { OutputPart } from './output';
+import type { Content } from './output';
 import type { Complete } from './provider';
 import type { Skill } from './skill';
 import type { InvokeAction, SkillContext } from './skill-context';
@@ -23,11 +23,7 @@ export interface ContextSource {
   readonly actors: readonly Actor[];
   readonly invoke: InvokeAction;
   transcript(perspective?: string): readonly Message[];
-  post(
-    actorId: string,
-    parts: readonly OutputPart[],
-    stats?: readonly CallStats[],
-  ): Promise<Message>;
+  post(actorId: string, content: Content, stats?: readonly CallStats[]): Promise<Message>;
 }
 
 /** Everything one skill of one actor may touch while it runs. */
@@ -59,7 +55,7 @@ export function createSkillContext(
     state,
     actors: source.actors,
     assets: source.assets,
-    post: (parts, stats) => source.post(actor.id, parts, stats),
+    post: (content, stats) => source.post(actor.id, content, stats),
     invoke: source.invoke,
     complete: extras.complete,
     tools: skillTools(extras.skills, skill, call),

@@ -16,6 +16,23 @@ export const outputPartSchema = z.object({
 });
 
 /**
+ * Anything an actor can say: an output part plus its string representation.
+ * The data may be text, a picture, a dice roll or anything else; `text` is
+ * what prompts, summaries and exports read, so every kind must provide one.
+ */
+export interface Content<D = unknown> extends OutputPart<D> {
+  readonly text: string;
+}
+
+/** Validates content of any kind. */
+export const contentSchema = outputPartSchema.extend({
+  text: z.string().describe('The content as plain text, e.g. a caption for a picture'),
+});
+
+/** Plain text as content. */
+export const textContent = (text: string): Content<string> => ({ kind: 'text', data: text, text });
+
+/**
  * Turns an output part into something the UI can show. `R` is the UI's
  * render type (a React node in the web app), so the core stays UI-agnostic.
  * The renderer's id is the output kind it handles.

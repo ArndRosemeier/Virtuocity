@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Button, Field, Modal, ModelLayerEditor, SecretInput, Section, Tabs } from '@virtuocity/ui';
 import type { TabDef } from '@virtuocity/ui';
 import { API_KEY, THEME, useModelDefaults, useSetting, writeModelDefaults } from './settings';
+import { RendererSelect } from './RendererSelect';
+import { RENDERER } from './storyView';
 import type { ThemeChoice } from './theme';
 import type { AppHost } from './types';
 import { useModels } from './useModels';
@@ -63,24 +65,36 @@ const THEMES: readonly { id: ThemeChoice; label: string }[] = [
   { id: 'light', label: 'Light' },
 ];
 
-function AppearanceTab() {
+function AppearanceTab({ host }: { host: AppHost }) {
   const [theme, setTheme] = useSetting(THEME);
+  const [renderer, setRenderer] = useSetting(RENDERER);
   return (
-    <Section title="Theme">
-      <div className="segmented" role="radiogroup" aria-label="Theme">
-        {THEMES.map((t) => (
-          <Button
-            key={t.id}
-            role="radio"
-            aria-checked={theme === t.id}
-            variant={theme === t.id ? 'primary' : 'secondary'}
-            onClick={() => setTheme(t.id)}
-          >
-            {t.label}
-          </Button>
-        ))}
-      </div>
-    </Section>
+    <>
+      <Section title="Theme">
+        <div className="segmented" role="radiogroup" aria-label="Theme">
+          {THEMES.map((t) => (
+            <Button
+              key={t.id}
+              role="radio"
+              aria-checked={theme === t.id}
+              variant={theme === t.id ? 'primary' : 'secondary'}
+              onClick={() => setTheme(t.id)}
+            >
+              {t.label}
+            </Button>
+          ))}
+        </div>
+      </Section>
+      <Section title="Story view">
+        <RendererSelect
+          host={host}
+          label="New stories are drawn as"
+          hint="Each story can change its own view in the cast panel."
+          value={renderer}
+          onChange={setRenderer}
+        />
+      </Section>
+    </>
   );
 }
 
@@ -101,7 +115,12 @@ export function SettingsModal({
   const tabs: TabDef[] = [
     { id: 'connection', label: 'Connection', icon: 'key', content: () => <ConnectionTab /> },
     { id: 'models', label: 'Models', icon: 'sparkles', content: () => <ModelsTab host={host} /> },
-    { id: 'appearance', label: 'Appearance', icon: 'palette', content: () => <AppearanceTab /> },
+    {
+      id: 'appearance',
+      label: 'Appearance',
+      icon: 'palette',
+      content: () => <AppearanceTab host={host} />,
+    },
   ];
   return (
     <Modal open={open} title="Settings" onClose={onClose} doneLabel="Done">

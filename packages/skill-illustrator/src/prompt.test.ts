@@ -14,7 +14,9 @@ const message = (actorId: string, text: string): Message => ({
   id: `${actorId}-${text}`,
   actorId,
   createdAt: 0,
-  parts: text ? [{ kind: 'text', data: text }] : [{ kind: 'image', data: {} }],
+  kind: text ? 'text' : 'image',
+  data: text || {},
+  text: text || 'A picture',
 });
 
 describe('illustrator prompt', () => {

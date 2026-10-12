@@ -10,10 +10,10 @@ import {
   implement,
   loadModules,
   scriptedProvider,
+  textContent,
   z,
 } from '@virtuocity/core';
 import { conversationSkill } from './index';
-import { messageText } from './prompt';
 
 const coin = defineContract({
   name: 'coin',
@@ -58,12 +58,13 @@ describe('conversation skill', () => {
       skillIds: ['conversation', 'coin'],
     });
     await session.runTurn('vex');
-    const message = session.transcript().at(-1);
-    expect(message?.parts).toEqual([
-      { kind: TOOL_USE, data: { tool: 'coin_flip', input: {}, output: 'heads' } },
-      { kind: 'text', data: 'Heads, I win.' },
-    ]);
+    const [flip, message] = session.transcript();
+    expect(flip).toMatchObject({
+      kind: TOOL_USE,
+      data: { tool: 'coin_flip', input: {}, output: 'heads' },
+      text: '[coin_flip {} → "heads"]',
+    });
+    expect(message).toMatchObject(textContent('Heads, I win.'));
     expect(message?.stats).toHaveLength(2);
-    expect(message && messageText(message)).toBe('[coin_flip {} → "heads"]\nHeads, I win.');
   });
 });

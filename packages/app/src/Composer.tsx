@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import type { SessionRuntime, TurnTakingInput } from '@virtuocity/core';
+import { textContent } from '@virtuocity/core';
 import { Avatar, Button, Icon } from '@virtuocity/ui';
 import type { AppModule } from './types';
 import { USER_ID } from './useSession';
@@ -94,7 +95,7 @@ export function Composer({ session }: { session: SessionRuntime }) {
       const text = draft.trim();
       if (!text) return;
       setDraft('');
-      await session.post(USER_ID, [{ kind: 'text', data: text }]);
+      await session.post(USER_ID, textContent(text));
       await takeTurn(session, { kind: 'pass' });
     });
 

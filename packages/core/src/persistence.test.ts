@@ -1,3 +1,4 @@
+import { textContent } from './output';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { createAssetStore, findAssetIds } from './assets';
@@ -21,7 +22,7 @@ function runtime(host = loadModules(new ModuleHost(), [coreModule])) {
     now: () => 1000,
   });
 }
-const say = (data: string) => [{ kind: 'text', data }];
+const say = textContent;
 const actor = {
   id: 'bard',
   controller: 'ai' as const,
@@ -41,7 +42,7 @@ describe('save and load', () => {
 
     const b = runtime();
     await b.load(saved);
-    expect(b.transcript().map((m) => m.parts[0]?.data)).toEqual(['one', 'alt']);
+    expect(b.transcript().map((m) => m.data)).toEqual(['one', 'alt']);
     expect(b.actors.map((x) => x.personality.name)).toEqual(['Lyra']);
     expect(b.workspace.log.leaves()).toHaveLength(2);
     expect(b.save().operations).toEqual(a.save().operations);
@@ -110,13 +111,13 @@ describe('assets and bundles', () => {
     const assets = createAssetStore(memoryStore());
     const picture = await assets.put(png, 'image/png');
     const a = runtime();
-    await a.post('painter', [{ kind: 'image', data: picture.id }]);
+    await a.post('painter', { kind: 'image', data: picture.id, text: 'A picture' });
     const file = await exportBundle(a.save(), assets);
 
     const elsewhere = createAssetStore(memoryStore());
     const b = runtime();
     await b.load(await importBundle(file, elsewhere));
-    expect(b.transcript()[0]?.parts[0]?.data).toBe(picture.id);
+    expect(b.transcript()[0]?.data).toBe(picture.id);
     expect((await elsewhere.get(picture.id))?.bytes).toEqual(png);
     await expect(importBundle('{"format":"other"}', elsewhere)).rejects.toThrow(
       /Not a Virtuocity file/,
