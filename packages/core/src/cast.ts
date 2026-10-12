@@ -1,6 +1,9 @@
 import { z } from 'zod';
 import type { Actor } from './actor';
+import type { ContextContributor } from './context-assembly';
 import { defineDocType } from './doc-type';
+import type { ProfileField } from './settings';
+import { profileValue } from './settings';
 
 export type CastOp =
   | { readonly type: 'join'; readonly actor: Actor }
@@ -43,3 +46,26 @@ export const castDoc = defineDocType<Cast, CastOp>({
 
 /** The document id of a session's cast. */
 export const CAST = 'cast';
+
+/**
+ * Who is present and what anyone could see of them: names and profile fields.
+ * Personality descriptions stay private to each actor, since they can hold secrets.
+ */
+export function castContributor(fields: () => readonly ProfileField[]): ContextContributor {
+  return {
+    id: 'cast',
+    contribute: ({ actor, actors }) => {
+      const lines = actors
+        .filter((a) => a.id !== actor.id)
+        .map((a) => {
+          const known = fields().flatMap((f) => {
+            const value = profileValue(a, f);
+            return value === undefined || value === '' ? [] : [`${f.label}: ${String(value)}`];
+          });
+          return [`- ${a.personality.name}`, ...known.map((k) => `  ${k}`)].join('\n');
+        });
+      if (lines.length === 0) return [];
+      return [{ id: 'cast', title: 'Who is here', text: lines.join('\n'), priority: 80 }];
+    },
+  };
+}

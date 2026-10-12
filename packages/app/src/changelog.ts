@@ -11,6 +11,14 @@ export interface Release {
 
 export const RELEASES: readonly Release[] = [
   {
+    build: 5,
+    date: '2026-10-12',
+    changes: [
+      "Actors now know who else is here and how they look, and what the book contains, without seeing each other's private personality notes.",
+      'Long stories no longer overflow the model: each actor reads the newest part of the story that fits its memory, set per actor under Conversation settings.',
+    ],
+  },
+  {
     build: 4,
     date: '2026-10-12',
     changes: [

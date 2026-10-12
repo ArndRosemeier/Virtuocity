@@ -258,7 +258,12 @@ export class SessionRuntime {
 
   #context(actor: Actor, skill: Skill): SkillContext {
     const complete = (request: ModelRequest) => this.#complete(actor, skill, request);
-    return createSkillContext(this, actor, skill, { complete, skills: this.#skills(actor) });
+    const contributors = this.config.host.contextContributors.list();
+    return createSkillContext(this, actor, skill, {
+      complete,
+      skills: this.#skills(actor),
+      contributors,
+    });
   }
 
   /** Runs one model call for a skill: picks the model, traces the call, records its cost. */

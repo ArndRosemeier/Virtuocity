@@ -1,7 +1,7 @@
 import type { Flow } from './flow';
 import type { VirtuocityModule } from './module';
 import { AUDIO_MODALITY, IMAGE_MODALITY, TEXT_MODALITY } from './models';
-import { castDoc } from './cast';
+import { castContributor, castDoc } from './cast';
 import { transcriptDoc } from './transcript';
 import { turnTakingFlow } from './turn-taking';
 import { leastRecentDirector } from './turns';
@@ -14,6 +14,7 @@ export const coreModule: VirtuocityModule = {
     host.flows.register(turnTakingFlow as Flow);
     host.docTypes.register(transcriptDoc);
     host.docTypes.register(castDoc);
+    host.contextContributors.register(castContributor(() => host.profileFields.list()));
     for (const modality of [TEXT_MODALITY, IMAGE_MODALITY, AUDIO_MODALITY])
       host.modalities.register(modality);
   },

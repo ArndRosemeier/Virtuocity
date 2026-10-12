@@ -1,5 +1,6 @@
 import type { Seat } from './actor';
 import type { ContractAdapter } from './adapter';
+import type { ContextContributor } from './context-assembly';
 import { ContractRegistry } from './contract-registry';
 import type { DocType } from './doc-type';
 import type { Flow } from './flow';
@@ -44,6 +45,7 @@ export class ModuleHost<R = unknown, C = unknown> {
   readonly renderers = new RendererRegistry<R>();
   readonly panels = new Registry<PanelContribution<C>>('panel');
   readonly profileFields = new Registry<ProfileField>('profile field');
+  readonly contextContributors = new Registry<ContextContributor>('context contributor');
 }
 
 /** The unit of extension. Each package exports one or more of these. */

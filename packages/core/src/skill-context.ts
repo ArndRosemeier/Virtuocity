@@ -1,5 +1,6 @@
 import type { Actor } from './actor';
 import type { AssetStore } from './assets';
+import type { AssembledContext } from './context-assembly';
 import type { ActionInput, ActionOutput, Contract } from './contract';
 import type { EventBus } from './events';
 import type { JobControl } from './jobs';
@@ -39,6 +40,11 @@ export interface SkillContext {
    * contract its other skills implement. Calling one runs that skill.
    */
   readonly tools: readonly Tool[];
+  /**
+   * What this actor knows beyond the transcript (who is here, the outline, a
+   * summary...), contributed by modules and fitted into `budget` tokens.
+   */
+  context(budget: number): AssembledContext;
   /** Where pictures, sound and other binary content are kept; messages hold asset ids. */
   readonly assets: AssetStore;
   /**

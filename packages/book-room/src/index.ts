@@ -1,7 +1,9 @@
 import type { Flow, VirtuocityModule } from '@virtuocity/core';
 import { bookPipelineFlow } from './pipeline';
+import { manuscriptContributor } from './context';
 import { manuscriptDoc } from './manuscript';
 
+export * from './context';
 export * from './manuscript';
 export * from './pipeline';
 
@@ -11,5 +13,6 @@ export const bookRoomModule: VirtuocityModule = {
   register: (host) => {
     host.docTypes.register(manuscriptDoc);
     host.flows.register(bookPipelineFlow as Flow);
+    host.contextContributors.register(manuscriptContributor);
   },
 };

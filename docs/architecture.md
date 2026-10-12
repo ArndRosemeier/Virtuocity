@@ -218,6 +218,19 @@ request, schema)` asks for JSON matching a zod schema, then shows the model
   and any skill reads them with `profileValue(actor, field)`. Settings belong to
   one skill; profile fields describe the actor for everyone.
 
+## Context assembly
+
+- Modules register `ContextContributor`s in `host.contextContributors`. Each
+  returns `ContextPiece`s (title, text, priority) built from the reading actor's
+  perspective: its view of the state and the transcript it may see.
+- `ctx.context(budget)` gathers every contributor and keeps the highest-priority
+  pieces that fit the token budget (`assembleContext`, ~4 characters per token).
+  `fitNewest` trims a history to a budget, keeping the newest items.
+- Built in: `cast` (who is here and their profile fields, never their private
+  personality). The book room adds `manuscript` (the outline with each
+  chapter's status). Conversation spends a quarter of its `memory` setting on
+  context and the rest on the newest lines of the story.
+
 ## Turn flow in the app
 
 After every turn the session pauses. The human can **Act** (post, then the
@@ -229,5 +242,5 @@ actor), or press an actor's name to let exactly that one speak.
 See the roadmap in the project's design notes. The book room (draft, review,
 approve chapters with a writer, a reviewer and you as editor) is the first
 walking skeleton. Audio generation has the plumbing (parts, renderer) but no
-provider support yet. Next up: context assembly within a token budget. The app autosaves one session; a
+provider support yet. Next up: blueprints, the library, and UI layouts and views. The app autosaves one session; a
 session library comes with blueprints.
