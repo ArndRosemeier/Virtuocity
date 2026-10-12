@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo } from 'react';
 import type { SessionRuntime } from '@virtuocity/core';
 import { retryMessage, retryable, textContent } from '@virtuocity/core';
 import type { StoryMarker } from '@virtuocity/contract-render';
@@ -15,6 +15,7 @@ import { STORY_VIEW, ensureStoryView, storyView } from './storyView';
 import type { AppModule, PanelProps } from './types';
 import { useReadyProviders } from './useModels';
 import { useParts } from './useParts';
+import { useStickToBottom } from './stickToBottom';
 
 function Welcome({ host, session }: Pick<PanelProps, 'host' | 'session'>) {
   const { openSettings, openAddActor, openNewSession } = useAppActions();
@@ -167,22 +168,18 @@ function useMessageActionsFor(session: SessionRuntime): MessageActions {
 
 /** The story, drawn by the story's renderer, plus whoever is writing right now. */
 export function Feed({ host, session }: PanelProps) {
-  const end = useRef<HTMLDivElement>(null);
+  const { scroller, content, pin } = useStickToBottom<HTMLElement, HTMLDivElement>();
   const messages = session.transcript(USER_ID);
   const nameOf = (id: string) => session.actors.find((a) => a.id === id)?.personality.name ?? id;
   const speaking = session.speaking;
   const actions = useMessageActionsFor(session);
-  const live = speaking ? (session.calls.running(speaking).at(-1)?.text.length ?? 0) : 0;
 
-  useEffect(() => {
-    // Braces matter: newer browsers return a promise from scrollIntoView, and
-    // React would call anything an effect returns as its cleanup.
-    end.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-  }, [messages.length, speaking, live]);
+  // A new message or a new speaker brings the end into view; growth after that stays pinned.
+  useEffect(pin, [pin, messages.length, speaking]);
 
   return (
-    <main className="feed">
-      <div className="feed__inner">
+    <main className="feed" ref={scroller}>
+      <div className="feed__inner" ref={content}>
         {messages.length === 0 && !speaking && <Welcome host={host} session={session} />}
         {messages.length > 0 && (
           <MessageActionsContext.Provider value={actions}>
@@ -192,7 +189,6 @@ export function Feed({ host, session }: PanelProps) {
         {speaking && (
           <Live host={host} session={session} actorId={speaking} name={nameOf(speaking)} />
         )}
-        <div ref={end} />
       </div>
     </main>
   );
