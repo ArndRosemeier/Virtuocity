@@ -49,14 +49,15 @@ export const castDoc = defineDocType<Cast, CastOp>({
 export const CAST = 'cast';
 
 /**
- * Who is present and what anyone could see of them: names and profile fields.
+ * Who is in the cast and what anyone could see of them: names and profile
+ * fields. Support actors (an illustrator, a chronicler) are not in the scene.
  * Personality descriptions stay private to each actor, since they can hold secrets.
  */
 export function castContributor(fields: () => readonly ProfileField[]): ContextContributor {
   return {
     id: 'cast',
-    contribute: ({ actor, actors }) => {
-      const lines = actors
+    contribute: ({ actor, cast }) => {
+      const lines = cast
         .filter((a) => a.id !== actor.id)
         .map((a) => {
           const known = fields().flatMap((f) => {

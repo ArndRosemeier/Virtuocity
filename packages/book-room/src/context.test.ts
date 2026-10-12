@@ -16,6 +16,7 @@ const request = (manuscript: Manuscript) => ({
     skillIds: [],
   },
   actors: [],
+  cast: [],
   state: view(manuscript),
   transcript: [],
 });

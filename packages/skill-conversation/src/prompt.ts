@@ -49,6 +49,8 @@ export interface PromptOptions {
   readonly settings?: ConversationSettings;
   /** Background knowledge, already fitted to its budget (see `ctx.context`). */
   readonly context?: string;
+  /** Who is in the scene; support actors are left out. Defaults to everyone in `actors`. */
+  readonly cast?: readonly Actor[];
 }
 
 /**
@@ -64,7 +66,7 @@ export function buildPrompt(
 ): ChatMessage[] {
   const settings = options.settings ?? conversationSettings.parse({});
   const nameOf = (id: string) => actors.find((a) => a.id === id)?.personality.name ?? id;
-  const others = actors.filter((a) => a.id !== actor.id);
+  const others = (options.cast ?? actors).filter((a) => a.id !== actor.id);
   const system = systemPrompt(actor, others, settings, options.context);
   const turns = history
     .filter((m) => m.text.trim() !== '')

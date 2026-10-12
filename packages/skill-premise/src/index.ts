@@ -30,7 +30,7 @@ function fixedPremise(ctx: SkillContext) {
 
 async function promptedPremise(ctx: SkillContext) {
   const settings = readSettings(promptedPremiseSettings, ctx.settings);
-  const messages = premisePrompt(ctx.actor, ctx.actors, settings);
+  const messages = premisePrompt(ctx.actor, ctx.cast, settings);
   const { text: premise } = await ctx.complete({ modality: 'text', messages });
   if (!premise.trim()) throw new Error('The model returned an empty premise.');
   return text(premise.trim());

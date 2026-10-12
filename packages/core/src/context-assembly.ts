@@ -16,6 +16,8 @@ export interface ContextPiece {
 export interface ContextRequest {
   readonly actor: Actor;
   readonly actors: readonly Actor[];
+  /** People and the actors who take turns talking; see `SessionRuntime.cast`. */
+  readonly cast: readonly Actor[];
   readonly state: StateView;
   readonly transcript: readonly Message[];
 }

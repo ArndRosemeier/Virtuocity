@@ -55,7 +55,10 @@ function CastRow({ actor: a, speaking, saved, onSave, onCopy, onLeave }: CastRow
   );
 }
 
-/** Who is in the scene; actors can join and leave at any time. */
+/**
+ * Who is in the scene: the cast (actors who talk) and, apart from it, support
+ * actors who work behind the scenes. Actors can join and leave at any time.
+ */
 function CastPanel({ host, session }: PanelProps) {
   const { openNewActor, openEditActor } = useAppActions();
   const library = useLibrary();
@@ -70,26 +73,36 @@ function CastPanel({ host, session }: PanelProps) {
       setSaved(actor.id);
       setTimeout(() => setSaved(null), SAVED_NOTE_MS);
     });
-  const cast = session.actors.filter((a) => a.controller === 'ai' && a.id !== STORY_VIEW);
   const renderer = currentRenderer(session);
+  const row = (a: Actor) => (
+    <CastRow
+      key={a.id}
+      actor={a}
+      speaking={session.speaking === a.id}
+      saved={saved === a.id}
+      onSave={() => save(a)}
+      onCopy={() => copy(a)}
+      onLeave={() => void session.leave(a.id)}
+    />
+  );
+  const cast = session.cast().filter((a) => a.controller === 'ai');
+  const support = session.actors.filter(
+    (a) => a.controller === 'ai' && a.id !== STORY_VIEW && !cast.some((c) => c.id === a.id),
+  );
   return (
     <div className="cast">
       {cast.length === 0 && (
         <p className="muted">Nobody here yet. Add an actor to start the scene.</p>
       )}
-      <ul className="cast__list">
-        {cast.map((a) => (
-          <CastRow
-            key={a.id}
-            actor={a}
-            speaking={session.speaking === a.id}
-            saved={saved === a.id}
-            onSave={() => save(a)}
-            onCopy={() => copy(a)}
-            onLeave={() => void session.leave(a.id)}
-          />
-        ))}
-      </ul>
+      <ul className="cast__list">{cast.map(row)}</ul>
+      {support.length > 0 && (
+        <>
+          <h3 className="cast__group">Support</h3>
+          <ul className="cast__list" aria-label="Support">
+            {support.map(row)}
+          </ul>
+        </>
+      )}
       <Button icon="plus" onClick={openNewActor}>
         Add actor
       </Button>

@@ -29,8 +29,10 @@ export interface SkillContext {
   readonly transcript: readonly Message[];
   /** Shared documents from this actor's perspective; changes are made as this actor. */
   readonly state: StateView;
-  /** Everyone currently in the session. */
+  /** Everyone currently in the session, support actors included. */
   readonly actors: readonly Actor[];
+  /** The cast: people and the actors who take turns talking. Support actors are left out. */
+  readonly cast: readonly Actor[];
   /** Adds a message from this actor to the story: any content, with its text form. */
   post(content: Content, stats?: readonly CallStats[]): Promise<Message>;
   /** Runs a model call. The model is already resolved for this skill and actor. */
