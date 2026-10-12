@@ -11,6 +11,13 @@ export interface Release {
 
 export const RELEASES: readonly Release[] = [
   {
+    build: 29,
+    date: '2026-10-12',
+    changes: [
+      'The roleplay renderer shows paragraphs apart again: there is a blank line between them, as the model wrote it, instead of a thin gap that made them run together.',
+    ],
+  },
+  {
     build: 28,
     date: '2026-10-12',
     changes: [
