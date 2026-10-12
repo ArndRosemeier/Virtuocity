@@ -143,7 +143,10 @@ type, actorId)` folds only the operations that actor may see (their own, and
   actor sees it. The UI reads the transcript from the human's perspective.
 - **Permissions.** Every `WritePolicy` in `host.policies` must allow a change.
 - **Cast** (`cast.ts`): who is in the session is a document too, so joining and
-  leaving rewind, branch and save with everything else.
+  leaving rewind, branch and save with everything else. `runtime.cast()` (and
+  `ctx.cast`, `ContextRequest.cast`) is the cast proper: people and the actors
+  with a turn-taking skill. Everyone else is support (an illustrator, a
+  chronicler, the story view); prompts name only the cast as being in the scene.
 - **Persistence** (`persistence.ts`, `storage.ts`, `assets.ts`, `bundle.ts`):
   `runtime.save()` returns the whole log (every branch), the head and the cost
   ledger; `runtime.load(data)` validates it and upgrades operations of older

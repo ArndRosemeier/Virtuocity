@@ -21,6 +21,7 @@ export interface ContextSource {
   readonly jobs: JobQueue;
   readonly assets: AssetStore;
   readonly actors: readonly Actor[];
+  cast(): readonly Actor[];
   readonly invoke: InvokeAction;
   transcript(perspective?: string): readonly Message[];
   post(actorId: string, content: Content, stats?: readonly CallStats[]): Promise<Message>;
@@ -40,9 +41,10 @@ export function createSkillContext(
   const call = (contract: Contract, action: string, input: unknown) =>
     source.invoke(actor.id, contract, action, input as never);
   const transcript = source.transcript(actor.id);
+  const cast = source.cast();
   const state = source.workspace.view(actor.id);
   const context = (budget: number) => {
-    const request = { actor, actors: source.actors, state, transcript };
+    const request = { actor, actors: source.actors, cast, state, transcript };
     const pieces = extras.contributors.flatMap((c) => c.contribute(request));
     return assembleContext(pieces, budget);
   };
@@ -54,6 +56,7 @@ export function createSkillContext(
     transcript,
     state,
     actors: source.actors,
+    cast,
     assets: source.assets,
     post: (content, stats) => source.post(actor.id, content, stats),
     invoke: source.invoke,

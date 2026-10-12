@@ -400,6 +400,14 @@
   display: grid;
   gap: var(--space-3);
 }
+.cast__group {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
 .cast__list {
   display: grid;
   gap: var(--space-1);

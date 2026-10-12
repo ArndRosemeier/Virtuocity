@@ -37,7 +37,7 @@ describe('memory', () => {
       personality: { name: 'X', description: '' },
       skillIds: [],
     };
-    const request = { actor, actors: [actor], state: view(state), transcript: [] };
+    const request = { actor, actors: [actor], cast: [], state: view(state), transcript: [] };
     expect(memoryContributor.contribute(request)).toEqual([
       { id: 'story-so-far', title: 'The story so far', text: 'Newer', priority: 60 },
     ]);

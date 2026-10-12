@@ -37,7 +37,7 @@ async function illustrate(
   const settings = readSettings(illustratorSettings, ctx.settings);
   const result = await ctx.complete({
     modality: 'image',
-    messages: illustratePrompt(ctx.actors, request, settings),
+    messages: illustratePrompt(ctx.cast, request, settings),
     ...(signal ? { signal } : {}),
   });
   const [part] = await storeMedia(ctx.assets, result.media ?? [], altText(request.description));

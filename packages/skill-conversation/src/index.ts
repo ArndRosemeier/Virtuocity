@@ -19,7 +19,11 @@ export const conversationSkill: Skill = {
   async takeTurn(ctx) {
     const settings = readSettings(conversationSettings, ctx.settings);
     const { text: context } = ctx.context(Math.floor(settings.memory * CONTEXT_SHARE));
-    const messages = buildPrompt(ctx.actor, ctx.actors, ctx.transcript, { settings, context });
+    const messages = buildPrompt(ctx.actor, ctx.actors, ctx.transcript, {
+      settings,
+      context,
+      cast: ctx.cast,
+    });
     const request = { modality: 'text', messages };
     const { result, calls, runs } = await completeWithTools(ctx.complete, request, ctx.tools);
     for (const run of runs) await ctx.post(toolUseContent(run));

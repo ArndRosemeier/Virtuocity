@@ -1,7 +1,7 @@
-import { textContent } from './output';
 import { describe, expect, it, vi } from 'vitest';
 import type { Actor } from './actor';
 import { coreModule } from './core-module';
+import { textContent } from './output';
 import { ModuleHost, loadModules } from './module';
 import type { ModelProvider } from './provider';
 import { SessionRuntime, messagePosted } from './runtime';
@@ -166,5 +166,16 @@ describe('SessionRuntime transcript', () => {
     await session.runTurn('bard');
     expect(session.transcript()).toHaveLength(2);
     expect(session.allStats()).toHaveLength(2);
+  });
+});
+
+describe('cast and support', () => {
+  it('puts people and talking actors in the cast, and leaves support actors out', async () => {
+    const session = setup();
+    const person: Actor = { ...ai('you', []), controller: 'human' };
+    for (const actor of [person, ai('bard', ['echo']), ai('ink', ['listener'])]) {
+      await session.join(actor);
+    }
+    expect(session.cast().map((a) => a.id)).toEqual(['you', 'bard']);
   });
 });

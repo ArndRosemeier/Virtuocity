@@ -11,6 +11,13 @@ export interface Release {
 
 export const RELEASES: readonly Release[] = [
   {
+    build: 18,
+    date: '2026-10-12',
+    changes: [
+      'Only people and actors who talk make up the cast. Actors without a talking skill, like the Illustrator, the Chronicler or the Premise, are support: the Cast panel lists them separately, and talking actors no longer think they are in the scene.',
+    ],
+  },
+  {
     build: 17,
     date: '2026-10-12',
     changes: [

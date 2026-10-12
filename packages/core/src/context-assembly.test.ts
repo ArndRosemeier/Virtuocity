@@ -64,16 +64,18 @@ const actor = (id: string, profile?: Record<string, unknown>): Actor => ({
 });
 
 describe('cast contributor', () => {
-  it('shares names and profile fields but never personalities', () => {
+  it('shares names and profile fields of the cast but never personalities', () => {
     const contributor = castContributor(() => [looks]);
-    const [cast] = contributor.contribute({
+    const cast = [actor('a'), actor('b', { looks: 'Tall' })];
+    const [piece] = contributor.contribute({
       actor: actor('a'),
-      actors: [actor('a'), actor('b', { looks: 'Tall' })],
+      actors: [...cast, actor('ink')],
+      cast,
       state: { read: () => ({}), change: () => Promise.reject(new Error('read only')) } as never,
       transcript: [],
     });
-    expect(cast?.text).toBe('- B\n  Looks: Tall');
-    expect(cast?.text).not.toContain('map');
+    expect(piece?.text).toBe('- B\n  Looks: Tall');
+    expect(piece?.text).not.toContain('map');
   });
 });
 

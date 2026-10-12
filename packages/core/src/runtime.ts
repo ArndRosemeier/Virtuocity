@@ -181,6 +181,14 @@ export class SessionRuntime {
     return this.#spent;
   }
 
+  /**
+   * The cast: people and the AI actors that take turns in the conversation.
+   * Everyone else (an illustrator, a chronicler, the story view) is support.
+   */
+  cast(): Actor[] {
+    return this.actors.filter((a) => a.controller === 'human' || this.#turnSkill(a) !== undefined);
+  }
+
   /** AI actors that hold a turn-taking skill. */
   speakers(): Actor[] {
     return this.actors.filter((a) => a.controller === 'ai' && this.#turnSkill(a) !== undefined);

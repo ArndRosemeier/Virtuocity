@@ -61,6 +61,18 @@ describe('reading the story', () => {
   });
 });
 
+describe('the scene', () => {
+  it('names only the cast as others in the scene, but still names support actors in the story', () => {
+    const bard = actor('bard', 'Lyra');
+    const ink = actor('ink', 'Ink');
+    const prompt = buildPrompt(bard, [bard, ink], [msg('ink', 'A gate in fog')], {
+      cast: [bard],
+    });
+    expect(prompt[0]?.content).toContain('Others in the scene: nobody else yet.');
+    expect(prompt[1]).toEqual({ role: 'user', content: 'Ink: A gate in fog' });
+  });
+});
+
 describe('length setting', () => {
   it('tells the model how much to write', () => {
     const bard = actor('bard', 'Lyra');
