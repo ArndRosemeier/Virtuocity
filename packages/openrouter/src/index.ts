@@ -58,18 +58,25 @@ export function createOpenRouterProvider(options: OpenRouterOptions): ModelProvi
   let catalog: Promise<ModelInfo[]> | undefined;
   /** Models that turned out to be image-only, so they go straight to the images endpoint. */
   const imageOnly = new Set<string>();
+  const listModels = () => {
+    const pending =
+      catalog ??
+      fetchModels(doFetch).catch((error: unknown) => {
+        catalog = undefined;
+        throw error;
+      });
+    catalog = pending;
+    return pending;
+  };
+  /** What a model outputs, per the catalog the model picker offers. */
+  const outputsOf = async (model: string) => {
+    const found = (await listModels()).find((m) => m.id === model);
+    if (!found) throw new Error(`Model "${model}" is not in OpenRouter's model list.`);
+    return found.outputs;
+  };
   return {
     id: 'openrouter',
-    listModels() {
-      const pending =
-        catalog ??
-        fetchModels(doFetch).catch((error: unknown) => {
-          catalog = undefined;
-          throw error;
-        });
-      catalog = pending;
-      return pending;
-    },
+    listModels,
     async complete(request: CompletionRequest): Promise<CompletionResult> {
       const post = (url: string, body: Record<string, unknown>) =>
         doFetch(url, {
@@ -84,7 +91,8 @@ export function createOpenRouterProvider(options: OpenRouterOptions): ModelProvi
         });
       const images = () => post(IMAGES_ENDPOINT, imagesBody(request));
       if (imageOnly.has(request.model)) return fromImages(await images(), request.model);
-      let response = await post(ENDPOINT, requestBody(request));
+      const outputs = request.modality === 'image' ? await outputsOf(request.model) : undefined;
+      let response = await post(ENDPOINT, requestBody(request, outputs));
       let error = response.ok ? '' : await response.text();
       if (needsImagesEndpoint(response.status, error, request)) {
         imageOnly.add(request.model);
@@ -92,7 +100,7 @@ export function createOpenRouterProvider(options: OpenRouterOptions): ModelProvi
       }
       if (isToolsUnsupported(response.status, error, request)) {
         // The model cannot call tools; let it answer without them.
-        response = await post(ENDPOINT, requestBody(withoutTools(request)));
+        response = await post(ENDPOINT, requestBody(withoutTools(request), outputs));
         error = response.ok ? '' : await response.text();
       }
       await failUnlessOk(response, error);

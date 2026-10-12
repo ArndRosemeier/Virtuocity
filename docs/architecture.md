@@ -74,6 +74,8 @@ app ──► any module ──► ui ──────────► core
   default model; traced and counted like any call.
 - **ModelProvider** (`provider.ts`): runs calls and returns `CallStats`;
   `listModels` returns its catalog (`ModelInfo`: modalities, context, price).
+  The OpenRouter provider asks an image model for exactly the outputs its
+  catalog entry lists (pictures only, or pictures and text).
 - **Modalities** (`host.modalities`): the modalities the app offers a default
   model for. `coreModule` registers text, image and audio; modules add more.
 - **Workspace** (`workspace.ts`, `oplog.ts`, `doc-type.ts`): all shared state.

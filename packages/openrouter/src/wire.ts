@@ -49,14 +49,25 @@ function toWireMessage(message: ChatMessage): Record<string, unknown> {
   return { role: message.role, content: message.content };
 }
 
-/** The JSON body of a chat completion request. */
-export function requestBody(request: CompletionRequest): Record<string, unknown> {
+/** What an image request asks a model for: the pictures and text among its outputs. */
+const imageModalities = (outputs: readonly string[] = []) =>
+  outputs.filter((m) => m === 'image' || m === 'text');
+
+/**
+ * The JSON body of a chat completion request. Image requests ask for the
+ * output modalities the model has (`outputs`, from the catalog): pictures only
+ * from a model that cannot write, pictures and text from one that can.
+ */
+export function requestBody(
+  request: CompletionRequest,
+  outputs?: readonly string[],
+): Record<string, unknown> {
   const { tools, toolChoice, responseSchema } = request;
   return {
     model: request.model,
     messages: request.messages.map(toWireMessage),
     usage: { include: true },
-    ...(request.modality === 'image' ? { modalities: ['image', 'text'] } : {}),
+    ...(request.modality === 'image' ? { modalities: imageModalities(outputs) } : {}),
     ...(request.onText ? { stream: true } : {}),
     ...(tools?.length
       ? {

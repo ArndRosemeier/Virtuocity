@@ -15,12 +15,18 @@ const PICTURE = JSON.stringify({
   usage: { prompt_tokens: 0, completion_tokens: 4175, cost: 0.04 },
 });
 
+const CATALOG = JSON.stringify({
+  data: [{ id: 'meta/muse-image', name: 'Muse', architecture: { output_modalities: ['image'] } }],
+});
+
+function answer(url: string): Response {
+  if (url === IMAGES_ENDPOINT) return new Response(PICTURE);
+  if (url.includes('/models')) return new Response(CATALOG);
+  return new Response(NOT_CHAT, { status: 404 });
+}
+
 function provider() {
-  const fetchMock = vi.fn((url: string) =>
-    Promise.resolve(
-      url === IMAGES_ENDPOINT ? new Response(PICTURE) : new Response(NOT_CHAT, { status: 404 }),
-    ),
-  );
+  const fetchMock = vi.fn((url: string) => Promise.resolve(answer(url)));
   const fetch = fetchMock as unknown as typeof globalThis.fetch;
   return { fetchMock, provider: createOpenRouterProvider({ apiKey: () => 'k', fetch }) };
 }
@@ -42,7 +48,8 @@ describe('image-only models', () => {
       completionTokens: 4175,
       costUsd: 0.04,
     });
-    const [, init] = fetchMock.mock.calls[1] as unknown as [string, RequestInit];
+    const call = fetchMock.mock.calls.find(([url]) => url === IMAGES_ENDPOINT);
+    const [, init] = call as unknown as [string, RequestInit];
     expect(JSON.parse(String(init.body))).toEqual({
       model: 'meta/muse-image',
       prompt: 'A lantern on a stone wall',
@@ -54,7 +61,8 @@ describe('image-only models', () => {
     const { fetchMock, provider: openRouter } = provider();
     await openRouter.complete(request);
     await openRouter.complete(request);
-    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+    const posted = fetchMock.mock.calls.map(([url]) => url).filter((u) => !u.includes('/models'));
+    expect(posted).toEqual([
       'https://openrouter.ai/api/v1/chat/completions',
       IMAGES_ENDPOINT,
       IMAGES_ENDPOINT,

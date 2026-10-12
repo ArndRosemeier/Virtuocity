@@ -9,6 +9,13 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 38,
+    date: '2026-10-12',
+    changes: [
+      'Image models that only draw, such as Grok Imagine, work now. Each image model is asked for exactly what it can output: pictures only, or pictures and text.',
+    ],
+  },
+  {
     build: 37,
     date: '2026-10-12',
     changes: [
