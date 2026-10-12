@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import type { Actor, SessionRuntime, TurnTakingInput } from '@virtuocity/core';
 import { textContent } from '@virtuocity/core';
@@ -30,6 +30,22 @@ function useTurnRunner() {
     }
   };
   return { busy, error, run };
+}
+
+/** Whether the person is typing somewhere else, e.g. editing a message or in a dialog. */
+function typingElsewhere(): boolean {
+  const active = document.activeElement;
+  if (!(active instanceof HTMLElement)) return false;
+  return active.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(active.tagName);
+}
+
+/** Puts the focus back on the input line whenever the AI is done, unless the person types elsewhere. */
+function useFocusWhenDone(working: boolean) {
+  const input = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    if (!working && !typingElsewhere()) input.current?.focus();
+  }, [working]);
+  return input;
 }
 
 /** An actor to pick for the next turn, or to ask to act. */
@@ -102,6 +118,7 @@ function TurnBar({
 export function Composer({ session }: { session: SessionRuntime }) {
   const [draft, setDraft] = useState('');
   const { busy, error, run } = useTurnRunner();
+  const input = useFocusWhenDone(busy || session.speaking !== undefined);
   const act = () =>
     run(async () => {
       const text = draft.trim();
@@ -124,6 +141,7 @@ export function Composer({ session }: { session: SessionRuntime }) {
         {error && <p className="composer__error">{error}</p>}
         <div className="composer__box">
           <textarea
+            ref={input}
             className="composer__input"
             rows={2}
             value={draft}

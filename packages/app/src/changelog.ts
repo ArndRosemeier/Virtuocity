@@ -9,6 +9,13 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 43,
+    date: '2026-10-12',
+    changes: [
+      'When an AI answer is done, the cursor is back in the input line, so you can type your next move right away. It stays put while you are editing a message or typing in a dialog.',
+    ],
+  },
+  {
     build: 42,
     date: '2026-10-12',
     changes: [
