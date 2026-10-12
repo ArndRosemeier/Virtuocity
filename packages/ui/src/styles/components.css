@@ -478,3 +478,19 @@
 .v-field input[type='checkbox'] {
   justify-self: start;
 }
+
+/* ---------- Long text ---------- */
+.v-longtext {
+  display: grid;
+  gap: var(--space-1);
+}
+.v-longtext__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.v-longtext__error {
+  color: var(--danger);
+  font-size: var(--text-xs);
+}

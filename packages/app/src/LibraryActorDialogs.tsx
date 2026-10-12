@@ -63,41 +63,41 @@ export function CopyActorDialog({
 }
 
 /**
- * Deleting an actor the session uses: remove it from the session, or start a
- * new session without it. Either way nothing refers to a deleted actor.
+ * Deleting an actor the session uses deletes that session too, after this
+ * warning, so nothing ever refers to a deleted actor.
  */
 export function DeleteActorDialog({
   actor,
-  onRemoveFromSession,
-  onNewSession,
+  onDelete,
   onClose,
 }: {
   actor: Actor;
-  onRemoveFromSession: () => void;
-  onNewSession: () => void;
+  onDelete: () => void;
   onClose: () => void;
 }) {
   const name = actor.personality.name;
-  const act = (choice: () => void) => () => {
-    choice();
-    onClose();
-  };
   const footer = (
     <>
       <Button variant="ghost" onClick={onClose}>
         Cancel
       </Button>
-      <Button onClick={act(onNewSession)}>Delete and start a new session</Button>
-      <Button variant="primary" onClick={act(onRemoveFromSession)}>
-        Delete and remove from the session
+      <Button
+        variant="primary"
+        icon="trash"
+        onClick={() => {
+          onDelete();
+          onClose();
+        }}
+      >
+        Delete {name} and the session
       </Button>
     </>
   );
   return (
-    <Modal open title={`Delete ${name}`} onClose={onClose} footer={footer}>
+    <Modal open size="sm" title={`Delete ${name}`} onClose={onClose} footer={footer}>
       <p>
-        {name} is in the current session. Deleting {name} also takes it out of the session: either
-        remove {name} from it, or start a new session.
+        {name} is in the current session, so deleting {name} also deletes that session. Save the
+        session to a file first if you want to keep it.
       </p>
     </Modal>
   );

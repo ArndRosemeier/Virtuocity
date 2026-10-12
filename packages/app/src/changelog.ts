@@ -11,6 +11,14 @@ export interface Release {
 
 export const RELEASES: readonly Release[] = [
   {
+    build: 23,
+    date: '2026-10-12',
+    changes: [
+      'Transform by AI: text fields that hold more than a few words (personality, appearance, a premise, a system prompt, an illustration style…) have a Transform by AI button. Write a few words like "grumpy teen" and the default text model turns them into a fuller text. Undo brings your words back.',
+      'Deleting an actor that is in the session now warns you and deletes the session with it. No more "remove from the session" choice.',
+    ],
+  },
+  {
     build: 22,
     date: '2026-10-12',
     changes: [

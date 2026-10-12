@@ -2,7 +2,9 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import type { Actor } from '@virtuocity/core';
 import { sameName } from '@virtuocity/core';
-import { Button, Modal } from '@virtuocity/ui';
+import { Button, Modal, TransformTextContext } from '@virtuocity/ui';
+import type { TransformAbout } from './transform';
+import { useTransform } from './transform';
 import type { Draft } from './ActorFields';
 import { ActorFields } from './ActorFields';
 import type { AppHost } from './types';
@@ -47,6 +49,42 @@ export function actorFromDraft(id: string, draft: Draft): Actor {
   };
 }
 
+/** What "Transform by AI" may know about the actor being edited. */
+function aboutDraft(host: AppHost, draft: Draft): TransformAbout {
+  const profile = host.profileFields.list().flatMap((f) => {
+    const value = draft.profile[f.id];
+    return typeof value === 'string' ? [[f.label, value] as const] : [];
+  });
+  return { name: draft.name, known: [['Personality', draft.description], ...profile] };
+}
+
+function Footer(props: {
+  editing: boolean;
+  label: string;
+  disabled: boolean;
+  onSave: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <>
+      {props.editing && (
+        <span className="muted actor-dialog__note">Changes this actor everywhere.</span>
+      )}
+      <Button variant="ghost" onClick={props.onCancel}>
+        Cancel
+      </Button>
+      <Button
+        variant="primary"
+        {...(props.editing ? {} : { icon: 'plus' as const })}
+        disabled={props.disabled}
+        onClick={props.onSave}
+      >
+        {props.label}
+      </Button>
+    </>
+  );
+}
+
 /** Why the draft's name cannot be saved: empty, or another actor's. */
 function nameProblem(name: string, takenNames: readonly string[]): string | undefined {
   if (!name.trim()) return 'Every actor needs a name.';
@@ -79,6 +117,7 @@ export function ActorDialog({
 }) {
   const [draft, setDraft] = useState<Draft>(() => draftOf(actor));
   const problem = nameProblem(draft.name, takenNames);
+  const transform = useTransform(aboutDraft(host, draft));
 
   const submit = (e?: FormEvent) => {
     e?.preventDefault();
@@ -88,20 +127,13 @@ export function ActorDialog({
   };
 
   const footer = (
-    <>
-      {actor && <span className="muted actor-dialog__note">Changes this actor everywhere.</span>}
-      <Button variant="ghost" onClick={onClose}>
-        Cancel
-      </Button>
-      <Button
-        variant="primary"
-        {...(actor ? {} : { icon: 'plus' as const })}
-        disabled={problem !== undefined}
-        onClick={() => submit()}
-      >
-        {saveLabel}
-      </Button>
-    </>
+    <Footer
+      editing={actor !== undefined}
+      label={saveLabel}
+      disabled={problem !== undefined}
+      onSave={() => submit()}
+      onCancel={onClose}
+    />
   );
 
   return (
@@ -112,14 +144,16 @@ export function ActorDialog({
       onClose={onClose}
       footer={footer}
     >
-      <form className="stack" onSubmit={submit}>
-        <ActorFields
-          host={host}
-          draft={draft}
-          onChange={setDraft}
-          nameError={draft.name.trim() ? problem : undefined}
-        />
-      </form>
+      <TransformTextContext.Provider value={transform ?? null}>
+        <form className="stack" onSubmit={submit}>
+          <ActorFields
+            host={host}
+            draft={draft}
+            onChange={setDraft}
+            nameError={draft.name.trim() ? problem : undefined}
+          />
+        </form>
+      </TransformTextContext.Provider>
     </Modal>
   );
 }

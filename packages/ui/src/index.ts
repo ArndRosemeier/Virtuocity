@@ -5,6 +5,7 @@ export * from './Field';
 export * from './format';
 export * from './Icon';
 export * from './Modal';
+export * from './LongText';
 export * from './ModelLayerEditor';
 export * from './ModelPicker';
 export * from './modelSearch';
