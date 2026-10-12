@@ -13,6 +13,8 @@ import type { CallStats } from './stats';
 export const actorJoined = defineEvent<{ readonly actorId: string }>('actor.joined');
 export const actorLeft = defineEvent<{ readonly actorId: string }>('actor.left');
 export const messagePosted = defineEvent<{ readonly messageId: string }>('message.posted');
+export const turnStarted = defineEvent<{ readonly actorId: string }>('turn.started');
+export const turnEnded = defineEvent<{ readonly actorId: string }>('turn.ended');
 
 export interface SessionConfig {
   readonly host: ModuleHost<unknown, unknown>;
@@ -31,9 +33,15 @@ export class SessionRuntime {
   readonly bus = new EventBus();
   readonly messages = new MessageTree();
   readonly #actors = new Map<string, Actor>();
+  #speaking: string | undefined;
 
   constructor(private readonly config: SessionConfig) {
     this.bus.on('*', (event) => this.#dispatch(event));
+  }
+
+  /** Id of the actor whose turn is running, if any. */
+  get speaking(): string | undefined {
+    return this.#speaking;
   }
 
   get actors(): Actor[] {
@@ -70,7 +78,14 @@ export class SessionRuntime {
     const actor = this.#actors.get(actorId);
     const skill = actor && this.#turnSkill(actor);
     if (!actor || !skill?.takeTurn) throw new Error(`"${actorId}" cannot take a turn`);
-    await skill.takeTurn(this.#context(actor, skill));
+    this.#speaking = actorId;
+    await this.bus.emit(turnStarted.create({ actorId }));
+    try {
+      await skill.takeTurn(this.#context(actor, skill));
+    } finally {
+      this.#speaking = undefined;
+      await this.bus.emit(turnEnded.create({ actorId }));
+    }
   }
 
   /** The human passes: the director picks one AI actor to take a turn. */

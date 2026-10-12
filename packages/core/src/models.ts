@@ -17,3 +17,26 @@ export function resolveModel(modality: Modality, layers: ModelLayers): string {
   if (!model) throw new Error(`No model configured for modality "${modality}"`);
   return model;
 }
+
+/** A modality the app offers a default model for. Modules register the ones they use. */
+export interface ModalityInfo {
+  readonly id: Modality;
+  readonly label: string;
+  readonly description: string;
+}
+
+export const TEXT_MODALITY: ModalityInfo = {
+  id: 'text',
+  label: 'Text',
+  description: 'Conversation, narration and every other text skill.',
+};
+export const IMAGE_MODALITY: ModalityInfo = {
+  id: 'image',
+  label: 'Image',
+  description: 'Scene and character pictures from visualizer skills.',
+};
+export const AUDIO_MODALITY: ModalityInfo = {
+  id: 'audio',
+  label: 'Audio',
+  description: 'Voices, sound and music from composer skills.',
+};
