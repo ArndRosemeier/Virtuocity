@@ -10,13 +10,18 @@ export const conversationSettings = defineSettings({
     .number()
     .int()
     .min(1000)
-    .max(200000)
-    .default(8000)
-    .describe('How many tokens of story and background the actor reads each turn'),
+    .optional()
+    .describe(
+      'How many tokens of story and background the actor reads each turn. Leave empty to read everything',
+    ),
 });
 
-/** Background knowledge gets at most this share of the actor's memory; the story gets the rest. */
+/** Background knowledge gets at most this share of a limited memory; the story gets the rest. */
 export const CONTEXT_SHARE = 0.25;
+
+/** The token budget for background knowledge: unlimited unless the actor's memory is. */
+export const contextBudget = (settings: ConversationSettings): number =>
+  settings.memory === undefined ? Infinity : Math.floor(settings.memory * CONTEXT_SHARE);
 
 export type ConversationSettings = z.output<typeof conversationSettings>;
 
@@ -56,7 +61,7 @@ export interface PromptOptions {
 /**
  * The story so far from the speaker's point of view: their own lines are
  * `assistant`, everyone else's are `user` lines prefixed with the speaker name.
- * Older lines are left out once the actor's memory is full.
+ * With a memory limit, older lines are left out once it is full; without one, all are kept.
  */
 export function buildPrompt(
   actor: Actor,
@@ -75,7 +80,11 @@ export function buildPrompt(
         ? { role: 'assistant', content: m.text }
         : { role: 'user', content: `${nameOf(m.actorId)}: ${m.text}` },
     );
-  const room = settings.memory - estimateTokens(system);
-  const kept = fitNewest(turns, room, (m) => estimateTokens(m.content));
+  const kept =
+    settings.memory === undefined
+      ? turns
+      : fitNewest(turns, settings.memory - estimateTokens(system), (m) =>
+          estimateTokens(m.content),
+        );
   return [{ role: 'system', content: system }, ...kept];
 }

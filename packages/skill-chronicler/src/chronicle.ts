@@ -24,7 +24,6 @@ export function chronicle(ctx: SkillContext): void {
     try {
       const { summary } = await ctx.invoke(ctx.actor.id, summarizerContract, 'summarize', {
         lines,
-        words: settings.summaryWords,
         ...(previous ? { previous: { summary: previous.summary, upTo: previous.upTo } } : {}),
       });
       await ctx.state.change(MEMORY, memoryDoc, {

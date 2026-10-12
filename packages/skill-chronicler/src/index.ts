@@ -12,12 +12,9 @@ export * from './memory';
 export * from './prompt';
 export * from './settings';
 
-const DEFAULT_WORDS = 300;
-
 interface Request {
   readonly lines: readonly StoryLine[];
   readonly previous?: { readonly summary: string; readonly upTo: string } | undefined;
-  readonly words?: number | undefined;
 }
 
 async function write(ctx: SkillContext, messages: ReturnType<typeof fullPrompt>): Promise<string> {
@@ -29,17 +26,17 @@ async function write(ctx: SkillContext, messages: ReturnType<typeof fullPrompt>)
 
 /** Re-reads the whole story every time: slower and dearer, but never drifts. */
 function summarizeFully(request: Request, ctx: SkillContext): Promise<string> {
-  return write(ctx, fullPrompt(ctx.actor, request.lines, request.words ?? DEFAULT_WORDS));
+  return write(ctx, fullPrompt(ctx.actor, request.lines));
 }
 
 /** Folds only the lines after the last summary into it; reads everything when there is none. */
 function summarizeDifferentially(request: Request, ctx: SkillContext): Promise<string> {
-  const { lines, previous, words = DEFAULT_WORDS } = request;
+  const { lines, previous } = request;
   const covered = previous ? lines.findIndex((l) => l.id === previous.upTo) : -1;
   if (!previous || covered < 0) return summarizeFully(request, ctx);
   const since = lines.slice(covered + 1);
   if (since.length === 0) return Promise.resolve(previous.summary);
-  return write(ctx, differentialPrompt(ctx.actor, previous.summary, since, words));
+  return write(ctx, differentialPrompt(ctx.actor, previous.summary, since));
 }
 
 /** A chronicler: keeps the story's summary current, summarizing in its own way. */

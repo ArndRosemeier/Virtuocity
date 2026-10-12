@@ -1,6 +1,6 @@
 import type { Skill, VirtuocityModule } from '@virtuocity/core';
 import { completeWithTools, readSettings, textContent, toolUseContent } from '@virtuocity/core';
-import { CONTEXT_SHARE, buildPrompt, conversationSettings } from './prompt';
+import { buildPrompt, contextBudget, conversationSettings } from './prompt';
 
 export * from './prompt';
 
@@ -18,7 +18,7 @@ export const conversationSkill: Skill = {
   settings: conversationSettings,
   async takeTurn(ctx) {
     const settings = readSettings(conversationSettings, ctx.settings);
-    const { text: context } = ctx.context(Math.floor(settings.memory * CONTEXT_SHARE));
+    const { text: context } = ctx.context(contextBudget(settings));
     const messages = buildPrompt(ctx.actor, ctx.actors, ctx.transcript, {
       settings,
       context,

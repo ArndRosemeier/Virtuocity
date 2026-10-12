@@ -31,7 +31,6 @@ export const summarizerContract = defineContract({
       input: z.object({
         lines: z.array(line).min(1).describe('The story to cover, oldest first'),
         previous: previous.optional().describe('The last summary, which may be built on'),
-        words: z.number().int().positive().optional().describe('About how long the summary is'),
       }),
       output: z.object({ summary: z.string().min(1) }),
     }),

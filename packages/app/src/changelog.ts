@@ -11,6 +11,14 @@ export interface Release {
 
 export const RELEASES: readonly Release[] = [
   {
+    build: 21,
+    date: '2026-10-12',
+    changes: [
+      'Actors now read the whole story by default, so nothing is cut from what they remember. You can still set a memory limit per actor in Edit actor › Conversation; leave it empty for no limit.',
+      'Chroniclers no longer have a summary length. They write as much as the story needs and keep every detail that may still matter, so long sessions keep their history.',
+    ],
+  },
+  {
     build: 20,
     date: '2026-10-12',
     changes: [

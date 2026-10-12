@@ -242,8 +242,9 @@ request, schema)` asks for JSON matching a zod schema, then shows the model
   `fitNewest` trims a history to a budget, keeping the newest items.
 - Built in: `cast` (who is here and their profile fields, never their private
   personality). The book room adds `manuscript` (the outline with each
-  chapter's status). Conversation spends a quarter of its `memory` setting on
-  context and the rest on the newest lines of the story.
+  chapter's status). Conversation's `memory` setting is unlimited by default
+  (the whole story and all context); when set, a quarter goes to context and
+  the rest to the newest lines of the story.
 
 ## Blueprints
 
@@ -288,7 +289,8 @@ after turns once enough story lies beyond the newest `keepRecent` tokens. It get
 the summary by invoking the summarizer contract on its own actor, so any
 implementation can stand in. Two ship: the differential chronicler folds new
 lines into the last summary, the full chronicler rereads everything. Both run
-the contract's conformance suite. The app's Memory panel shows, edits and
+the contract's conformance suite. Summaries have no length setting: the
+summarizer writes as much as it needs to keep every detail that may matter. The app's Memory panel shows, edits and
 forgets summaries (a forgotten one is rebuilt after the next turn).
 
 ## Premise

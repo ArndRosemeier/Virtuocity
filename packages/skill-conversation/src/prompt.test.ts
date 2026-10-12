@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Actor, Message } from '@virtuocity/core';
 import { textContent } from '@virtuocity/core';
-import { buildPrompt, conversationSettings } from './prompt';
+import { buildPrompt, conversationSettings, contextBudget } from './prompt';
 
 const actor = (id: string, name: string): Actor => ({
   id,
@@ -93,5 +93,14 @@ describe('memory', () => {
     expect(prompt[0]?.content).toContain('- Vex');
     expect(prompt.length).toBeLessThan(long.length);
     expect(prompt.at(-1)?.content).toContain('Line 49');
+  });
+
+  it('keeps the whole story when memory is unlimited, the default', () => {
+    const bard = actor('bard', 'Lyra');
+    const long = Array.from({ length: 50 }, (_, i) => msg('vex', `Line ${i} ${'x'.repeat(400)}`));
+    expect(conversationSettings.parse({}).memory).toBeUndefined();
+    expect(buildPrompt(bard, [bard], long)).toHaveLength(51);
+    expect(contextBudget(conversationSettings.parse({}))).toBe(Infinity);
+    expect(contextBudget(conversationSettings.parse({ memory: 8000 }))).toBe(2000);
   });
 });
