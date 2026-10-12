@@ -98,15 +98,9 @@ function useFilteredLibrary(host: PanelProps['host']) {
   };
 }
 
-/** Actors and setups kept for reuse in any session, with export and import. */
-export function LibraryDialog({
-  host,
-  session,
-  open,
-  onClose,
-}: PanelProps & { open: boolean; onClose: () => void }) {
+/** Export and import the whole library as one file. */
+function LibraryFooter({ onClose }: { onClose: () => void }) {
   const library = useLibrary();
-  const view = useFilteredLibrary(host);
   const exportFile = () =>
     run(async () => saveTextFile('virtuocity-library.json', await library.exportText()));
   const importFile = () =>
@@ -114,7 +108,7 @@ export function LibraryDialog({
       const text = await openTextFile();
       if (text !== undefined) await library.importText(text);
     });
-  const footer = (
+  return (
     <>
       <Button variant="ghost" icon="download" onClick={exportFile}>
         Export
@@ -127,8 +121,28 @@ export function LibraryDialog({
       </Button>
     </>
   );
+}
+
+/**
+ * Actors and setups kept for reuse in any session, with export and import.
+ * `picking` shows only actors, to add one to the session (Add actor).
+ */
+export function LibraryDialog({
+  host,
+  session,
+  open,
+  onClose,
+  picking = false,
+}: PanelProps & { open: boolean; onClose: () => void; picking?: boolean }) {
+  const view = useFilteredLibrary(host);
   return (
-    <Modal open={open} size="lg" title="Library" onClose={onClose} footer={footer}>
+    <Modal
+      open={open}
+      size="lg"
+      title={picking ? 'Add actor' : 'Library'}
+      onClose={onClose}
+      footer={picking ? undefined : <LibraryFooter onClose={onClose} />}
+    >
       <div className="stack">
         <TagPicker
           label="Show items with these skills"
@@ -143,13 +157,16 @@ export function LibraryDialog({
               session={session}
               builtIn={view.builtIn}
               actors={view.actors}
+              onAdded={picking ? onClose : undefined}
             />
           </Section>
-          <Section title="Setups">
-            <p className="muted">Start any setup from New session.</p>
-            <Setups blueprints={view.blueprints} setups={view.setups} />
-            <SaveSetup host={host} session={session} />
-          </Section>
+          {!picking && (
+            <Section title="Setups">
+              <p className="muted">Start any setup from New session.</p>
+              <Setups blueprints={view.blueprints} setups={view.setups} />
+              <SaveSetup host={host} session={session} />
+            </Section>
+          )}
         </div>
       </div>
     </Modal>

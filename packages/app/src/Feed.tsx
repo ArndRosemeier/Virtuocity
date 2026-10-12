@@ -10,7 +10,7 @@ import type { AppModule, PanelProps } from './types';
 import { useParts } from './useParts';
 
 function Welcome({ session }: Pick<PanelProps, 'session'>) {
-  const { openSettings, openNewActor, openNewSession } = useAppActions();
+  const { openSettings, openAddActor, openNewSession } = useAppActions();
   const [key] = useSetting(API_KEY);
   if (!key) {
     return (
@@ -37,7 +37,7 @@ function Welcome({ session }: Pick<PanelProps, 'session'>) {
             <Button variant="primary" icon="sparkles" onClick={openNewSession}>
               Pick a setup
             </Button>
-            <Button icon="plus" onClick={openNewActor}>
+            <Button icon="plus" onClick={openAddActor}>
               Add an actor
             </Button>
           </>

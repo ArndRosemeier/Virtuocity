@@ -6,17 +6,17 @@ import { SettingsModal } from './SettingsModal';
 import type { SettingsTab } from './SettingsModal';
 import type { PanelProps } from './types';
 
-/** The one app dialog that is open; `actorId: ''` creates a new actor. */
+/** The one app dialog that is open; a `picking` Library adds an actor to the session. */
 export type OpenDialog =
   | { readonly kind: 'settings'; readonly tab: SettingsTab }
   | { readonly kind: 'actor'; readonly actorId: string }
   | { readonly kind: 'new-session' }
-  | { readonly kind: 'library' };
+  | { readonly kind: 'library'; readonly picking?: boolean };
 
 export function dialogActions(open: (dialog: OpenDialog) => void): AppActions {
   return {
     openSettings: (tab = 'connection') => open({ kind: 'settings', tab }),
-    openNewActor: () => open({ kind: 'actor', actorId: '' }),
+    openAddActor: () => open({ kind: 'library', picking: true }),
     openEditActor: (actorId) => open({ kind: 'actor', actorId }),
     openNewSession: () => open({ kind: 'new-session' }),
     openLibrary: () => open({ kind: 'library' }),
@@ -39,7 +39,7 @@ export function Dialogs({
     case 'new-session':
       return <BlueprintDialog {...props} />;
     case 'library':
-      return <LibraryDialog {...props} />;
+      return <LibraryDialog {...props} picking={dialog.picking ?? false} />;
     default:
       return null;
   }

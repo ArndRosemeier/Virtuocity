@@ -770,6 +770,11 @@
   align-items: start;
 }
 
+.library__new {
+  justify-self: start;
+  align-self: flex-start;
+}
+
 .library__save {
   display: grid;
   gap: var(--space-2);

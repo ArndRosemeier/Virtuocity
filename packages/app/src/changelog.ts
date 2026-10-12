@@ -16,6 +16,8 @@ export const RELEASES: readonly Release[] = [
     changes: [
       'The Library is wider, with actors and setups side by side.',
       'Filter the Library by skill: tags at the top list the skills your actors and setups use. Pick one or more to see only the items that have all of them. Your pick is remembered for the next time you open the Library.',
+      'Add actor now opens the Library to pick from: Add puts the actor in the scene and closes it. New actor is there too.',
+      'The Library has a New actor button: in the Library it saves the new actor for reuse; from Add actor it also adds it to the scene.',
     ],
   },
   {
