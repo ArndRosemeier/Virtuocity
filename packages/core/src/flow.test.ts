@@ -4,6 +4,7 @@ import type { Actor } from './actor';
 import { action, defineContract } from './contract';
 import { coreModule } from './core-module';
 import { defineDocType } from './doc-type';
+import { defineEvent } from './events';
 import type { Flow } from './flow';
 import { defineFlow, flowEnded } from './flow';
 import { ModuleHost, loadModules } from './module';
@@ -72,6 +73,14 @@ const ask = defineFlow<Record<string, never>>({
     await ctx.invoke('user', approval, 'approve', { what: 'chapter one' });
   },
 });
+const announced = defineEvent<{ readonly what: string }>('test.announced');
+const announce = defineFlow<Record<string, never>>({
+  id: 'announce',
+  name: 'Announce',
+  description: 'Tells listeners something',
+  input: z.object({}),
+  run: (ctx) => ctx.emit(announced.create({ what: 'news' })),
+});
 const broken = defineFlow<Record<string, never>>({
   id: 'broken',
   name: 'Broken',
@@ -91,7 +100,7 @@ async function setup() {
   const host = loadModules(new ModuleHost(), [coreModule]);
   host.skills.register(talker);
   host.providers.register(provider);
-  for (const flow of [forever, ask, broken]) host.flows.register(flow as Flow);
+  for (const flow of [forever, ask, announce, broken]) host.flows.register(flow as Flow);
   const session = new SessionRuntime({
     host,
     providerId: 'fake',
@@ -104,6 +113,14 @@ async function setup() {
 }
 
 describe('FlowRunner', () => {
+  it('lets a flow emit events', async () => {
+    const session = await setup();
+    const heard: string[] = [];
+    session.bus.on(announced, (e) => void heard.push(e.payload.what));
+    await session.flows.run('announce', {});
+    expect(heard).toEqual(['news']);
+  });
+
   it('stops a run at its step limit and announces the result', async () => {
     const session = await setup();
     const ended: string[] = [];
