@@ -3,6 +3,7 @@ import { createAssetStore } from '@virtuocity/core';
 import { AppActionsContext } from './actions';
 import type { AppActions } from './actions';
 import { ActorDialog } from './ActorDialog';
+import { BlueprintDialog } from './BlueprintDialog';
 import { Composer } from './Composer';
 import { Feed } from './Feed';
 import { Header } from './Header';
@@ -24,6 +25,7 @@ export function App() {
   const [settingsTab, setSettingsTab] = useState<SettingsTab | null>(null);
   // `null`: closed; `''`: a new actor; otherwise the id of the actor being edited.
   const [editing, setEditing] = useState<string | null>(null);
+  const [starting, setStarting] = useState(false);
   useTheme();
   useEffect(() => {
     // Dev builds expose the session for debugging in the browser console.
@@ -35,6 +37,7 @@ export function App() {
       openSettings: (tab = 'connection') => setSettingsTab(tab),
       openNewActor: () => setEditing(''),
       openEditActor: (actorId) => setEditing(actorId),
+      openNewSession: () => setStarting(true),
     }),
     [],
   );
@@ -62,6 +65,13 @@ export function App() {
           actor={session.actors.find((a) => a.id === editing)}
           open={editing !== null}
           onClose={() => setEditing(null)}
+        />
+        <BlueprintDialog
+          key={`start:${String(starting)}`}
+          host={host}
+          session={session}
+          open={starting}
+          onClose={() => setStarting(false)}
         />
       </AssetsContext.Provider>
     </AppActionsContext.Provider>

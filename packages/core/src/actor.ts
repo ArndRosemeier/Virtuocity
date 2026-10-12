@@ -21,9 +21,3 @@ export interface Actor extends Identified {
   /** Profile fields contributed by modules, keyed by field id. */
   readonly profile?: Readonly<Record<string, unknown>>;
 }
-
-/** A role in the session (GM, player, support...). Any actor can take any seat. */
-export interface Seat extends Identified {
-  readonly role: string;
-  readonly actorId?: string;
-}

@@ -6,6 +6,8 @@ export interface AppActions {
   openSettings(tab?: SettingsTab): void;
   openNewActor(): void;
   openEditActor(actorId: string): void;
+  /** Picks a blueprint and starts over. */
+  openNewSession(): void;
 }
 
 export const AppActionsContext = createContext<AppActions | null>(null);

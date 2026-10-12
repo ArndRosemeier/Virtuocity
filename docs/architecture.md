@@ -1,7 +1,7 @@
 # Architecture
 
 Virtuocity is a small core plus modules. The core defines the concepts and the
-extension points; everything with behaviour (skills, game modes, providers,
+extension points; everything with behaviour (skills, blueprints, providers,
 renderers, panels) is a module that plugs in through a registry. The product
 vision behind this lives in [vision.md](vision.md).
 
@@ -21,9 +21,10 @@ vision behind this lives in [vision.md](vision.md).
 | `@virtuocity/contract-visual`    | `illustrator@1` contract.                                              |
 | `@virtuocity/skill-illustrator`  | Image-model skill implementing `illustrator@1`; illustrates turns.     |
 | `@virtuocity/book-room`          | Walking skeleton: `manuscript` document and `book-pipeline` flow.      |
+| `@virtuocity/roleplay`           | `roleplay` blueprint: narrator, companion, optional illustrator.       |
 | `@virtuocity/app`                | Vite + React web app. Decides which modules are installed.             |
 
-New skills, game modes and providers are new packages under `packages/`. New
+New skills, blueprints and providers are new packages under `packages/`. New
 contracts are `contract-*` packages.
 
 ## Dependency rules (enforced by `npm run boundaries`)
@@ -231,6 +232,23 @@ request, schema)` asks for JSON matching a zod schema, then shows the model
   chapter's status). Conversation spends a quarter of its `memory` setting on
   context and the rest on the newest lines of the story.
 
+## Blueprints
+
+A blueprint (`defineBlueprint`, `host.blueprints`) is a ready-made setup such
+as Roleplay or Book room: the roles it casts and the layout it asks for.
+
+- A role names who the actor is (personality, settings, profile, models) and
+  what it must be able to do: `speaks` (takes turns) and `needs` (contracts).
+  It never names a skill. `roleNeeds` lists the installed skills that can
+  fill each need; the user picks one when there is a choice.
+- `optional` roles are left out when nothing can fill them and can be dropped
+  by the user. `blueprintProblems` explains why a blueprint cannot start.
+- `castBlueprint` turns the choices into actors; `startBlueprint` records the
+  blueprint in the `setup` document and casts them. `currentBlueprint` reads
+  it back, so the layout survives saving and loading.
+- `layout.panels` picks the side panels and their order; without a layout
+  every panel shows.
+
 ## Turn flow in the app
 
 After every turn the session pauses. The human can **Act** (post, then the
@@ -242,5 +260,6 @@ actor), or press an actor's name to let exactly that one speak.
 See the roadmap in the project's design notes. The book room (draft, review,
 approve chapters with a writer, a reviewer and you as editor) is the first
 walking skeleton. Audio generation has the plumbing (parts, renderer) but no
-provider support yet. Next up: blueprints, the library, and UI layouts and views. The app autosaves one session; a
-session library comes with blueprints.
+provider support yet. Blueprints exist (Roleplay, Book room); next up are the library of saved
+actors and blueprints, and views and input controls beyond side panels. The
+app autosaves one session.

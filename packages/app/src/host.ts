@@ -4,6 +4,7 @@ import { openRouterModule } from '@virtuocity/openrouter';
 import { conversationModule } from '@virtuocity/skill-conversation';
 import { diceModule } from '@virtuocity/skill-dice';
 import { illustratorModule } from '@virtuocity/skill-illustrator';
+import { roleplayModule } from '@virtuocity/roleplay';
 import { reviewerModule } from '@virtuocity/skill-reviewer';
 import { writerModule } from '@virtuocity/skill-writer';
 import { bookPanelModule } from './BookPanel';
@@ -29,6 +30,7 @@ export function createHost(): AppHost {
     reviewerModule as AppModule,
     writerModule as AppModule,
     illustratorModule as AppModule,
+    roleplayModule as AppModule,
     bookRoomModule as AppModule,
     bookPanelModule,
   ]);

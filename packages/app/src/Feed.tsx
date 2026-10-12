@@ -8,7 +8,7 @@ import { StatsBadge } from './StatsBadge';
 import type { PanelProps } from './types';
 
 function Welcome({ session }: Pick<PanelProps, 'session'>) {
-  const { openSettings, openNewActor } = useAppActions();
+  const { openSettings, openNewActor, openNewSession } = useAppActions();
   const [key] = useSetting(API_KEY);
   if (!key) {
     return (
@@ -31,12 +31,17 @@ function Welcome({ session }: Pick<PanelProps, 'session'>) {
         icon="users"
         title="Set the scene"
         action={
-          <Button variant="primary" icon="plus" onClick={openNewActor}>
-            Add an actor
-          </Button>
+          <>
+            <Button variant="primary" icon="sparkles" onClick={openNewSession}>
+              Pick a setup
+            </Button>
+            <Button icon="plus" onClick={openNewActor}>
+              Add an actor
+            </Button>
+          </>
         }
       >
-        Create one or more actors, then write the opening line.
+        Start from a ready-made setup, or create your own actors.
       </EmptyState>
     );
   }
