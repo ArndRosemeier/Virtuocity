@@ -1,5 +1,6 @@
 import type { Actor } from './actor';
 import { resolveImplementation } from './adapter';
+import { CAST, castDoc } from './cast';
 import type { Contract } from './contract';
 import { EventBus, defineEvent } from './events';
 import type { VEvent } from './events';
@@ -13,6 +14,8 @@ import type { OutputPart } from './output';
 import type { Skill, SkillContext } from './skill';
 import type { InvokeAction } from './skill-context';
 import type { RewindOptions } from './oplog';
+import type { SavedSession } from './persistence';
+import { migrateOperations, parseSavedSession } from './persistence';
 import type { CallStats } from './stats';
 import type { Message } from './transcript';
 import { MAIN_TRANSCRIPT, postingOperation, transcriptDoc } from './transcript';
@@ -48,7 +51,6 @@ export class SessionRuntime {
   readonly workspace: Workspace;
   /** Contract actions waiting for a human to answer. */
   readonly tasks: HumanTaskQueue;
-  readonly #actors = new Map<string, Actor>();
   readonly #newId: () => string;
   readonly #now: () => number;
   readonly #spent: CallStats[] = [];
@@ -69,18 +71,23 @@ export class SessionRuntime {
     return this.#speaking;
   }
 
-  get actors(): Actor[] {
-    return [...this.#actors.values()];
+  /** Everyone in the session at the head. */
+  get actors(): readonly Actor[] {
+    return this.workspace.read(CAST, castDoc).actors;
   }
 
   /** Actors can join (or be updated) at any time. */
   async join(actor: Actor): Promise<void> {
-    this.#actors.set(actor.id, actor);
+    const payload = { type: 'join', actor } as const;
+    await this.workspace.change({ actorId: actor.id, docId: CAST, docType: castDoc, payload });
     await this.bus.emit(actorJoined.create({ actorId: actor.id }));
   }
 
   async leave(actorId: string): Promise<void> {
-    if (this.#actors.delete(actorId)) await this.bus.emit(actorLeft.create({ actorId }));
+    if (!this.actors.some((a) => a.id === actorId)) return;
+    const payload = { type: 'leave', actorId } as const;
+    await this.workspace.change({ actorId, docId: CAST, docType: castDoc, payload });
+    await this.bus.emit(actorLeft.create({ actorId }));
   }
 
   /** The main transcript at the head, from an actor's perspective or omnisciently. */
@@ -128,6 +135,28 @@ export class SessionRuntime {
     await this.workspace.rewindTo(options.before ? op.parentId : op.id, options);
   }
 
+  /** A snapshot of the whole session (every branch) that `load` can bring back. */
+  save(): SavedSession {
+    const { log } = this.workspace;
+    return {
+      format: 'virtuocity.session',
+      formatVersion: 1,
+      savedAt: this.#now(),
+      head: log.head,
+      operations: log.all(),
+      spent: [...this.#spent],
+    };
+  }
+
+  /** Replaces this session with saved data, upgrading old document versions. */
+  async load(data: unknown): Promise<void> {
+    const saved = parseSavedSession(data);
+    const docTypes = (id: string) => this.config.host.docTypes.find(id);
+    const operations = migrateOperations(saved.operations, docTypes);
+    this.#spent.splice(0, this.#spent.length, ...saved.spent);
+    await this.workspace.load(operations, saved.head);
+  }
+
   /** Stats of every AI call in the session, including ones on discarded branches. */
   allStats(): readonly CallStats[] {
     return this.#spent;
@@ -140,7 +169,7 @@ export class SessionRuntime {
 
   /** Lets one specific actor take a turn. */
   async runTurn(actorId: string): Promise<void> {
-    const actor = this.#actors.get(actorId);
+    const actor = this.actors.find((a) => a.id === actorId);
     const skill = actor && this.#turnSkill(actor);
     if (!actor || !skill?.takeTurn) throw new Error(`"${actorId}" cannot take a turn`);
     this.#speaking = actorId;
@@ -196,7 +225,7 @@ export class SessionRuntime {
   }
 
   #actor(actorId: string): Actor {
-    const actor = this.#actors.get(actorId);
+    const actor = this.actors.find((a) => a.id === actorId);
     if (!actor) throw new ContractError('no-implementation', `"${actorId}" is not in the session`);
     return actor;
   }

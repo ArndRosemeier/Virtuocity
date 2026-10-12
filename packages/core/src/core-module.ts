@@ -1,5 +1,6 @@
 import type { VirtuocityModule } from './module';
 import { AUDIO_MODALITY, IMAGE_MODALITY, TEXT_MODALITY } from './models';
+import { castDoc } from './cast';
 import { transcriptDoc } from './transcript';
 import { leastRecentDirector } from './turns';
 
@@ -9,6 +10,7 @@ export const coreModule: VirtuocityModule = {
   register: (host) => {
     host.directors.register(leastRecentDirector);
     host.docTypes.register(transcriptDoc);
+    host.docTypes.register(castDoc);
     for (const modality of [TEXT_MODALITY, IMAGE_MODALITY, AUDIO_MODALITY])
       host.modalities.register(modality);
   },

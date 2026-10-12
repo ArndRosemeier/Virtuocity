@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 /** Usage of a single AI call, attached to the message it produced. */
 export interface CallStats {
   readonly model: string;
@@ -25,3 +27,11 @@ export function sumStats(stats: readonly CallStats[]): StatsTotal {
     { calls: 0, promptTokens: 0, completionTokens: 0, costUsd: 0 },
   );
 }
+
+/** Validates stats read from saved data. */
+export const callStatsSchema = z.object({
+  model: z.string(),
+  promptTokens: z.number(),
+  completionTokens: z.number(),
+  costUsd: z.number().optional(),
+});

@@ -129,6 +129,16 @@ type, actorId)` folds only the operations that actor may see (their own, and
   from their actor's perspective, and `ctx.transcript`, the transcript as their
   actor sees it. The UI reads the transcript from the human's perspective.
 - **Permissions.** Every `WritePolicy` in `host.policies` must allow a change.
+- **Cast** (`cast.ts`): who is in the session is a document too, so joining and
+  leaving rewind, branch and save with everything else.
+- **Persistence** (`persistence.ts`, `storage.ts`, `assets.ts`, `bundle.ts`):
+  `runtime.save()` returns the whole log (every branch), the head and the cost
+  ledger; `runtime.load(data)` validates it and upgrades operations of older
+  document type versions through `DocType.migrate`. Operations of document types
+  that aren't installed are kept untouched. Storage is a `KeyValueStore` the app
+  injects (IndexedDB in the browser, `memoryStore` in tests). Binary content goes
+  into a content-addressed `AssetStore` and operations hold its `sha256-…` id.
+  `exportBundle` / `importBundle` turn a session and its assets into one file.
 - **Caching.** Folded states are cached per operation and perspective. Operations
   never change, so the cache can't go stale.
 
@@ -140,6 +150,6 @@ character), or press a character's name to let exactly that one speak.
 
 ## Not built yet
 
-See the roadmap in the project's design notes. Next up: persistence (save,
-load, file export, asset store and migrations for document versions), then
-flows, which will also show human tasks as forms in the UI.
+See the roadmap in the project's design notes. Next up: flows, which will also
+show human tasks as forms in the UI. The app autosaves one session; a session
+library comes with blueprints.

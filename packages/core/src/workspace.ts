@@ -135,6 +135,14 @@ export class Workspace {
     await this.#moved();
   }
 
+  /** Replaces all state with a saved log (see `persistence.ts`). */
+  async load(ops: readonly Operation[], head: string | null): Promise<void> {
+    this.log.replace(ops, head);
+    this.#cache.clear();
+    this.#redo = [];
+    await this.#moved();
+  }
+
   async switchTo(opId: string): Promise<void> {
     this.log.switchTo(opId);
     this.#redo = [];
