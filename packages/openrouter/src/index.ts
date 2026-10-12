@@ -5,6 +5,8 @@ import type {
   ModelProvider,
   VirtuocityModule,
 } from '@virtuocity/core';
+import type { ImagesResponse } from './images';
+import { IMAGES_ENDPOINT, fromImagesResponse, imagesBody, needsImagesEndpoint } from './images';
 import { fetchModels } from './models';
 import { readStream } from './stream';
 import type { Answer, WireImage, WireToolCall, WireUsage } from './wire';
@@ -54,6 +56,8 @@ async function readAnswer(response: Response, request: CompletionRequest): Promi
 export function createOpenRouterProvider(options: OpenRouterOptions): ModelProvider {
   const doFetch = options.fetch ?? globalThis.fetch.bind(globalThis);
   let catalog: Promise<ModelInfo[]> | undefined;
+  /** Models that turned out to be image-only, so they go straight to the images endpoint. */
+  const imageOnly = new Set<string>();
   return {
     id: 'openrouter',
     listModels() {
@@ -67,28 +71,47 @@ export function createOpenRouterProvider(options: OpenRouterOptions): ModelProvi
       return pending;
     },
     async complete(request: CompletionRequest): Promise<CompletionResult> {
-      const post = (r: CompletionRequest) =>
-        doFetch(ENDPOINT, {
+      const post = (url: string, body: Record<string, unknown>) =>
+        doFetch(url, {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${options.apiKey()}`,
             'Content-Type': 'application/json',
             'X-Title': options.appTitle ?? 'Virtuocity',
           },
-          body: JSON.stringify(requestBody(r)),
-          ...(r.signal ? { signal: r.signal } : {}),
+          body: JSON.stringify(body),
+          ...(request.signal ? { signal: request.signal } : {}),
         });
-      let response = await post(request);
+      const images = () => post(IMAGES_ENDPOINT, imagesBody(request));
+      if (imageOnly.has(request.model)) return fromImages(await images(), request.model);
+      let response = await post(ENDPOINT, requestBody(request));
       let error = response.ok ? '' : await response.text();
+      if (needsImagesEndpoint(response.status, error, request)) {
+        imageOnly.add(request.model);
+        return fromImages(await images(), request.model);
+      }
       if (isToolsUnsupported(response.status, error, request)) {
         // The model cannot call tools; let it answer without them.
-        response = await post(withoutTools(request));
+        response = await post(ENDPOINT, requestBody(withoutTools(request)));
         error = response.ok ? '' : await response.text();
       }
-      if (!response.ok) throw new Error(`OpenRouter request failed (${response.status}): ${error}`);
+      await failUnlessOk(response, error);
       return toResult(await readAnswer(response, request), request.model);
     },
   };
+}
+
+async function failUnlessOk(response: Response, error?: string): Promise<void> {
+  if (response.ok) return;
+  const text = error ?? (await response.text());
+  throw new Error(`OpenRouter request failed (${response.status}): ${text}`);
+}
+
+/** An answer from the images endpoint, which image-only models use. */
+async function fromImages(response: Response, model: string): Promise<CompletionResult> {
+  await failUnlessOk(response);
+  const answer = fromImagesResponse((await response.json()) as ImagesResponse, model);
+  return toResult(answer, model);
 }
 
 /** OpenRouter answers 404 when no endpoint of the model supports tool use. */
