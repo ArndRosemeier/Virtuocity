@@ -65,7 +65,7 @@ describe('SessionRuntime', () => {
     await session.join(ai('bard', ['echo']));
     const next = await session.pass();
     expect(next?.id).toBe('bard');
-    const [message] = session.messages.activePath();
+    const [message] = session.transcript();
     expect(message?.parts[0]?.data).toBe('from skill-model');
     expect(message?.stats?.[0]?.model).toBe('skill-model');
   });
@@ -100,5 +100,70 @@ describe('SessionRuntime', () => {
     await session.leave('bard');
     expect(session.actors).toEqual([]);
     await expect(session.runTurn('bard')).rejects.toThrow(/cannot take a turn/);
+  });
+});
+
+describe('SessionRuntime transcript', () => {
+  const text = (session: SessionRuntime, perspective?: string) =>
+    session.transcript(perspective).map((m) => m.parts[0]?.data);
+
+  it('edits messages and rewinds all state to a message, before it, or as a branch', async () => {
+    const session = setup();
+    const first = await session.post('user', [{ kind: 'text', data: 'one' }]);
+    const second = await session.post('user', [{ kind: 'text', data: 'two' }]);
+    await session.editMessage('user', first.id, [{ kind: 'text', data: 'uno' }]);
+    expect(text(session)).toEqual(['uno', 'two']);
+    // The edit came after both posts, so rewinding before `two` undoes it as well.
+    await session.rewindToMessage(second.id, { before: true, keepBranch: true });
+    expect(text(session)).toEqual(['one']);
+    await session.post('user', [{ kind: 'text', data: 'dos' }]);
+    expect(text(session)).toEqual(['one', 'dos']);
+    expect(session.workspace.log.leaves()).toHaveLength(2);
+    await session.rewindToMessage(first.id);
+    expect(text(session)).toEqual(['one']);
+  });
+
+  it('keeps whispers out of other perspectives, including the skill context', async () => {
+    const session = setup();
+    await session.join(ai('bard', ['echo']));
+    await session.post('user', [{ kind: 'text', data: 'hello all' }]);
+    await session.post('user', [{ kind: 'text', data: 'psst, rogue' }], undefined, {
+      audience: ['rogue'],
+    });
+    expect(text(session, 'bard')).toEqual(['hello all']);
+    expect(text(session, 'rogue')).toEqual(['hello all', 'psst, rogue']);
+    let seen: readonly unknown[] = [];
+    const peek: Skill = {
+      id: 'peek',
+      name: 'Peek',
+      backing: 'code',
+      takeTurn: (ctx) => {
+        seen = ctx.transcript.map((m) => m.parts[0]?.data);
+        return Promise.resolve();
+      },
+    };
+    const host = loadModules(new ModuleHost(), [coreModule]);
+    host.skills.register(peek);
+    const other = new SessionRuntime({
+      host,
+      providerId: 'none',
+      directorId: 'least-recent',
+      modelDefaults: () => ({}),
+    });
+    await other.join(ai('bard', ['peek']));
+    await other.post('user', [{ kind: 'text', data: 'secret' }], undefined, { audience: ['x'] });
+    await other.runTurn('bard');
+    expect(seen).toEqual([]);
+  });
+
+  it('counts every AI call, even on branches that were thrown away', async () => {
+    const session = setup();
+    await session.join(ai('bard', ['echo']));
+    const first = await session.post('user', [{ kind: 'text', data: 'go' }]);
+    await session.runTurn('bard');
+    await session.rewindToMessage(first.id);
+    await session.runTurn('bard');
+    expect(session.transcript()).toHaveLength(2);
+    expect(session.allStats()).toHaveLength(2);
   });
 });

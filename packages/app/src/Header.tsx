@@ -14,7 +14,7 @@ export function Header({ session }: { session: SessionRuntime }) {
         <span className="brand__name">Virtuocity</span>
       </div>
       <div className="app-header__end">
-        <StatsBadge stats={session.messages.allStats()} showModels={false} />
+        <StatsBadge stats={session.allStats()} showModels={false} />
         <IconButton icon="settings" label="Settings" onClick={() => openSettings()} />
       </div>
     </header>

@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import type { Message } from '@virtuocity/core';
 import { Avatar, Button, EmptyState } from '@virtuocity/ui';
 import { useAppActions } from './actions';
+import { USER_ID } from './useSession';
 import { API_KEY, useSetting } from './settings';
 import { StatsBadge } from './StatsBadge';
 import type { PanelProps } from './types';
@@ -74,7 +75,7 @@ function MessageView({
 /** The story: the active path of the message tree, drawn through the renderer registry. */
 export function Feed({ host, session }: PanelProps) {
   const end = useRef<HTMLDivElement>(null);
-  const messages = session.messages.activePath();
+  const messages = session.transcript(USER_ID);
   const nameOf = (id: string) => session.actors.find((a) => a.id === id)?.personality.name ?? id;
   const speaking = session.speaking;
 

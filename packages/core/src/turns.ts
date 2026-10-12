@@ -1,5 +1,5 @@
 import type { Actor } from './actor';
-import type { MessageTree } from './session';
+import type { Message } from './transcript';
 
 /** What the human chose when the session paused after a turn. */
 export type TurnChoice =
@@ -10,7 +10,8 @@ export type TurnChoice =
 export interface DirectorInput {
   /** Actors that can currently take a turn (have a turn-taking skill). */
   readonly candidates: readonly Actor[];
-  readonly messages: MessageTree;
+  /** The story so far, as the director may see it. */
+  readonly transcript: readonly Message[];
 }
 
 /** Picks who speaks next when the human passes. Swappable like everything else. */
@@ -22,10 +23,9 @@ export interface Director {
 /** Default director: the AI actor who spoke least recently. */
 export const leastRecentDirector: Director = {
   id: 'least-recent',
-  pickNext: ({ candidates, messages }) => {
+  pickNext: ({ candidates, transcript }) => {
     const ai = candidates.filter((a) => a.controller === 'ai');
-    const path = messages.activePath();
-    const lastSpoke = (a: Actor) => path.findLastIndex((m) => m.actorId === a.id);
+    const lastSpoke = (a: Actor) => transcript.findLastIndex((m) => m.actorId === a.id);
     const sorted = [...ai].sort((a, b) => lastSpoke(a) - lastSpoke(b));
     return Promise.resolve(sorted[0]);
   },

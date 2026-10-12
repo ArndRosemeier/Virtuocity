@@ -1,6 +1,7 @@
 import type { Seat } from './actor';
 import type { ContractAdapter } from './adapter';
 import { ContractRegistry } from './contract-registry';
+import type { DocType } from './doc-type';
 import type { ModalityInfo } from './models';
 import type { Identified } from './registry';
 import { Registry } from './registry';
@@ -8,6 +9,7 @@ import { RendererRegistry } from './output';
 import type { ModelProvider } from './provider';
 import type { Skill } from './skill';
 import type { Director } from './turns';
+import type { WritePolicy } from './workspace';
 
 /** A ruleset bundle (free form, D&D 5e, Pathfinder 2e...). */
 export interface GameMode extends Identified {
@@ -29,6 +31,8 @@ export interface PanelContribution<C = unknown> extends Identified {
 export class ModuleHost<R = unknown, C = unknown> {
   readonly contracts = new ContractRegistry();
   readonly adapters = new Registry<ContractAdapter>('contract adapter');
+  readonly docTypes = new Registry<DocType>('document type');
+  readonly policies = new Registry<WritePolicy>('write policy');
   readonly skills = new Registry<Skill>('skill');
   readonly modalities = new Registry<ModalityInfo>('modality');
   readonly gameModes = new Registry<GameMode>('game mode');
