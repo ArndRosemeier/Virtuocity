@@ -1,5 +1,6 @@
 import type { z } from 'zod';
 import type { Actor } from './actor';
+import type { VEvent } from './events';
 import { defineEvent } from './events';
 import type { Identified } from './registry';
 import type { InvokeAction } from './skill-context';
@@ -22,6 +23,8 @@ export interface FlowContext {
   readonly invoke: InvokeAction;
   /** Asks the session's director who should speak next. */
   pickNext(): Promise<Actor | undefined>;
+  /** Tells everyone listening that something happened, e.g. that the scene changed. */
+  emit(event: VEvent): Promise<void>;
   /** Aborted when the human interrupts the run. */
   readonly signal: AbortSignal;
   /** Steps taken so far in this run. */

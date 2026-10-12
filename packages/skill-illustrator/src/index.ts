@@ -1,5 +1,5 @@
 import type { Picture } from '@virtuocity/contract-visual';
-import { illustratorContract, sceneChannel } from '@virtuocity/contract-visual';
+import { illustratorContract, sceneChanged, sceneChannel } from '@virtuocity/contract-visual';
 import type { CallStats, Skill, SkillContext, VirtuocityModule } from '@virtuocity/core';
 import {
   IMAGE_PART,
@@ -39,9 +39,20 @@ async function illustrate(
   return { picture: { ...part.data, alt: part.data.alt ?? 'A picture' }, stats: result.stats };
 }
 
+/** Paints in the background; the picture becomes the scene, and joins the story if asked. */
+function paint(ctx: SkillContext, description: string, inStory: boolean): void {
+  ctx.startJob('Illustrating the scene', async ({ signal }) => {
+    const { picture, stats } = await illustrate(ctx, { description }, signal);
+    const part = { kind: IMAGE_PART, data: picture };
+    await showOnChannel(ctx.state, sceneChannel, part);
+    if (inStory) await ctx.post([part], [stats]);
+  });
+}
+
 /**
  * Draws pictures with an image model. As an actor in a scene it illustrates
- * other actors' turns in the background, so the story never waits for it.
+ * other actors' turns, and every new scene announced with `sceneChanged`, in
+ * the background, so the story never waits for it.
  */
 export const illustratorSkill: Skill = {
   id: 'illustrator',
@@ -53,18 +64,15 @@ export const illustratorSkill: Skill = {
       illustrate: async (input, ctx) => (await illustrate(ctx, input)).picture,
     }),
   ],
-  listensTo: [turnEnded.type],
+  listensTo: [turnEnded.type, sceneChanged.type],
   onEvent: (event, ctx) => {
-    if (!turnEnded.is(event) || event.payload.actorId === ctx.actor.id) return Promise.resolve();
-    const { every, inStory } = readSettings(illustratorSettings, ctx.settings);
-    const scene = sceneToPaint(ctx.transcript, ctx.actor.id, event.payload.actorId, every);
-    if (!scene) return Promise.resolve();
-    ctx.startJob('Illustrating the scene', async ({ signal }) => {
-      const { picture, stats } = await illustrate(ctx, { description: scene }, signal);
-      const part = { kind: IMAGE_PART, data: picture };
-      await showOnChannel(ctx.state, sceneChannel, part);
-      if (inStory) await ctx.post([part], [stats]);
-    });
+    if (sceneChanged.is(event)) {
+      paint(ctx, event.payload.description, false);
+    } else if (turnEnded.is(event) && event.payload.actorId !== ctx.actor.id) {
+      const { every, inStory } = readSettings(illustratorSettings, ctx.settings);
+      const scene = sceneToPaint(ctx.transcript, ctx.actor.id, event.payload.actorId, every);
+      if (scene) paint(ctx, scene, inStory);
+    }
     return Promise.resolve();
   },
 };

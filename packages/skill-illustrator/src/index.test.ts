@@ -1,4 +1,4 @@
-import { illustratorContract } from '@virtuocity/contract-visual';
+import { illustratorContract, sceneChanged } from '@virtuocity/contract-visual';
 import type { Skill } from '@virtuocity/core';
 import {
   IMAGE_PART,
@@ -96,5 +96,20 @@ describe('illustrating a scene', () => {
     await expect(ended).resolves.toBe('failed');
     expect(runtime.jobs.list()[0]?.error).toMatch(/Pick an image model/);
     expect(runtime.transcript()).toHaveLength(1);
+  });
+
+  it('paints an announced new scene only as the scene picture', async () => {
+    const { runtime, ended } = session(() => ({ media: [png] }));
+    await runtime.join({
+      id: 'ink',
+      controller: 'ai',
+      personality: { name: 'Ink', description: '' },
+      skillIds: ['illustrator'],
+    });
+    await runtime.bus.emit(sceneChanged.create({ description: 'A misty harbour at dawn.' }));
+    await expect(ended).resolves.toBe('done');
+    expect(runtime.transcript()).toHaveLength(0);
+    expect(channelContents(runtime.workspace.view('user')).scene?.actorId).toBe('ink');
+    expect(runtime.calls.list()[0]?.request.messages[0]?.content).toContain('misty harbour');
   });
 });

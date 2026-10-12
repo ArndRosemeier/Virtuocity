@@ -100,6 +100,7 @@ export class FlowRunner {
       state: host.workspace.view(`flow:${flowId}`),
       transcript: () => host.transcript(),
       pickNext: () => host.pickNext(),
+      emit: (event) => host.bus.emit(event),
       runTurn: (actorId) => step(() => host.runTurn(actorId)),
       invoke: (actorId, contract, action, input) =>
         step(() => host.invoke(actorId, contract, action, input)),
