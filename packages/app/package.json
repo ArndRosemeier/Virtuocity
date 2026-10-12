@@ -9,11 +9,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@virtuocity/book-room": "*",
+    "@virtuocity/contract-critique": "*",
+    "@virtuocity/contract-writing": "*",
     "@virtuocity/core": "*",
     "@virtuocity/openrouter": "*",
     "@virtuocity/skill-conversation": "*",
     "@virtuocity/skill-dice": "*",
     "@virtuocity/skill-reviewer": "*",
+    "@virtuocity/skill-writer": "*",
     "@virtuocity/ui": "*",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
