@@ -1,36 +1,39 @@
 import { useState } from 'react';
-import type { Blueprint, SavedSetup } from '@virtuocity/core';
-import { builtInActors, currentBlueprint } from '@virtuocity/core';
+import type { Actor, Blueprint, SavedSetup } from '@virtuocity/core';
+import { currentBlueprint } from '@virtuocity/core';
+import { Pill } from '@virtuocity/ui';
 import { Button, Field, IconButton, Modal, Section, TagPicker, TextInput } from '@virtuocity/ui';
 import { openTextFile, saveTextFile } from './files';
-import { useLibrary, useLibraryItems } from './library';
-import { BUILT_IN, LibraryActors, Row, run } from './LibraryActors';
+import { isLibraryActor, setupNames, useLibrary, useLibraryItems } from './library';
+import { useResolveConflicts } from './conflicts';
+import { LibraryActors, Row, runSafely as run } from './LibraryActors';
 import { hasSkills, parseTags, skillTags } from './libraryTags';
 import { LIBRARY_TAGS, useSetting } from './settings';
 import type { PanelProps } from './types';
 
-/** Built-in setups, then the casts you saved. Both start from New session. */
+/**
+ * Built-in setups (a layout and a guide; they bring no actors), then the casts
+ * you saved. Both start from New session.
+ */
 function Setups({
   blueprints,
   setups,
+  actors,
 }: {
   blueprints: readonly Blueprint[];
   setups: readonly SavedSetup[];
+  actors: readonly Actor[];
 }) {
   const library = useLibrary();
   return (
     <ul className="cast__list">
       {blueprints.map((b) => (
-        <Row key={b.id} name={b.name} detail={b.roles.map((r) => r.personality.name).join(', ')}>
-          {BUILT_IN}
+        <Row key={b.id} name={b.name} detail={b.description}>
+          <Pill>built-in</Pill>
         </Row>
       ))}
       {setups.map((setup) => (
-        <Row
-          key={setup.id}
-          name={setup.name}
-          detail={setup.actors.map((a) => a.personality.name).join(', ')}
-        >
+        <Row key={setup.id} name={setup.name} detail={setupNames(setup, actors).join(', ')}>
           <IconButton
             size="sm"
             icon="trash"
@@ -47,12 +50,13 @@ function Setups({
 function SaveSetup({ host, session }: PanelProps) {
   const library = useLibrary();
   const [name, setName] = useState('');
-  const actors = session.actors.filter((a) => a.controller === 'ai');
+  const actors = session.actors.filter(isLibraryActor);
   const save = () =>
     run(async () => {
       const blueprintId = currentBlueprint(session, host.blueprints)?.id;
       const description = actors.map((a) => a.personality.name).join(', ');
-      await library.saveSetup({ name: name.trim(), description, blueprintId, actors });
+      const actorIds = actors.map((a) => a.id);
+      await library.saveSetup({ name: name.trim(), description, blueprintId, actorIds });
       setName('');
     });
   return (
@@ -74,14 +78,11 @@ function SaveSetup({ host, session }: PanelProps) {
 function useFilteredLibrary(host: PanelProps['host']) {
   const { actors, setups } = useLibraryItems();
   const [stored, store] = useSetting(LIBRARY_TAGS);
-  const builtIn = builtInActors(host.blueprints.list(), host.skills.list());
-  const blueprintSkills = (b: Blueprint) =>
-    builtIn.filter((x) => x.blueprint.id === b.id).flatMap((x) => x.actor.skillIds);
-  const setupSkills = (s: SavedSetup) => s.actors.flatMap((a) => a.skillIds);
+  const all = actors.map((x) => x.actor);
+  const setupSkills = (s: SavedSetup) =>
+    s.actorIds.flatMap((id) => all.find((a) => a.id === id)?.skillIds ?? []);
   const tags = skillTags(host.skills.list(), [
-    ...builtIn.map((x) => x.actor.skillIds),
-    ...actors.map((x) => x.actor.skillIds),
-    ...host.blueprints.list().map(blueprintSkills),
+    ...all.map((a) => a.skillIds),
     ...setups.map(setupSkills),
   ]);
   // Skills no item uses (or no longer installed) stay stored but do not filter.
@@ -91,9 +92,8 @@ function useFilteredLibrary(host: PanelProps['host']) {
     tags,
     selected,
     select: (next: readonly string[]) => store(JSON.stringify(next)),
-    builtIn: builtIn.filter((x) => shows(x.actor.skillIds)),
+    all,
     actors: actors.filter((x) => shows(x.actor.skillIds)),
-    blueprints: host.blueprints.list().filter((b) => shows(blueprintSkills(b))),
     setups: setups.filter((s) => shows(setupSkills(s))),
   };
 }
@@ -101,12 +101,13 @@ function useFilteredLibrary(host: PanelProps['host']) {
 /** Export and import the whole library as one file. */
 function LibraryFooter({ onClose }: { onClose: () => void }) {
   const library = useLibrary();
+  const resolve = useResolveConflicts();
   const exportFile = () =>
     run(async () => saveTextFile('virtuocity-library.json', await library.exportText()));
   const importFile = () =>
     run(async () => {
       const text = await openTextFile();
-      if (text !== undefined) await library.importText(text);
+      if (text !== undefined) await library.importText(text, resolve);
     });
   return (
     <>
@@ -155,15 +156,15 @@ export function LibraryDialog({
             <LibraryActors
               host={host}
               session={session}
-              builtIn={view.builtIn}
               actors={view.actors}
+              names={view.all.map((a) => a.personality.name)}
               onAdded={picking ? onClose : undefined}
             />
           </Section>
           {!picking && (
             <Section title="Setups">
               <p className="muted">Start any setup from New session.</p>
-              <Setups blueprints={view.blueprints} setups={view.setups} />
+              <Setups blueprints={host.blueprints.list()} setups={view.setups} actors={view.all} />
               <SaveSetup host={host} session={session} />
             </Section>
           )}

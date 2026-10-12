@@ -11,6 +11,8 @@ export const bookRoomBlueprint = defineBlueprint({
   roles: [
     {
       id: 'writer',
+      label: 'A writer',
+      hint: 'Drafts each chapter from your brief.',
       personality: {
         name: 'Quill',
         description: 'A novelist with a clear, vivid style who keeps scenes moving.',
@@ -19,6 +21,8 @@ export const bookRoomBlueprint = defineBlueprint({
     },
     {
       id: 'reviewer',
+      label: 'A reviewer',
+      hint: 'Gives notes on every draft before it is revised.',
       personality: {
         name: 'Marlow',
         description: 'A demanding editor who cares about pacing, voice and continuity.',

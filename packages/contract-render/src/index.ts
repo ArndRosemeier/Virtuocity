@@ -16,12 +16,13 @@ import {
 export const renderContract = defineContract({
   name: 'render',
   version: '1.0',
-  description: 'Draws the story from its messages.',
+  description: 'Draws the session from its messages.',
   actions: {
     render: action({
-      description: 'How the story looks now. Must be quick: it runs whenever the story changes.',
+      description:
+        'How the session looks now. Must be quick: it runs whenever the session changes.',
       input: z.object({
-        messages: z.array(messageSchema).describe('The story, as the person sees it'),
+        messages: z.array(messageSchema).describe('The session, as the person sees it'),
       }),
       output: z.object({
         parts: z.array(outputPartSchema).describe('The view, as output parts of any kind'),
@@ -30,21 +31,21 @@ export const renderContract = defineContract({
   },
   conformance: [
     {
-      name: 'draws an empty story',
+      name: 'draws an empty session',
       run: async (t) => {
         const { parts } = await t.invoke('render', { messages: [] });
         check(Array.isArray(parts), 'expected parts');
       },
     },
     {
-      name: 'draws a story as output parts',
+      name: 'draws a session as output parts',
       run: async (t) => {
         const messages = [
           { id: 'm1', actorId: 'a', kind: 'text', data: 'Rain.', text: 'Rain.', createdAt: 0 },
           { id: 'm2', actorId: 'b', kind: 'dice', data: { total: 7 }, text: '7', createdAt: 1 },
         ];
         const { parts } = await t.invoke('render', { messages });
-        check(parts.length > 0, 'expected a story to be drawn');
+        check(parts.length > 0, 'expected a session to be drawn');
         check(
           parts.every((p) => p.kind.trim() !== ''),
           'expected every part to say what kind it is',

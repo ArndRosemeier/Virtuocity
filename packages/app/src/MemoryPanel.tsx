@@ -82,8 +82,8 @@ function MemoryPanel({ session }: PanelProps) {
   if (entries.length === 0) {
     return (
       <p className="muted">
-        No summary yet. A chronicler writes one once the story grows longer than the actors can
-        read. The story itself always stays complete.
+        No summary yet. A chronicler writes one once the session grows longer than the actors can
+        read. The session itself always stays complete.
       </p>
     );
   }

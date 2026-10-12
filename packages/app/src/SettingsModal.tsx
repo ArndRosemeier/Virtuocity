@@ -4,6 +4,7 @@ import type { TabDef } from '@virtuocity/ui';
 import { API_KEY, THEME, useModelDefaults, useSetting, writeModelDefaults } from './settings';
 import { RendererSelect } from './RendererSelect';
 import { RENDERER, rendererActors } from './storyView';
+import { SHOW_GUIDE } from './SetupGuide';
 import type { ThemeChoice } from './theme';
 import type { AppHost } from './types';
 import { useModels } from './useModels';
@@ -68,6 +69,7 @@ const THEMES: readonly { id: ThemeChoice; label: string }[] = [
 function AppearanceTab({ host }: { host: AppHost }) {
   const [theme, setTheme] = useSetting(THEME);
   const [renderer, setRenderer] = useSetting(RENDERER);
+  const [guide, setGuide] = useSetting(SHOW_GUIDE);
   const known = rendererActors(host).some((a) => a.id === renderer);
   return (
     <>
@@ -86,11 +88,21 @@ function AppearanceTab({ host }: { host: AppHost }) {
           ))}
         </div>
       </Section>
-      <Section title="Story view">
+      <Section title="Setup guide">
+        <label className="settings__check">
+          <input
+            type="checkbox"
+            checked={guide === 'on'}
+            onChange={(e) => setGuide(e.target.checked ? 'on' : 'off')}
+          />
+          Show what a setup can use when a session starts from one
+        </label>
+      </Section>
+      <Section title="Session view">
         <RendererSelect
           host={host}
-          label="New stories are drawn as"
-          hint="Each story can change its own view in the cast panel."
+          label="New sessions are drawn as"
+          hint="Each session can change its own view in the cast panel."
           value={known ? renderer : ''}
           onChange={setRenderer}
         />

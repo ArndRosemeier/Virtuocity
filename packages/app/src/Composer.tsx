@@ -77,7 +77,7 @@ function TurnBar({
         </button>
       ))}
       <span className="composer__hint">
-        <Icon name="lantern" /> The story pauses after every turn.
+        <Icon name="lantern" /> The session pauses after every turn.
       </span>
     </div>
   );

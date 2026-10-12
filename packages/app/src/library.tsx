@@ -1,5 +1,15 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import type { Library, LibraryItem, SavedActor, SavedSetup } from '@virtuocity/core';
+import type {
+  Actor,
+  Library,
+  LibraryItem,
+  ResolveConflicts,
+  SavedActor,
+  SavedSetup,
+  SessionRuntime,
+} from '@virtuocity/core';
+import { sameActor } from '@virtuocity/core';
+import { STORY_VIEW } from './storyView';
 
 export const LibraryContext = createContext<Library | null>(null);
 
@@ -33,3 +43,40 @@ export function useLibraryItems(): LibraryItems {
     setups: items.filter((i): i is SavedSetup => i.kind === 'setup'),
   };
 }
+
+/** Actors that live in the library: every AI actor but the story view, which the app manages. */
+export function isLibraryActor(actor: Actor): boolean {
+  return actor.controller === 'ai' && actor.id !== STORY_VIEW;
+}
+
+/** Saves an actor in the library and, if it is in the session, there too. */
+export async function saveEverywhere(
+  library: Library,
+  session: SessionRuntime,
+  actor: Actor,
+): Promise<void> {
+  await library.saveActor(actor);
+  if (session.actors.some((a) => a.id === actor.id)) await session.join(actor);
+}
+
+/**
+ * Makes every actor in the session a library actor, e.g. after loading a file:
+ * new names join the library, taken ones are settled by `resolve`, and the
+ * session gets the actors as the library holds them.
+ */
+export async function syncCast(
+  library: Library,
+  session: SessionRuntime,
+  resolve: ResolveConflicts,
+): Promise<void> {
+  const cast = session.actors.filter(isLibraryActor);
+  const held = await library.adopt(cast, resolve);
+  for (const actor of held) {
+    const current = cast.find((a) => a.id === actor.id);
+    if (!current || !sameActor(current, actor)) await session.join(actor);
+  }
+}
+
+/** The names of a setup's actors that are still in the library. */
+export const setupNames = (setup: SavedSetup, actors: readonly Actor[]) =>
+  setup.actorIds.flatMap((id) => actors.find((a) => a.id === id)?.personality.name ?? []);

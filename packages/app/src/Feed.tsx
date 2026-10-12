@@ -48,7 +48,7 @@ function Welcome({ session }: Pick<PanelProps, 'session'>) {
     );
   }
   return (
-    <EmptyState icon="lantern" title="Your story starts here">
+    <EmptyState icon="lantern" title="Your session starts here">
       Write the first line below, or pass and let an actor begin.
     </EmptyState>
   );
@@ -79,14 +79,14 @@ function NoStoryView({ host, session }: PanelProps) {
   return (
     <EmptyState
       icon="eye"
-      title="Nothing draws this story"
+      title="Nothing draws this session"
       action={
         <Button variant="primary" onClick={() => void ensureStoryView(host, session)}>
           Use the default view
         </Button>
       }
     >
-      Every story needs a view to be seen through.
+      Every session needs a view to be seen through.
     </EmptyState>
   );
 }
@@ -140,5 +140,5 @@ export function Feed({ host, session }: PanelProps) {
 export const feedModule: AppModule = {
   id: 'feed',
   register: (host) =>
-    host.panels.register({ id: 'story', title: 'Story', slot: 'main', component: Feed }),
+    host.panels.register({ id: 'story', title: 'Session', slot: 'main', component: Feed }),
 };

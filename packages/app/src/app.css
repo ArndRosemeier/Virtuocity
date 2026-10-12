@@ -912,3 +912,63 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Setup guide: what a session's setup can use, at the top of the Cast panel. */
+.guide {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  margin-bottom: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+}
+.guide__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.guide__group {
+  margin: 0;
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+.guide__list {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.guide__line {
+  display: grid;
+  grid-template-columns: 1.25em 1fr;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+}
+.guide__line[data-done='true'] .guide__mark {
+  color: var(--accent);
+}
+.guide__hint {
+  display: block;
+  font-size: var(--text-xs);
+}
+.guide__foot {
+  margin: 0;
+  font-size: var(--text-xs);
+}
+
+.settings__check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  accent-color: var(--accent);
+}
+
+.actor-dialog__note {
+  margin-right: auto;
+  align-self: center;
+  font-size: var(--text-sm);
+}

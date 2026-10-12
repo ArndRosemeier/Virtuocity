@@ -82,6 +82,17 @@ describe('opening a session', () => {
     expect(runtime.calls.list()).toHaveLength(0);
   });
 
+  it('opens an empty story when it joins after the start', async () => {
+    const { runtime, ended } = session();
+    await startBlueprint(runtime, stage);
+    const settings = { 'fixed-premise': { premise: 'You wake on a moving train.' } };
+    await runtime.join(actor('premise', ['fixed-premise'], settings));
+    await runtime.join(actor('premise', ['fixed-premise'], settings));
+    await ended;
+    expect(runtime.transcript()).toHaveLength(1);
+    expect(runtime.transcript()[0]).toMatchObject(textContent('You wake on a moving train.'));
+  });
+
   it('stays silent when it joins a story that has already begun', async () => {
     const { runtime } = session();
     await runtime.join(actor('wren', ['quiet']));
