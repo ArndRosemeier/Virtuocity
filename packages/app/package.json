@@ -13,6 +13,7 @@
     "@virtuocity/openrouter": "*",
     "@virtuocity/skill-conversation": "*",
     "@virtuocity/skill-dice": "*",
+    "@virtuocity/ui": "*",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
   }

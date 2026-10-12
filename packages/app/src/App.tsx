@@ -1,27 +1,54 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import { AppActionsContext } from './actions';
+import type { AppActions } from './actions';
+import { CharacterDialog } from './CharacterDialog';
 import { Composer } from './Composer';
 import { Feed } from './Feed';
-import { SettingsBar } from './SettingsBar';
+import { Header } from './Header';
+import { SettingsModal } from './SettingsModal';
+import type { SettingsTab } from './SettingsModal';
 import { Slot } from './Slot';
-import { StatsBadge } from './StatsBadge';
 import { createHost } from './host';
 import { useSession } from './useSession';
+import { useTheme } from './theme';
 import './app.css';
 
 export function App() {
   const host = useMemo(createHost, []);
   const session = useSession(host);
+  const [settingsTab, setSettingsTab] = useState<SettingsTab | null>(null);
+  const [newCharacter, setNewCharacter] = useState(false);
+  useTheme();
+
+  const actions = useMemo<AppActions>(
+    () => ({
+      openSettings: (tab = 'connection') => setSettingsTab(tab),
+      openNewCharacter: () => setNewCharacter(true),
+    }),
+    [],
+  );
 
   return (
-    <div className="layout">
-      <header>
-        <h1>Virtuocity</h1>
-        <StatsBadge stats={session.messages.allStats()} />
-        <SettingsBar />
-      </header>
-      <Feed host={host} session={session} />
-      <Slot host={host} name="side" session={session} />
-      <Composer session={session} />
-    </div>
+    <AppActionsContext.Provider value={actions}>
+      <div className="layout">
+        <Header session={session} />
+        <Feed host={host} session={session} />
+        <Slot name="side" host={host} session={session} />
+        <Composer session={session} />
+      </div>
+      <SettingsModal
+        key={settingsTab ?? 'closed'}
+        host={host}
+        open={settingsTab !== null}
+        initialTab={settingsTab ?? 'connection'}
+        onClose={() => setSettingsTab(null)}
+      />
+      <CharacterDialog
+        host={host}
+        session={session}
+        open={newCharacter}
+        onClose={() => setNewCharacter(false)}
+      />
+    </AppActionsContext.Provider>
   );
 }

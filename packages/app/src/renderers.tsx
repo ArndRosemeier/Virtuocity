@@ -6,7 +6,7 @@ export const defaultRenderersModule: AppModule = {
   register: (host) => {
     host.renderers.register({
       id: 'text',
-      render: (part) => <p className="text-part">{String(part.data)}</p>,
+      render: (part) => <p className="story-text">{String(part.data)}</p>,
     });
   },
 };

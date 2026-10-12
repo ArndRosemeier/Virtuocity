@@ -17,10 +17,17 @@ module.exports = {
     {
       name: 'modules-only-use-core',
       comment:
-        'Modules (skills, game modes, providers) may only depend on the core, never on each other or the app.',
+        'Modules (skills, game modes, providers) may only depend on the core and the UI kit, never on each other or the app.',
       severity: 'error',
       from: { path: '^packages/(?!core/|app/)([^/]+)/' },
-      to: { path: '^packages/(?!core/)(?!$1/)' },
+      to: { path: '^packages/(?!core/|ui/)(?!$1/)' },
+    },
+    {
+      name: 'ui-kit-only-uses-core',
+      comment: 'The UI kit is shared by every module, so it may only depend on the core.',
+      severity: 'error',
+      from: { path: '^packages/ui/' },
+      to: { path: '^packages/(?!core/|ui/)' },
     },
     {
       name: 'nothing-depends-on-app',

@@ -1,0 +1,60 @@
+import type { ModalityInfo, ModelInfo, ModelOverrides } from '@virtuocity/core';
+import { modelsFor } from '@virtuocity/core';
+import { Field } from './Field';
+import { ModelPicker } from './ModelPicker';
+
+export interface ModelCatalogState {
+  readonly models: readonly ModelInfo[];
+  readonly loading: boolean;
+  readonly error?: string | undefined;
+}
+
+export interface ModelLayerEditorProps {
+  /** Modalities to offer a picker for. */
+  readonly modalities: readonly ModalityInfo[];
+  readonly catalog: ModelCatalogState;
+  /** One model id per modality; a missing entry means "inherit". */
+  readonly value: ModelOverrides;
+  readonly onChange: (next: ModelOverrides) => void;
+  /** What "no entry" means at this layer, e.g. "Use the default". */
+  readonly inheritLabel: string;
+}
+
+/**
+ * Edits one layer of model choices (core defaults, an actor's overrides or a
+ * skill's overrides) with one picker per modality. Every layer uses this.
+ */
+export function ModelLayerEditor({
+  modalities,
+  catalog,
+  value,
+  onChange,
+  inheritLabel,
+}: ModelLayerEditorProps) {
+  const set = (modality: string, id: string | undefined) => {
+    const next: Record<string, string> = {};
+    for (const [key, model] of Object.entries(value))
+      if (model && key !== modality) next[key] = model;
+    if (id) next[modality] = id;
+    onChange(next);
+  };
+  return (
+    <>
+      {modalities.map((modality) => (
+        <Field key={modality.id} label={modality.label} hint={modality.description}>
+          {(id) => (
+            <ModelPicker
+              id={id}
+              models={modelsFor(catalog.models, modality.id)}
+              value={value[modality.id]}
+              onChange={(model) => set(modality.id, model)}
+              loading={catalog.loading}
+              error={catalog.error}
+              defaultLabel={inheritLabel}
+            />
+          )}
+        </Field>
+      ))}
+    </>
+  );
+}

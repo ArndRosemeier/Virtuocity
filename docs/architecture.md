@@ -20,11 +20,13 @@ New skills, game modes and providers are new packages under `packages/`.
 ## Dependency rules (enforced by `npm run boundaries`)
 
 ```
-app ──► any module ──► core
+app ──► any module ──► ui ──► core
+                  └──────────► core
 ```
 
 - `core` depends on no other Virtuocity package.
-- A module depends only on `core`, never on another module or on `app`.
+- `ui` depends only on `core`.
+- A module depends only on `core` and `ui`, never on another module or on `app`.
 - Modules cooperate through **events** on the bus and through **registries**, not imports.
 - No circular imports anywhere.
 
@@ -44,7 +46,10 @@ app ──► any module ──► core
   speak. Conversation is just a skill with `takeTurn`.
 - **Models** (`models.ts`): `resolveModel` picks skill override, then actor
   override, then the core default for the modality.
-- **ModelProvider** (`provider.ts`): runs calls and returns `CallStats`.
+- **ModelProvider** (`provider.ts`): runs calls and returns `CallStats`;
+  `listModels` returns its catalog (`ModelInfo`: modalities, context, price).
+- **Modalities** (`host.modalities`): the modalities the app offers a default
+  model for. `coreModule` registers text, image and audio; modules add more.
 - **MessageTree** (`session.ts`): history as a tree. Every message is editable;
   `rewindTo` removes everything below by default or keeps it as a branch.
   Messages carry optional `CallStats`.
@@ -55,7 +60,8 @@ app ──► any module ──► core
 - **SessionRuntime** (`runtime.ts`): a running session. Actors `join` and
   `leave` at any time; `post` adds a message; `pass` lets the director pick one
   AI turn; `runTurn` lets a chosen actor speak. Each call runs at most one AI
-  turn, then the session pauses. Every event is delivered to the `onEvent` of
+  turn, then the session pauses. `turn.started` / `turn.ended` events and
+  `speaking` tell the UI who is writing. Every event is delivered to the `onEvent` of
   each skill whose `listensTo` names it.
 - **Panels**: UI slots that modules fill; the core layout is a feed plus slots.
 

@@ -1,9 +1,13 @@
 import type {
   CompletionRequest,
   CompletionResult,
+  ModelInfo,
   ModelProvider,
   VirtuocityModule,
 } from '@virtuocity/core';
+import { fetchModels } from './models';
+
+export * from './models';
 
 const ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
 
@@ -26,8 +30,19 @@ interface OpenRouterResponse {
 
 export function createOpenRouterProvider(options: OpenRouterOptions): ModelProvider {
   const doFetch = options.fetch ?? globalThis.fetch.bind(globalThis);
+  let catalog: Promise<ModelInfo[]> | undefined;
   return {
     id: 'openrouter',
+    listModels() {
+      const pending =
+        catalog ??
+        fetchModels(doFetch).catch((error: unknown) => {
+          catalog = undefined;
+          throw error;
+        });
+      catalog = pending;
+      return pending;
+    },
     async complete(request: CompletionRequest): Promise<CompletionResult> {
       const response = await doFetch(ENDPOINT, {
         method: 'POST',

@@ -80,6 +80,20 @@ describe('SessionRuntime', () => {
     expect(counter.seen).toBe(1);
   });
 
+  it('announces turns and clears the speaker even when a turn fails', async () => {
+    const session = setup();
+    const seen: string[] = [];
+    session.bus.on('*', (e) => {
+      if (e.type.startsWith('turn.')) seen.push(`${e.type}:${session.speaking ?? '-'}`);
+    });
+    await session.join(ai('bard', ['echo']));
+    await session.runTurn('bard');
+    expect(seen).toEqual(['turn.started:bard', 'turn.ended:-']);
+    vi.mocked(provider.complete).mockRejectedValueOnce(new Error('boom'));
+    await expect(session.runTurn('bard')).rejects.toThrow('boom');
+    expect(session.speaking).toBeUndefined();
+  });
+
   it('lets actors leave at any time', async () => {
     const session = setup();
     await session.join(ai('bard', ['echo']));
