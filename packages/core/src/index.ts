@@ -37,6 +37,7 @@ export * from './runtime';
 export * from './settings';
 export * from './setup';
 export * from './skill';
+export * from './skill-upgrade';
 export * from './skill-tools';
 export * from './stats';
 export * from './storage';

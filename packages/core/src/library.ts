@@ -51,6 +51,8 @@ export class NameTakenError extends Error {
 export interface LibraryOptions {
   readonly newId?: () => string;
   readonly now?: () => number;
+  /** Brings a stored or incoming actor up to date, e.g. with `upgradeActor`. */
+  readonly upgrade?: (actor: Actor) => Actor;
 }
 
 export interface SetupDraft {
@@ -72,6 +74,7 @@ export class Library {
   readonly #listeners = new Set<() => void>();
   readonly #newId: () => string;
   readonly #now: () => number;
+  readonly #upgrade: (actor: Actor) => Actor;
 
   constructor(
     private readonly store: KeyValueStore<unknown>,
@@ -79,6 +82,7 @@ export class Library {
   ) {
     this.#newId = options.newId ?? (() => crypto.randomUUID());
     this.#now = options.now ?? Date.now;
+    this.#upgrade = options.upgrade ?? ((actor) => actor);
   }
 
   /** Every valid item, newest first. Items saved by older versions are brought up to date. */
@@ -131,7 +135,7 @@ export class Library {
    * are settled by `resolve`. Returns the actors as the library now holds them.
    */
   async adopt(incoming: readonly Actor[], resolve: ResolveConflicts): Promise<Actor[]> {
-    const steps = planImport(await this.actors(), incoming);
+    const steps = planImport(await this.actors(), incoming.map(this.#upgrade));
     const conflicts = steps.flatMap((s) => (s.type === 'conflict' ? [s] : []));
     const choices = conflicts.length > 0 ? await resolve(conflicts) : {};
     const result: Actor[] = [];
@@ -148,10 +152,10 @@ export class Library {
     return result;
   }
 
-  /** Brings a library saved by an older version up to date: unique names, setups that refer to actors. */
+  /** Brings a library saved by an older version up to date: current skills, unique names, setups that refer to actors. */
   async migrate(): Promise<void> {
     const saved = (await this.list()).filter(isActor).sort((a, b) => a.savedAt - b.savedAt);
-    const renamed = uniqueNames(saved.map((i) => i.actor));
+    const renamed = uniqueNames(saved.map((i) => this.#upgrade(i.actor)));
     for (const [i, item] of saved.entries()) {
       const actor = renamed[i];
       if (actor && actor !== item.actor) await this.store.set(item.id, { ...item, actor });

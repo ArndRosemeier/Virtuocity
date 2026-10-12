@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Library, createAssetStore } from '@virtuocity/core';
+import { Library, createAssetStore, upgradeActor } from '@virtuocity/core';
 import { AppActionsContext } from './actions';
 import { ConflictsContext, useConflictDialog } from './conflicts';
 import { AskModelContext, askModel } from './transform';
@@ -19,7 +19,13 @@ export function App() {
   const host = useMemo(createHost, []);
   const sessions = useMemo(() => indexedDbStore<unknown>('sessions'), []);
   const assets = useMemo(() => createAssetStore(indexedDbStore('assets')), []);
-  const library = useMemo(() => new Library(indexedDbStore('library')), []);
+  const library = useMemo(
+    () =>
+      new Library(indexedDbStore('library'), {
+        upgrade: (actor) => upgradeActor(actor, host.skills.list()),
+      }),
+    [host],
+  );
   const [resolve, conflictDialog] = useConflictDialog();
   const actors = useMemo(() => ({ library, resolve }), [library, resolve]);
   const session = useSession(host, sessions, assets, actors);

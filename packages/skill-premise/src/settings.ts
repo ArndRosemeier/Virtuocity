@@ -9,20 +9,3 @@ export const fixedPremiseSettings = defineSettings({
     )
     .describe('The premise every session starts with, word for word'),
 });
-
-export const promptedPremiseSettings = defineSettings({
-  prompt: z
-    .string()
-    .max(5000)
-    .default('An adventure that begins with a small mystery.')
-    .describe('What the premise should be about, e.g. a theme, a setting or a twist'),
-  words: z
-    .number()
-    .int()
-    .min(20)
-    .max(1000)
-    .default(150)
-    .describe('About how many words the premise has'),
-});
-
-export type PromptedPremiseSettings = z.output<typeof promptedPremiseSettings>;
