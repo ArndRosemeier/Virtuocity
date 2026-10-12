@@ -5,7 +5,7 @@ Status: draft, from the brainstorm with Arnd on 2026-10-12.
 ## Fixed decisions
 
 - TypeScript web app.
-- Model access goes through providers the user holds keys for: OpenRouter, OpenAI, Anthropic and WIRO.
+- Model access goes through providers the user holds keys for: OpenRouter, OpenAI and Anthropic.
 - Modular from day one: the core is small, and everything else plugs in through registries.
 
 ## Core concepts
