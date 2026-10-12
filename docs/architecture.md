@@ -317,8 +317,7 @@ the contract's conformance suite. A chronicler also places a "Summarized"
 marker (`marker@1.0`) after the last message its summary covers, and has an
 on-demand space showing the summary, which opens when the marker is clicked.
 Summaries have no length setting: the
-summarizer writes as much as it needs to keep every detail that may matter. The app's Memory panel shows, edits and
-forgets summaries (a forgotten one is rebuilt after the next turn).
+summarizer writes as much as it needs to keep every detail that may matter.
 
 ## Premise
 

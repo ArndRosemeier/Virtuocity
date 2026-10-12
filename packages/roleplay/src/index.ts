@@ -70,7 +70,7 @@ export const roleplayBlueprint = defineBlueprint({
     left: ['spaces'],
     main: ['story'],
     input: ['composer'],
-    side: ['cast', 'memory', 'tasks', 'jobs'],
+    side: ['cast', 'tasks', 'jobs'],
   },
 });
 
