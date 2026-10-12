@@ -21,7 +21,8 @@ export interface Message extends Content {
 
 export type TranscriptOp =
   | { readonly type: 'append'; readonly message: Message }
-  | { readonly type: 'edit'; readonly messageId: string; readonly content: Content };
+  | { readonly type: 'edit'; readonly messageId: string; readonly content: Content }
+  | { readonly type: 'remove'; readonly messageId: string };
 
 export interface Transcript {
   readonly messages: readonly Message[];
@@ -47,6 +48,7 @@ export const transcriptDoc = defineDocType<Transcript, TranscriptOp>({
   op: z.discriminatedUnion('type', [
     z.object({ type: z.literal('append'), message: messageSchema }),
     z.object({ type: z.literal('edit'), messageId: z.string(), content: contentSchema }),
+    z.object({ type: z.literal('remove'), messageId: z.string() }),
   ]),
   initial: () => ({ messages: [] }),
   apply: (state, op) => {
@@ -55,6 +57,8 @@ export const transcriptDoc = defineDocType<Transcript, TranscriptOp>({
       return { messages: [...state.messages, op.message] };
     }
     if (!state.messages.some((m) => m.id === op.messageId)) return state;
+    if (op.type === 'remove')
+      return { messages: state.messages.filter((m) => m.id !== op.messageId) };
     const { kind, data, text } = op.content;
     return {
       messages: state.messages.map((m) => (m.id === op.messageId ? { ...m, kind, data, text } : m)),

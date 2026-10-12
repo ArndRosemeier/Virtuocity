@@ -10,6 +10,8 @@ export interface MessageActions {
   readonly editableText: (messageId: string) => string | undefined;
   /** Rewrites the message in place; everything after it stays. */
   readonly edit: (messageId: string, text: string) => void;
+  /** Takes the message out of the story; everything after it stays. */
+  readonly remove: (messageId: string) => void;
   /** An actor is writing, so nothing can be retried or edited right now. */
   readonly busy: boolean;
 }

@@ -146,6 +146,12 @@ export class SessionRuntime {
     await this.workspace.change({ actorId, ...TRANSCRIPT, payload });
   }
 
+  /** Takes one message out of the story; everything after it stays. */
+  async removeMessage(actorId: string, messageId: string): Promise<void> {
+    const payload = { type: 'remove', messageId } as const;
+    await this.workspace.change({ actorId, ...TRANSCRIPT, payload });
+  }
+
   /**
    * Moves all state back to just after a message was posted (or just before,
    * with `before`, e.g. to regenerate it). Every document rewinds together.

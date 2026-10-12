@@ -1,80 +1,12 @@
-import type { Picture } from '@virtuocity/contract-visual';
 import { spaceContract } from '@virtuocity/contract-space';
 import { illustratorContract, sceneChanged, sceneChannel } from '@virtuocity/contract-visual';
-import type {
-  CallStats,
-  OutputPart,
-  Skill,
-  SkillContext,
-  VirtuocityModule,
-} from '@virtuocity/core';
-import {
-  IMAGE_PART,
-  channelContents,
-  implement,
-  readSettings,
-  showOnChannel,
-  storeMedia,
-  turnEnded,
-} from '@virtuocity/core';
-import type { IllustrateRequest } from './prompt';
-import {
-  appearanceField,
-  illustratePrompt,
-  illustratorSettings,
-  latestToPaint,
-  sceneToPaint,
-} from './prompt';
+import type { Skill, SkillContext, VirtuocityModule } from '@virtuocity/core';
+import { implement, readSettings, turnEnded } from '@virtuocity/core';
+import { illustrate, paintNow } from './paint';
+import { appearanceField, illustratorSettings, latestToPaint, sceneToPaint } from './prompt';
+import { discardPicture, latestPicture, redoPicture } from './space';
 
 export * from './prompt';
-
-const ALT_LENGTH = 140;
-
-function altText(description: string): string {
-  const flat = description.replace(/\s+/g, ' ').trim();
-  return flat.length > ALT_LENGTH ? `${flat.slice(0, ALT_LENGTH - 1)}…` : flat;
-}
-
-async function illustrate(
-  ctx: SkillContext,
-  request: IllustrateRequest,
-  signal?: AbortSignal,
-): Promise<{ picture: Picture; stats: CallStats }> {
-  const settings = readSettings(illustratorSettings, ctx.settings);
-  const result = await ctx.complete({
-    modality: 'image',
-    messages: illustratePrompt(ctx.cast, request, settings),
-    ...(signal ? { signal } : {}),
-  });
-  const [part] = await storeMedia(ctx.assets, result.media ?? [], altText(request.description));
-  if (!part || part.kind !== IMAGE_PART) {
-    throw new Error('The image model returned no picture. Pick an image model in Settings.');
-  }
-  return { picture: { ...part.data, alt: part.data.alt ?? 'A picture' }, stats: result.stats };
-}
-
-/** The latest picture this illustrator painted: the scene it shows, or else its last one in the story. */
-function latestPicture(ctx: SkillContext): { parts: OutputPart[] } {
-  const scene = channelContents(ctx.state)[sceneChannel.id];
-  if (scene?.actorId === ctx.actor.id) return { parts: [scene.part] };
-  const last = ctx.transcript
-    .filter((m) => m.actorId === ctx.actor.id && m.kind === IMAGE_PART)
-    .at(-1);
-  return { parts: last ? [{ kind: last.kind, data: last.data }] : [] };
-}
-
-/** Paints a picture that becomes the scene, and joins the story if asked. */
-async function paintNow(
-  ctx: SkillContext,
-  description: string,
-  inStory: boolean,
-  signal?: AbortSignal,
-): Promise<void> {
-  const { picture, stats } = await illustrate(ctx, { description }, signal);
-  const part = { kind: IMAGE_PART, data: picture };
-  await showOnChannel(ctx.state, sceneChannel, part);
-  if (inStory) await ctx.post({ ...part, text: picture.alt }, [stats]);
-}
 
 /** Paints in the background, so the story never waits. */
 function paint(ctx: SkillContext, description: string, inStory: boolean): void {
@@ -107,7 +39,11 @@ export const illustratorSkill: Skill = {
     implement(illustratorContract, {
       illustrate: async (input, ctx) => (await illustrate(ctx, input)).picture,
     }),
-    implement(spaceContract, { fill: (_input, ctx) => Promise.resolve(latestPicture(ctx)) }),
+    implement(spaceContract, {
+      fill: (_input, ctx) => Promise.resolve(latestPicture(ctx)),
+      discard: (_input, ctx) => discardPicture(ctx),
+      redo: (_input, ctx) => redoPicture(ctx),
+    }),
   ],
   onRequest: paintOnRequest,
   listensTo: [turnEnded.type, sceneChanged.type],
