@@ -1,8 +1,12 @@
+import { summarizerContract } from '@virtuocity/contract-memory';
 import { illustratorContract } from '@virtuocity/contract-visual';
 import type { VirtuocityModule } from '@virtuocity/core';
 import { defineBlueprint } from '@virtuocity/core';
 
-/** A narrator and a companion tell a story with you; an illustrator paints it if one is installed. */
+/**
+ * A narrator and a companion tell a story with you; an illustrator paints it
+ * and a chronicler remembers it, if skills for them are installed.
+ */
 export const roleplayBlueprint = defineBlueprint({
   id: 'roleplay',
   name: 'Roleplay',
@@ -32,14 +36,28 @@ export const roleplayBlueprint = defineBlueprint({
       needs: [illustratorContract],
       optional: true,
     },
+    {
+      id: 'chronicler',
+      personality: {
+        name: 'Chronicler',
+        description: 'Keeps track of the story so far, so nobody forgets what happened long ago.',
+      },
+      needs: [summarizerContract],
+      optional: true,
+    },
   ],
-  layout: { main: ['story'], input: ['composer'], side: ['channels', 'cast', 'tasks', 'jobs'] },
+  layout: {
+    main: ['story'],
+    input: ['composer'],
+    side: ['channels', 'cast', 'memory', 'tasks', 'jobs'],
+  },
 });
 
 export const roleplayModule: VirtuocityModule = {
   id: 'roleplay',
   register: (host) => {
     host.contracts.register(illustratorContract);
+    host.contracts.register(summarizerContract);
     host.blueprints.register(roleplayBlueprint);
   },
 };

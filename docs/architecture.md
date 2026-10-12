@@ -265,6 +265,21 @@ the story. Channels shared by several modules belong in a contract package
 asks visualizers to picture a new scene; flows can emit it with `ctx.emit`). The app's "Now showing" panel
 renders every channel through the renderer registry.
 
+## Memory
+
+The story is never shortened: the transcript and every view of it stay
+complete. Remembering more than a model can read is a separate layer that only
+model calls see. `contract-memory` defines `summarizer@1.0` (`summarize` lines,
+optionally building on a `previous` summary). `skill-chronicler` keeps a
+`memory` document with one summary per chronicler actor, contributes the latest
+one to every actor's context as "The story so far", and brings it up to date
+after turns once enough story lies beyond the newest `keepRecent` tokens. It gets
+the summary by invoking the summarizer contract on its own actor, so any
+implementation can stand in. Two ship: the differential chronicler folds new
+lines into the last summary, the full chronicler rereads everything. Both run
+the contract's conformance suite. The app's Memory panel shows, edits and
+forgets summaries (a forgotten one is rebuilt after the next turn).
+
 ## Library
 
 `Library` keeps actors and setups apart from any session, in an injected

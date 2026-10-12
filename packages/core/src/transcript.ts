@@ -73,3 +73,12 @@ export function postingOperation(log: OpLog, messageId: string): Operation {
   if (!op) throw new Error(`Message "${messageId}" is not on the current path`);
   return op;
 }
+
+/** The text parts of a message, joined and trimmed; pictures, sound and tool calls are left out. */
+export function textOf(message: Message): string {
+  return message.parts
+    .filter((p) => p.kind === 'text')
+    .map((p) => String(p.data))
+    .join('\n')
+    .trim();
+}

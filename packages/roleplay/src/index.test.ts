@@ -1,3 +1,4 @@
+import { summarizerContract } from '@virtuocity/contract-memory';
 import { illustratorContract } from '@virtuocity/contract-visual';
 import type { Skill } from '@virtuocity/core';
 import {
@@ -22,6 +23,17 @@ const paint: Skill = {
   ],
 };
 
+const remember: Skill = {
+  id: 'remember',
+  name: 'Remember',
+  backing: 'llm',
+  implements: [
+    implement(summarizerContract, {
+      summarize: () => Promise.resolve({ summary: 'So far, so good.' }),
+    }),
+  ],
+};
+
 describe('roleplay blueprint', () => {
   const host = loadModules(new ModuleHost(), [roleplayModule]);
   const blueprint = host.blueprints.get('roleplay');
@@ -36,6 +48,14 @@ describe('roleplay blueprint', () => {
     expect(defaultChoices(blueprint, [talk, paint]).illustrator).toEqual({
       included: true,
       skillIds: ['paint'],
+    });
+  });
+
+  it('adds a chronicler only when a skill can summarize', () => {
+    expect(defaultChoices(blueprint, [talk]).chronicler?.included).toBe(false);
+    expect(defaultChoices(blueprint, [talk, remember]).chronicler).toEqual({
+      included: true,
+      skillIds: ['remember'],
     });
   });
 });
