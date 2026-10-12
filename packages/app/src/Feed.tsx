@@ -1,8 +1,13 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
+import type { SessionRuntime } from '@virtuocity/core';
+import { retryMessage, retryable } from '@virtuocity/core';
 import { renderContract } from '@virtuocity/contract-render';
 import { Avatar, Button, EmptyState } from '@virtuocity/ui';
 import { useAppActions } from './actions';
 import { MessageView } from './ChatView';
+import { runSafely } from './LibraryActors';
+import type { MessageActions } from './messageActions';
+import { MessageActionsContext } from './messageActions';
 import { USER_ID } from './useSession';
 import { API_KEY, useSetting } from './settings';
 import { STORY_VIEW, ensureStoryView, storyView } from './storyView';
@@ -109,12 +114,25 @@ function StoryView({ host, session }: PanelProps) {
   return shown.parts.map((part, i) => <div key={i}>{host.renderers.render(part)}</div>);
 }
 
+function useMessageActionsFor(session: SessionRuntime): MessageActions {
+  const busy = session.speaking !== undefined;
+  return useMemo(
+    () => ({
+      canRetry: (id) => retryable(session, id) !== undefined,
+      retry: (id) => runSafely(() => retryMessage(session, id)),
+      busy,
+    }),
+    [session, busy],
+  );
+}
+
 /** The story, drawn by the story's renderer, plus whoever is writing right now. */
 export function Feed({ host, session }: PanelProps) {
   const end = useRef<HTMLDivElement>(null);
   const messages = session.transcript(USER_ID);
   const nameOf = (id: string) => session.actors.find((a) => a.id === id)?.personality.name ?? id;
   const speaking = session.speaking;
+  const actions = useMessageActionsFor(session);
   const live = speaking ? (session.calls.running(speaking).at(-1)?.text.length ?? 0) : 0;
 
   useEffect(() => {
@@ -127,7 +145,11 @@ export function Feed({ host, session }: PanelProps) {
     <main className="feed">
       <div className="feed__inner">
         {messages.length === 0 && !speaking && <Welcome session={session} />}
-        {messages.length > 0 && <StoryView host={host} session={session} />}
+        {messages.length > 0 && (
+          <MessageActionsContext.Provider value={actions}>
+            <StoryView host={host} session={session} />
+          </MessageActionsContext.Provider>
+        )}
         {speaking && (
           <Live host={host} session={session} actorId={speaking} name={nameOf(speaking)} />
         )}

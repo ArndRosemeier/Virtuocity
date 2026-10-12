@@ -1,6 +1,7 @@
 import type { CallStats, OutputPart } from '@virtuocity/core';
 import type { ChatView } from '@virtuocity/contract-render';
-import { Avatar } from '@virtuocity/ui';
+import { Avatar, IconButton } from '@virtuocity/ui';
+import { useMessageActions } from './messageActions';
 import { StatsBadge } from './StatsBadge';
 import type { AppHost } from './types';
 
@@ -11,6 +12,8 @@ interface MessageViewProps {
   readonly human?: boolean;
   readonly stats?: readonly CallStats[] | undefined;
   readonly live?: boolean;
+  /** Offers a retry button; it is disabled while `busy`. */
+  readonly retry?: { readonly run: () => void; readonly busy: boolean } | undefined;
 }
 
 /** One message under its speaker's name, its content drawn by the renderer for its kind. */
@@ -21,6 +24,7 @@ export function MessageView({
   human = false,
   stats,
   live = false,
+  retry,
 }: MessageViewProps) {
   return (
     <article
@@ -33,6 +37,15 @@ export function MessageView({
         <header className="message__header">
           <h3 className="message__name">{name}</h3>
           {stats && <StatsBadge stats={stats} />}
+          {retry && (
+            <IconButton
+              size="sm"
+              icon="restart"
+              label="Retry: drop this and everything after it, then answer again"
+              disabled={retry.busy}
+              onClick={retry.run}
+            />
+          )}
         </header>
         {host.renderers.render(part)}
       </div>
@@ -42,6 +55,9 @@ export function MessageView({
 
 /** The chat view's output: the story as a column of messages. */
 export function ChatViewPart({ host, view }: { host: AppHost; view: ChatView }) {
+  const actions = useMessageActions();
+  const retryOf = (id: string) =>
+    actions?.canRetry(id) ? { run: () => actions.retry(id), busy: actions.busy } : undefined;
   return (
     <>
       {view.entries.map((entry) => (
@@ -52,6 +68,7 @@ export function ChatViewPart({ host, view }: { host: AppHost; view: ChatView }) 
           part={entry.part}
           human={entry.human}
           stats={entry.stats}
+          retry={retryOf(entry.id)}
         />
       ))}
     </>
