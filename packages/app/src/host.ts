@@ -1,8 +1,11 @@
+import { bookRoomModule } from '@virtuocity/book-room';
 import { ModuleHost, coreModule, loadModules } from '@virtuocity/core';
 import { openRouterModule } from '@virtuocity/openrouter';
 import { conversationModule } from '@virtuocity/skill-conversation';
 import { diceModule } from '@virtuocity/skill-dice';
 import { reviewerModule } from '@virtuocity/skill-reviewer';
+import { writerModule } from '@virtuocity/skill-writer';
+import { bookPanelModule } from './BookPanel';
 import { castPanelModule } from './CastPanel';
 import { taskPanelModule } from './TaskPanel';
 import { defaultRenderersModule } from './renderers';
@@ -21,5 +24,8 @@ export function createHost(): AppHost {
     conversationModule as AppModule,
     diceModule as AppModule,
     reviewerModule as AppModule,
+    writerModule as AppModule,
+    bookRoomModule as AppModule,
+    bookPanelModule,
   ]);
 }

@@ -6,6 +6,7 @@ import {
   Field,
   Modal,
   ModelLayerEditor,
+  Pill,
   Section,
   TextArea,
   TextInput,
@@ -17,9 +18,43 @@ interface Draft {
   readonly name: string;
   readonly description: string;
   readonly models: ModelOverrides;
+  readonly skillIds: readonly string[];
 }
 
-const EMPTY: Draft = { name: '', description: '', models: {} };
+const EMPTY: Draft = { name: '', description: '', models: {}, skillIds: ['conversation'] };
+
+/** Which skills the character has; contracts show what each one can stand in for. */
+function SkillPicker({
+  host,
+  value,
+  onChange,
+}: {
+  host: AppHost;
+  value: readonly string[];
+  onChange: (ids: readonly string[]) => void;
+}) {
+  const toggle = (id: string, on: boolean) =>
+    onChange(on ? [...value, id] : value.filter((v) => v !== id));
+  return (
+    <ul className="skill-picker">
+      {host.skills.list().map((skill) => (
+        <li key={skill.id}>
+          <label>
+            <input
+              type="checkbox"
+              checked={value.includes(skill.id)}
+              onChange={(e) => toggle(skill.id, e.target.checked)}
+            />
+            <span>{skill.name}</span>
+            {(skill.implements ?? []).map((i) => (
+              <Pill key={i.contract.id}>{i.contract.id}</Pill>
+            ))}
+          </label>
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 function CharacterFields({
   host,
@@ -58,6 +93,13 @@ function CharacterFields({
           />
         )}
       </Field>
+      <Section title="Skills">
+        <SkillPicker
+          host={host}
+          value={draft.skillIds}
+          onChange={(skillIds) => onChange({ ...draft, skillIds })}
+        />
+      </Section>
       <Section title="Models">
         <ModelLayerEditor
           modalities={host.modalities.list()}
@@ -92,7 +134,7 @@ export function CharacterDialog({
       id: crypto.randomUUID(),
       controller: 'ai',
       personality: { name: draft.name.trim(), description: draft.description.trim() },
-      skillIds: ['conversation'],
+      skillIds: [...draft.skillIds],
       ...(Object.keys(draft.models).length > 0 ? { models: draft.models } : {}),
     });
     setDraft(EMPTY);

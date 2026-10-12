@@ -367,3 +367,31 @@
   display: flex;
   gap: var(--space-2);
 }
+
+.skill-picker {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.skill-picker label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.chapter summary {
+  cursor: pointer;
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.chapter__draft {
+  white-space: pre-wrap;
+  max-height: 16rem;
+  overflow: auto;
+}

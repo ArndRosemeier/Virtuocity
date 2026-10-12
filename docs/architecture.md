@@ -16,6 +16,9 @@ vision behind this lives in [vision.md](vision.md).
 | `@virtuocity/skill-conversation` | Conversation skill: lets an actor speak in character via a text model. |
 | `@virtuocity/skill-dice`         | Code-only skill implementing `dice-roller@1`.                          |
 | `@virtuocity/skill-reviewer`     | LLM skill implementing `reviewer@1` (and so `critic@1`).               |
+| `@virtuocity/contract-writing`   | `writer@1` contract.                                                   |
+| `@virtuocity/skill-writer`       | LLM skill implementing `writer@1`.                                     |
+| `@virtuocity/book-room`          | Walking skeleton: `manuscript` document and `book-pipeline` flow.      |
 | `@virtuocity/app`                | Vite + React web app. Decides which modules are installed.             |
 
 New skills, game modes and providers are new packages under `packages/`. New
@@ -172,7 +175,8 @@ character), or press a character's name to let exactly that one speak.
 
 ## Not built yet
 
-See the roadmap in the project's design notes. Next up: a book-room walking
-skeleton on top of flows, then the provider upgrade (streaming, tool calls,
+See the roadmap in the project's design notes. The book room (draft, review,
+approve chapters with a writer, a reviewer and you as editor) is the first
+walking skeleton. Next up: the provider upgrade (streaming, tool calls,
 structured output) and background jobs. The app autosaves one session; a
 session library comes with blueprints.
