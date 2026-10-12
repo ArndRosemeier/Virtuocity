@@ -167,6 +167,20 @@
   font-size: var(--text-sm);
   font-weight: 700;
 }
+.message__edit {
+  display: grid;
+  gap: var(--space-2);
+}
+.message__edit .v-textarea {
+  font-family: var(--font-story);
+  font-size: var(--text-lg);
+  line-height: var(--leading-story);
+}
+.message__edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
 .message[data-human='true'] .message__body {
   padding: var(--space-3) var(--space-4);
   border-left: 2px solid var(--accent);
