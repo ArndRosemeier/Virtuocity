@@ -3,7 +3,14 @@ import { Button, Field, Modal, ModelLayerEditor, SecretInput, Section, Tabs } fr
 import type { TabDef } from '@virtuocity/ui';
 import { CONNECTIONS } from './connections';
 import type { Connection } from './connections';
-import { THEME, keySetting, useModelDefaults, useSetting, writeModelDefaults } from './settings';
+import {
+  THEME,
+  keySetting,
+  proxySetting,
+  useModelDefaults,
+  useSetting,
+  writeModelDefaults,
+} from './settings';
 import { BackupTab } from './BackupTab';
 import { RendererSelect } from './RendererSelect';
 import { RENDERER, rendererActors } from './storyView';
@@ -11,6 +18,36 @@ import { SHOW_GUIDE } from './SetupGuide';
 import type { ThemeChoice } from './theme';
 import type { AppHost } from './types';
 import { useProviderCatalogs } from './useModels';
+
+function ProxyField({ providerId, setupUrl }: { providerId: string; setupUrl: string }) {
+  const [proxy, setProxy] = useSetting(proxySetting(providerId));
+  return (
+    <Field
+      label="Proxy URL"
+      hint={
+        <>
+          This provider refuses calls from browsers, so they go through a small proxy you deploy
+          once for free, which passes your key on to it.{' '}
+          <a href={setupUrl} target="_blank" rel="noreferrer">
+            Proxy script and setup
+          </a>
+          .
+        </>
+      }
+    >
+      {(id) => (
+        <input
+          id={id}
+          className="v-input"
+          type="url"
+          value={proxy}
+          placeholder="https://wiro-proxy.you.workers.dev"
+          onChange={(e) => setProxy(e.target.value.trim())}
+        />
+      )}
+    </Field>
+  );
+}
 
 function KeyField({ connection }: { connection: Connection }) {
   const [key, setKey] = useSetting(keySetting(connection.providerId));
@@ -38,6 +75,9 @@ function KeyField({ connection }: { connection: Connection }) {
           />
         )}
       </Field>
+      {connection.proxy && (
+        <ProxyField providerId={connection.providerId} setupUrl={connection.proxy.setupUrl} />
+      )}
     </Section>
   );
 }
@@ -46,7 +86,8 @@ function ConnectionTab() {
   return (
     <>
       <p className="settings-note">
-        Add a key for every provider you want to use. Model pickers offer only providers with a key.
+        Add a key for every provider you want to use. Model pickers offer only providers that are
+        set up.
       </p>
       {CONNECTIONS.map((c) => (
         <KeyField key={c.providerId} connection={c} />

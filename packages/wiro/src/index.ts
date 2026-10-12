@@ -16,6 +16,11 @@ const POLL_MS = 2000;
 const MAX_POLLS = 300;
 
 export interface WiroOptions extends ProviderOptions {
+  /**
+   * WIRO answers no browser preflight, so every call goes through a small CORS
+   * proxy that takes the target as `?url=` (see docs/wiro-proxy.js).
+   */
+  readonly proxy: () => string;
   /** Waits between status checks; injected so tests need not wait. */
   readonly sleep?: (ms: number, signal?: AbortSignal) => Promise<void>;
 }
@@ -77,6 +82,11 @@ export function toModelInfo(tool: WiroTool): ModelInfo | undefined {
   };
 }
 
+/** The proxy URL that forwards to `url`. */
+export function viaProxy(proxy: string, url: string): string {
+  return `${proxy}?url=${encodeURIComponent(url)}`;
+}
+
 const wait = (ms: number, signal?: AbortSignal) =>
   new Promise<void>((resolve, reject) => {
     const timer = setTimeout(resolve, ms);
@@ -88,7 +98,9 @@ const wait = (ms: number, signal?: AbortSignal) =>
 
 /** WIRO's API calls: posting with the key, waiting for a task, fetching its pictures. */
 function wiroClient(options: WiroOptions) {
-  const doFetch = options.fetch ?? globalThis.fetch.bind(globalThis);
+  const fetchDirect = options.fetch ?? globalThis.fetch.bind(globalThis);
+  const doFetch = (url: string, init: RequestInit) =>
+    fetchDirect(viaProxy(options.proxy(), url), init);
   const sleep = options.sleep ?? wait;
   const post = async <T>(path: string, body: unknown, signal?: AbortSignal): Promise<T> => {
     const response = await doFetch(`${API}/${path}`, {
@@ -134,7 +146,7 @@ export function createWiroProvider(options: WiroOptions): ModelProvider {
   return {
     id: 'wiro',
     name: NAME,
-    ready: () => options.apiKey() !== '',
+    ready: () => options.apiKey() !== '' && options.proxy() !== '',
     listModels,
     async complete(request: CompletionRequest): Promise<CompletionResult> {
       const { signal } = request;

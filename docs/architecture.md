@@ -14,7 +14,7 @@ vision behind this lives in [vision.md](vision.md).
 | `@virtuocity/contract-critique`  | `critic@1` and `reviewer@1` (extends `critic@1`) contracts.            |
 | `@virtuocity/openai-api`         | `ModelProvider`s for OpenRouter and OpenAI (same chat API).            |
 | `@virtuocity/anthropic`          | `ModelProvider` for Anthropic's Messages API (Claude).                 |
-| `@virtuocity/wiro`               | `ModelProvider` for WIRO image models (run a task, poll, fetch).       |
+| `@virtuocity/wiro`               | WIRO image models via a CORS proxy (`docs/wiro-proxy.js`).             |
 | `@virtuocity/skill-conversation` | Conversation skill: lets an actor speak in character via a text model. |
 | `@virtuocity/skill-dice`         | Code-only skill implementing `dice-roller@1`.                          |
 | `@virtuocity/skill-reviewer`     | LLM skill implementing `reviewer@1` (and so `critic@1`).               |

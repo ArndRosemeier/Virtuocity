@@ -24,7 +24,7 @@ import { jobsPanelModule } from './JobsPanel';
 import { spacesPanelModule } from './SpacesPanel';
 import { taskPanelModule } from './TaskPanel';
 import { defaultRenderersModule } from './renderers';
-import { keySetting, readSetting } from './settings';
+import { keySetting, proxySetting, readSetting } from './settings';
 import type { AppHost, AppModule, PanelProps } from './types';
 import type { ComponentType, ReactNode } from 'react';
 
@@ -46,7 +46,7 @@ export function createHost(): AppHost {
     openRouterModule(keyOf('openrouter')) as AppModule,
     openAIModule(keyOf('openai')) as AppModule,
     anthropicModule(keyOf('anthropic')) as AppModule,
-    wiroModule(keyOf('wiro')) as AppModule,
+    wiroModule({ ...keyOf('wiro'), proxy: () => readSetting(proxySetting('wiro')) }) as AppModule,
     conversationModule as AppModule,
     diceModule as AppModule,
     reviewerModule as AppModule,

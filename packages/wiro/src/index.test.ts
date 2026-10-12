@@ -1,12 +1,15 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createWiroProvider, taskOutcome, toModelInfo } from './index';
 
+const PROXY = 'https://proxy.example';
 const json = (body: unknown) => new Response(JSON.stringify(body));
 
 function fakeWiro(statuses: readonly string[]) {
   let polls = 0;
   const sent: { url: string; body: unknown }[] = [];
-  const fetchMock = vi.fn((url: string, init?: RequestInit) => {
+  const fetchMock = vi.fn((proxied: string, init?: RequestInit) => {
+    expect(proxied.startsWith(`${PROXY}?url=`)).toBe(true);
+    const url = decodeURIComponent(proxied.slice(`${PROXY}?url=`.length));
     sent.push({ url, body: init?.body ? JSON.parse(String(init.body)) : undefined });
     if (url.endsWith('/Run/google/nano-banana'))
       return Promise.resolve(json({ result: true, taskid: '42', errors: [] }));
@@ -22,7 +25,11 @@ function fakeWiro(statuses: readonly string[]) {
   });
   const sleep = vi.fn(() => Promise.resolve());
   const fetch = fetchMock as unknown as typeof globalThis.fetch;
-  return { provider: createWiroProvider({ apiKey: () => 'k', fetch, sleep }), sent, sleep };
+  return {
+    provider: createWiroProvider({ apiKey: () => 'k', proxy: () => PROXY, fetch, sleep }),
+    sent,
+    sleep,
+  };
 }
 
 describe('WIRO provider', () => {
@@ -43,6 +50,11 @@ describe('WIRO provider', () => {
     expect(sent[0]?.body).toEqual({ prompt: 'A lantern' });
     expect(sent[1]?.body).toEqual({ taskid: '42' });
     expect(sleep).toHaveBeenCalledTimes(2);
+  });
+
+  it('is ready only with a key and a proxy', () => {
+    expect(createWiroProvider({ apiKey: () => 'k', proxy: () => '' }).ready()).toBe(false);
+    expect(createWiroProvider({ apiKey: () => 'k', proxy: () => PROXY }).ready()).toBe(true);
   });
 
   it('fails a task that did not exit cleanly', () => {
