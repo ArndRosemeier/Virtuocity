@@ -11,6 +11,13 @@ export interface Release {
 
 export const RELEASES: readonly Release[] = [
   {
+    build: 27,
+    date: '2026-10-12',
+    changes: [
+      'Both sidebars can be resized: drag their inner edge (or focus it and use the arrow keys). The width is remembered in this browser; double-click the edge to go back to the default.',
+    ],
+  },
+  {
     build: 26,
     date: '2026-10-12',
     changes: [
