@@ -167,16 +167,37 @@ starts one run; the run does some steps through its `FlowContext` (`runTurn`,
 - **Turn-taking** (`turn-taking.ts`) is the default flow: pass (the director
   picks) or choose a speaker, one turn, pause.
 
+## Model calls
+
+- **One call shape** (`provider.ts`): messages (system, user, assistant with tool
+  calls, tool results), optional `tools`, `toolChoice`, `responseSchema` and an
+  `onText` callback for streaming. Providers that cannot stream call `onText`
+  once with the whole answer. Skills call `ctx.complete(request)`; the runtime
+  picks the model.
+- **Structured answers** (`structured.ts`): `completeStructured(ctx.complete,
+request, schema)` asks for JSON matching a zod schema, then shows the model
+  what was wrong and asks again (twice by default). Use it instead of parsing
+  replies by hand.
+- **Tools** (`tools.ts`, `skill-tools.ts`): `defineTool` turns a zod schema and
+  a function into a tool; `completeWithTools` runs the call-tools-answer loop
+  and reports failed calls back to the model. `ctx.tools` holds the actor's
+  other abilities: every action of every contract its other skills implement
+  (an actor with conversation and dice can roll while speaking). Tool calls can
+  be shown in messages as `tool-use` parts (`toolUseParts`).
+- **Tracing** (`calls.ts`): every call goes through `runtime.calls`, which keeps
+  the request, the streamed text, tool calls, stats or error of recent calls in
+  memory and emits `call.started`, `call.progressed` and `call.ended`. The app
+  streams the speaking actor's text from it and lists calls under "Model calls".
+
 ## Turn flow in the app
 
 After every turn the session pauses. The human can **Act** (post, then the
-director picks one character to answer), **Pass** (the director picks one
-character), or press a character's name to let exactly that one speak.
+director picks one actor to answer), **Pass** (the director picks one
+actor), or press an actor's name to let exactly that one speak.
 
 ## Not built yet
 
 See the roadmap in the project's design notes. The book room (draft, review,
 approve chapters with a writer, a reviewer and you as editor) is the first
-walking skeleton. Next up: the provider upgrade (streaming, tool calls,
-structured output) and background jobs. The app autosaves one session; a
+walking skeleton. Next up: image and audio generation and background jobs. The app autosaves one session; a
 session library comes with blueprints.

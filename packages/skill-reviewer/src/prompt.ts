@@ -23,11 +23,3 @@ export function reviewPrompt(
     { role: 'user', content: `${focus}Text:\n"""\n${input.text}\n"""` },
   ];
 }
-
-/** The JSON value in a model reply, tolerating code fences and text around it. */
-export function extractJson(reply: string): unknown {
-  const start = reply.search(/[[{]/);
-  const end = Math.max(reply.lastIndexOf('}'), reply.lastIndexOf(']'));
-  if (start < 0 || end < start) throw new Error('The reply contains no JSON');
-  return JSON.parse(reply.slice(start, end + 1));
-}

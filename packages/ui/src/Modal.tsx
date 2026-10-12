@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
-import { IconButton } from './Button';
+import { Button, IconButton } from './Button';
 import { cx } from './cx';
 
 export interface ModalProps {
@@ -9,12 +9,27 @@ export interface ModalProps {
   readonly onClose: () => void;
   readonly children: ReactNode;
   readonly footer?: ReactNode;
+  /** Shows a primary button with this label that closes the dialog, when there is no footer. */
+  readonly doneLabel?: string;
   readonly size?: 'sm' | 'md';
 }
 
 /** A native <dialog>: focus trapping, Escape and the backdrop come from the browser. */
-export function Modal({ open, title, onClose, children, footer, size = 'md' }: ModalProps) {
+export function Modal({
+  open,
+  title,
+  onClose,
+  children,
+  footer,
+  doneLabel,
+  size = 'md',
+}: ModalProps) {
   const ref = useRef<HTMLDialogElement>(null);
+  const done = doneLabel && (
+    <Button variant="primary" onClick={onClose}>
+      {doneLabel}
+    </Button>
+  );
 
   useEffect(() => {
     const dialog = ref.current;
@@ -36,7 +51,7 @@ export function Modal({ open, title, onClose, children, footer, size = 'md' }: M
         <IconButton icon="close" label="Close" onClick={onClose} />
       </header>
       <div className="v-modal__body">{open && children}</div>
-      {footer && <footer className="v-modal__footer">{footer}</footer>}
+      {(footer ?? done) && <footer className="v-modal__footer">{footer ?? done}</footer>}
     </dialog>
   );
 }

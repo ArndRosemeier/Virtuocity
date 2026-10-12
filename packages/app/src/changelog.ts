@@ -11,6 +11,16 @@ export interface Release {
 
 export const RELEASES: readonly Release[] = [
   {
+    build: 2,
+    date: '2026-10-12',
+    changes: [
+      'Replies stream in word by word as the actor writes them.',
+      'Actors use their other skills while speaking: an actor with Conversation and Dice can roll dice mid-reply, and the roll shows in the message.',
+      'Model calls: a new button in the header lists recent calls with the full prompt, answer, time, tokens and cost.',
+      'Reviewers that answer in the wrong format are shown their mistake and asked again.',
+    ],
+  },
+  {
     build: 1,
     date: '2026-10-12',
     changes: [
