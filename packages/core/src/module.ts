@@ -1,3 +1,4 @@
+import type { Actor } from './actor';
 import type { ContractAdapter } from './adapter';
 import type { Blueprint } from './blueprint';
 import type { Channel } from './channels';
@@ -45,6 +46,8 @@ export class ModuleHost<R = unknown, C = unknown> {
   readonly channels = new Registry<Channel>('channel');
   readonly contextContributors = new Registry<ContextContributor>('context contributor');
   readonly instructions = new Registry<InstructionSource>('instruction source');
+  /** Ready-made actors modules offer outside any blueprint, e.g. story views. */
+  readonly actors = new Registry<Actor>('ready-made actor');
 }
 
 /** The unit of extension. Each package exports one or more of these. */

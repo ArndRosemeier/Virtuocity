@@ -1,8 +1,11 @@
 import type { MediaPartData, ToolRun } from '@virtuocity/core';
 import { AUDIO_PART, IMAGE_PART, TOOL_USE } from '@virtuocity/core';
-import type { ChatView } from '@virtuocity/skill-chat-view';
-import { CHAT_VIEW } from '@virtuocity/skill-chat-view';
+import type { ChatView } from '@virtuocity/contract-render';
+import { CHAT_VIEW } from '@virtuocity/contract-render';
+import type { RichText } from '@virtuocity/skill-roleplay-view';
+import { RICH_TEXT } from '@virtuocity/skill-roleplay-view';
 import { ChatViewPart } from './ChatView';
+import { RichTextView } from './RichText';
 import { AudioPart, ImagePart } from './media';
 import type { AppModule } from './types';
 
@@ -42,6 +45,10 @@ export const defaultRenderersModule: AppModule = {
     host.renderers.register({
       id: AUDIO_PART,
       render: (part) => <AudioPart data={part.data as MediaPartData} />,
+    });
+    host.renderers.register({
+      id: RICH_TEXT,
+      render: (part) => <RichTextView text={part.data as RichText} />,
     });
     host.renderers.register({
       id: CHAT_VIEW,
