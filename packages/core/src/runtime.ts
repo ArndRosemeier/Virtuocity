@@ -74,6 +74,8 @@ export class SessionRuntime {
   readonly #now: () => number;
   readonly #spent: CallStats[] = [];
   #speaking: string | undefined;
+  /** Aborts the model calls of the turn being taken. */
+  #turn: AbortController | undefined;
 
   constructor(private readonly config: SessionConfig) {
     this.#newId = config.newId ?? (() => crypto.randomUUID());
@@ -196,19 +198,30 @@ export class SessionRuntime {
     return this.actors.filter((a) => a.controller === 'ai' && this.#turnSkill(a) !== undefined);
   }
 
-  /** Lets one specific actor take a turn. */
+  /** Lets one specific actor take a turn. A turn ended with `stop` ends quietly, posting nothing more. */
   async runTurn(actorId: string): Promise<void> {
     const actor = this.actors.find((a) => a.id === actorId);
     const skill = actor && this.#turnSkill(actor);
     if (!actor || !skill?.takeTurn) throw new Error(`"${actorId}" cannot take a turn`);
+    const turn = new AbortController();
+    this.#turn = turn;
     this.#speaking = actorId;
     await this.bus.emit(turnStarted.create({ actorId }));
     try {
       await skill.takeTurn(this.#context(actor, skill));
+    } catch (error) {
+      if (!turn.signal.aborted) throw error;
     } finally {
+      this.#turn = undefined;
       this.#speaking = undefined;
       await this.bus.emit(turnEnded.create({ actorId }));
     }
+  }
+
+  /** Stops whatever an AI is generating: the current turn's model calls and the running flow. */
+  async stop(): Promise<void> {
+    this.#turn?.abort();
+    await this.flows.interrupt();
   }
 
   /** Asks the session's director which AI actor should speak next. */
@@ -297,7 +310,10 @@ export class SessionRuntime {
 
   async #call(meta: CallMeta, request: CompletionRequest): Promise<CompletionResult> {
     const provider = this.config.host.providers.get(this.config.providerId);
-    const signal = request.signal ?? this.flows.signal;
+    const signals = [request.signal, this.#turn?.signal, this.flows.signal].filter(
+      (s): s is AbortSignal => s !== undefined,
+    );
+    const signal = signals.length > 0 ? AbortSignal.any(signals) : undefined;
     const full = { ...request, ...(signal ? { signal } : {}) };
     const result = await this.calls.track(meta, full, (r) => provider.complete(r));
     this.#spent.push(result.stats);
