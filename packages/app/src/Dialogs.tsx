@@ -1,10 +1,12 @@
 import type { AppActions } from './actions';
+import { useAppActions } from './actions';
 import { ActorDialog } from './ActorDialog';
 import { BlueprintDialog } from './BlueprintDialog';
 import { LibraryDialog } from './LibraryDialog';
 import { runSafely } from './LibraryActors';
 import { isLibraryActor, saveEverywhere, useLibrary, useLibraryItems } from './library';
 import type { Actor } from '@virtuocity/core';
+import { SessionsDialog } from './SessionsDialog';
 import { SettingsModal } from './SettingsModal';
 import type { SettingsTab } from './SettingsModal';
 import type { PanelProps } from './types';
@@ -14,6 +16,7 @@ export type OpenDialog =
   | { readonly kind: 'settings'; readonly tab: SettingsTab }
   | { readonly kind: 'actor'; readonly actorId: string }
   | { readonly kind: 'new-session' }
+  | { readonly kind: 'sessions' }
   | { readonly kind: 'library'; readonly picking?: boolean };
 
 export function dialogActions(open: (dialog: OpenDialog) => void): AppActions {
@@ -22,6 +25,7 @@ export function dialogActions(open: (dialog: OpenDialog) => void): AppActions {
     openAddActor: () => open({ kind: 'library', picking: true }),
     openEditActor: (actorId) => open({ kind: 'actor', actorId }),
     openNewSession: () => open({ kind: 'new-session' }),
+    openSessions: () => open({ kind: 'sessions' }),
     openLibrary: () => open({ kind: 'library' }),
   };
 }
@@ -62,6 +66,7 @@ export function Dialogs({
   onClose,
 }: PanelProps & { dialog: OpenDialog | null; onClose: () => void }) {
   const props = { host, session, open: true, onClose };
+  const { openNewSession } = useAppActions();
   switch (dialog?.kind) {
     case 'settings':
       return <SettingsModal host={host} open initialTab={dialog.tab} onClose={onClose} />;
@@ -69,6 +74,8 @@ export function Dialogs({
       return <EditSessionActor {...props} actorId={dialog.actorId} />;
     case 'new-session':
       return <BlueprintDialog {...props} />;
+    case 'sessions':
+      return <SessionsDialog onNew={openNewSession} onClose={onClose} />;
     case 'library':
       return <LibraryDialog {...props} picking={dialog.picking ?? false} />;
     default:

@@ -45,8 +45,8 @@ export function BackupTab() {
   return (
     <Section title="Everything">
       <p className="settings-note">
-        One zip file with the session, the Library, pictures and all settings. Your OpenRouter key
-        is never included.
+        One zip file with all sessions and templates, the Library, pictures and all settings. Your
+        OpenRouter key is never included.
       </p>
       <div className="segmented">
         <Button icon="download" onClick={save}>
@@ -74,9 +74,9 @@ export function BackupTab() {
           }
         >
           <p>
-            Loading replaces the current session, the whole Library, all pictures and all settings
-            with the ones in the file. Your OpenRouter key stays. Save all first if you want to keep
-            what you have.
+            Loading replaces all sessions, the whole Library, all pictures and all settings with the
+            ones in the file. Your OpenRouter key stays. Save all first if you want to keep what you
+            have.
           </p>
         </Modal>
       )}

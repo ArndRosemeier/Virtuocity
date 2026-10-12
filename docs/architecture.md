@@ -420,5 +420,13 @@ See the roadmap in the project's design notes. The book room (draft, review,
 approve chapters with a writer, a reviewer and you as editor) is the first
 walking skeleton. Audio generation has the plumbing (parts, renderer) but no
 provider support yet. Blueprints, the library, views and controls per slot, and channels exist;
-next up is hardening the walking skeletons (milestone 7). The
-app autosaves one session.
+next up is hardening the walking skeletons (milestone 7).
+
+## Sessions in the app
+
+The app stores many named sessions (`sessions.ts`: `SessionCatalog`, one
+IndexedDB entry per session holding name, template flag and saved state) but
+shows one at a time. `SessionSwitcher` (`switcher.ts`) loads the open session
+into the page's one runtime and autosaves it under its id. A template is a
+session with the flag set; using one starts a new session from a copy.
+Deleting a library actor deletes every stored session that has it.
