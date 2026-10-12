@@ -9,6 +9,13 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 40,
+    date: '2026-10-12',
+    changes: [
+      'The Memory panel is gone from the sidebar. A chronicler\'s summary now shows through the "Summarized" marker in the story: click it to open the summary.',
+    ],
+  },
+  {
     build: 39,
     date: '2026-10-12',
     changes: [
