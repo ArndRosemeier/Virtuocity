@@ -1,21 +1,34 @@
 import { useSyncExternalStore } from 'react';
 import type { ModalityInfo, Modality, ModelOverrides } from '@virtuocity/core';
+import { qualifyModel } from '@virtuocity/core';
 import { listenerSet } from './listeners';
 
-/** Settings live in this browser only; the OpenRouter key never leaves it except to OpenRouter. */
+/** Settings live in this browser only; a provider's key never leaves it except to that provider. */
 export interface Setting {
   readonly key: string;
   readonly fallback: string;
 }
 
-export const API_KEY: Setting = { key: 'virtuocity.openrouterKey', fallback: '' };
+const KEY_PREFIX = 'virtuocity.key.';
+
+/** The user's key for one provider. Keys are never saved to files or replaced by loading one. */
+export function keySetting(providerId: string): Setting {
+  return { key: `${KEY_PREFIX}${providerId}`, fallback: '' };
+}
+
+const isKey = (key: string) => key.startsWith(KEY_PREFIX);
+
+/** Where the OpenRouter key was kept when it was the only provider. */
+const OLD_OPENROUTER_KEY = 'virtuocity.openrouterKey';
 export const THEME: Setting = { key: 'virtuocity.theme', fallback: 'system' };
+
+const MODEL_PREFIX = 'virtuocity.model.';
 
 /** OpenRouter's auto router until a text model is picked; other modalities start unset. */
 export function modelSetting(modality: Modality): Setting {
   return {
-    key: `virtuocity.model.${modality}`,
-    fallback: modality === 'text' ? 'openrouter/auto' : '',
+    key: `${MODEL_PREFIX}${modality}`,
+    fallback: modality === 'text' ? 'openrouter:openrouter/auto' : '',
   };
 }
 
@@ -84,26 +97,46 @@ function settingKeys(): string[] {
   }
 }
 
-/** Every stored setting except the OpenRouter key, which never leaves this browser. */
+function removeSetting(key: string): void {
+  try {
+    localStorage.removeItem(key);
+  } catch {
+    memory.delete(key);
+  }
+}
+
+/** Every stored setting except the provider keys, which never leave this browser. */
 export function readAllSettings(): Record<string, string> {
   const all: Record<string, string> = {};
   for (const key of settingKeys()) {
-    if (key !== API_KEY.key) all[key] = readSetting({ key, fallback: '' });
+    if (!isKey(key)) all[key] = readSetting({ key, fallback: '' });
   }
   return all;
 }
 
-/** Replaces every stored setting except the OpenRouter key, which stays as it is. */
+/** Replaces every stored setting except the provider keys, which stay as they are. */
 export function replaceAllSettings(values: Record<string, string>): void {
-  for (const key of settingKeys()) {
-    if (key === API_KEY.key) continue;
-    try {
-      localStorage.removeItem(key);
-    } catch {
-      memory.delete(key);
-    }
-  }
+  for (const key of settingKeys()) if (!isKey(key)) removeSetting(key);
   for (const [key, value] of Object.entries(values)) {
-    if (key.startsWith(PREFIX) && key !== API_KEY.key) writeSetting({ key, fallback: '' }, value);
+    if (key.startsWith(PREFIX) && !isKey(key) && key !== OLD_OPENROUTER_KEY)
+      writeSetting({ key, fallback: '' }, value);
+  }
+  upgradeSettings();
+}
+
+/**
+ * Brings stored settings up to date: the OpenRouter key moves next to the
+ * other provider keys, and default models saved without a provider belong to OpenRouter.
+ */
+export function upgradeSettings(): void {
+  const old = readSetting({ key: OLD_OPENROUTER_KEY, fallback: '' });
+  if (old) writeSetting(keySetting('openrouter'), old);
+  removeSetting(OLD_OPENROUTER_KEY);
+  for (const key of settingKeys().filter((k) => k.startsWith(MODEL_PREFIX))) {
+    const value = readSetting({ key, fallback: '' });
+    if (value) writeSetting({ key, fallback: '' }, qualifyModel(value, 'openrouter'));
   }
 }
+
+/** Re-renders when any setting changes. */
+export const subscribeSettings = changes.subscribe;

@@ -11,26 +11,26 @@ import { runSafely } from './LibraryActors';
 import type { MessageActions } from './messageActions';
 import { MessageActionsContext } from './messageActions';
 import { USER_ID } from './useSession';
-import { API_KEY, useSetting } from './settings';
 import { STORY_VIEW, ensureStoryView, storyView } from './storyView';
 import type { AppModule, PanelProps } from './types';
+import { useReadyProviders } from './useModels';
 import { useParts } from './useParts';
 
-function Welcome({ session }: Pick<PanelProps, 'session'>) {
+function Welcome({ host, session }: Pick<PanelProps, 'host' | 'session'>) {
   const { openSettings, openAddActor, openNewSession } = useAppActions();
-  const [key] = useSetting(API_KEY);
-  if (!key) {
+  if (useReadyProviders(host).length === 0) {
     return (
       <EmptyState
         icon="key"
         title="Light the lantern"
         action={
           <Button variant="primary" icon="settings" onClick={() => openSettings('connection')}>
-            Connect OpenRouter
+            Connect a provider
           </Button>
         }
       >
-        Add your OpenRouter key to bring actors to life. It stays in this browser.
+        Add a key for OpenRouter, OpenAI, Anthropic or WIRO to bring actors to life. Keys stay in
+        this browser.
       </EmptyState>
     );
   }
@@ -183,7 +183,7 @@ export function Feed({ host, session }: PanelProps) {
   return (
     <main className="feed">
       <div className="feed__inner">
-        {messages.length === 0 && !speaking && <Welcome session={session} />}
+        {messages.length === 0 && !speaking && <Welcome host={host} session={session} />}
         {messages.length > 0 && (
           <MessageActionsContext.Provider value={actions}>
             <StoryView host={host} session={session} />

@@ -10,6 +10,7 @@ export * from './numberText';
 export * from './LongText';
 export * from './ModelLayerEditor';
 export * from './ModelPicker';
+export * from './ProviderModelPicker';
 export * from './modelSearch';
 export * from './Pill';
 export * from './SchemaForm';

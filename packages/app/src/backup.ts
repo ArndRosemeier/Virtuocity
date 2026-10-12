@@ -2,7 +2,7 @@ import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate';
 import { z } from '@virtuocity/core';
 import type { KeyValueStore, StoredAsset } from '@virtuocity/core';
 
-/** Everything the app keeps: its stores and its settings (the OpenRouter key never included). */
+/** Everything the app keeps: its stores and its settings (API keys never included). */
 export interface AppState {
   readonly sessions: KeyValueStore<unknown>;
   readonly library: KeyValueStore<unknown>;

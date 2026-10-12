@@ -1,27 +1,29 @@
 import { useState } from 'react';
 import { Button, Field, Modal, ModelLayerEditor, SecretInput, Section, Tabs } from '@virtuocity/ui';
 import type { TabDef } from '@virtuocity/ui';
-import { API_KEY, THEME, useModelDefaults, useSetting, writeModelDefaults } from './settings';
+import { CONNECTIONS } from './connections';
+import type { Connection } from './connections';
+import { THEME, keySetting, useModelDefaults, useSetting, writeModelDefaults } from './settings';
 import { BackupTab } from './BackupTab';
 import { RendererSelect } from './RendererSelect';
 import { RENDERER, rendererActors } from './storyView';
 import { SHOW_GUIDE } from './SetupGuide';
 import type { ThemeChoice } from './theme';
 import type { AppHost } from './types';
-import { useModels } from './useModels';
+import { useProviderCatalogs } from './useModels';
 
-function ConnectionTab() {
-  const [key, setKey] = useSetting(API_KEY);
+function KeyField({ connection }: { connection: Connection }) {
+  const [key, setKey] = useSetting(keySetting(connection.providerId));
   return (
-    <Section title="OpenRouter">
+    <Section title={connection.label}>
       <Field
         label="API key"
         hint={
           <>
-            Stored only in this browser and sent only to OpenRouter. Set spending limits on the key
-            itself at{' '}
-            <a href="https://openrouter.ai/settings/keys" target="_blank" rel="noreferrer">
-              openrouter.ai
+            {connection.offers} Stored only in this browser and sent only to {connection.label}. Get
+            a key and set spending limits at{' '}
+            <a href={connection.keysUrl} target="_blank" rel="noreferrer">
+              {connection.keysSite}
             </a>
             .
           </>
@@ -31,7 +33,7 @@ function ConnectionTab() {
           <SecretInput
             id={id}
             value={key}
-            placeholder="sk-or-…"
+            placeholder={connection.placeholder}
             onChange={(e) => setKey(e.target.value)}
           />
         )}
@@ -40,8 +42,21 @@ function ConnectionTab() {
   );
 }
 
+function ConnectionTab() {
+  return (
+    <>
+      <p className="settings-note">
+        Add a key for every provider you want to use. Model pickers offer only providers with a key.
+      </p>
+      {CONNECTIONS.map((c) => (
+        <KeyField key={c.providerId} connection={c} />
+      ))}
+    </>
+  );
+}
+
 function ModelsTab({ host }: { host: AppHost }) {
-  const catalog = useModels(host);
+  const providers = useProviderCatalogs(host);
   const modalities = host.modalities.list();
   const defaults = useModelDefaults(modalities);
   return (
@@ -52,7 +67,7 @@ function ModelsTab({ host }: { host: AppHost }) {
       </p>
       <ModelLayerEditor
         modalities={modalities}
-        catalog={catalog}
+        providers={providers}
         value={defaults}
         onChange={(next) => writeModelDefaults(modalities, next)}
         inheritLabel="Not set"

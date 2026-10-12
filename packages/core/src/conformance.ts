@@ -5,6 +5,7 @@ import { coreModule } from './core-module';
 import { provides } from './implementation';
 import { ModuleHost, loadModules } from './module';
 import type { ModelOverrides } from './models';
+import { qualifyOverrides } from './models';
 import type { ModelProvider } from './provider';
 import { SessionRuntime } from './runtime';
 import type { Skill } from './skill';
@@ -59,9 +60,9 @@ export function conformanceTarget<A>(
   if (setup.provider) host.providers.register(setup.provider);
   const runtime = new SessionRuntime({
     host,
-    providerId: setup.provider?.id ?? 'none',
     directorId: 'least-recent',
-    modelDefaults: () => setup.modelDefaults ?? { text: 'test-model' },
+    modelDefaults: () =>
+      qualifyOverrides(setup.modelDefaults ?? { text: 'test-model' }, setup.provider?.id ?? 'none'),
   });
   const actor: Actor = {
     id: ACTOR_ID,

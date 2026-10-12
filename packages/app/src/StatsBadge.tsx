@@ -19,7 +19,7 @@ export function StatsBadge({
       <Pill title={`${total.promptTokens} prompt + ${total.completionTokens} completion tokens`}>
         {total.promptTokens + total.completionTokens} tok
       </Pill>
-      <Pill tone="accent" title="Cost reported by OpenRouter">
+      <Pill tone="accent" title="Cost reported by the provider">
         {formatUsd(total.costUsd)}
       </Pill>
     </span>

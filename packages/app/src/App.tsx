@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Library, createAssetStore, upgradeActor } from '@virtuocity/core';
+import { Library, createAssetStore, qualifyOverrides, upgradeActor } from '@virtuocity/core';
+import type { Actor } from '@virtuocity/core';
 import { AppActionsContext } from './actions';
 import { ConflictsContext, useConflictDialog } from './conflicts';
 import { AskModelContext, askModel } from './transform';
@@ -18,6 +19,11 @@ import { SwitcherContext } from './switcher';
 import { useTheme } from './theme';
 import './app.css';
 
+/** Actors saved before there were several providers chose OpenRouter models without saying so. */
+function withQualifiedModels(actor: Actor): Actor {
+  return actor.models ? { ...actor, models: qualifyOverrides(actor.models, 'openrouter') } : actor;
+}
+
 export function App() {
   const host = useMemo(createHost, []);
   const sessions = useMemo(() => indexedDbStore<unknown>('sessions'), []);
@@ -25,7 +31,7 @@ export function App() {
   const library = useMemo(
     () =>
       new Library(indexedDbStore('library'), {
-        upgrade: (actor) => upgradeActor(actor, host.skills.list()),
+        upgrade: (actor) => withQualifiedModels(upgradeActor(actor, host.skills.list())),
       }),
     [host],
   );

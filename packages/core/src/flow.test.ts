@@ -37,6 +37,8 @@ const log = defineDocType<readonly string[], string>({
 const signals: (AbortSignal | undefined)[] = [];
 const provider: ModelProvider = {
   id: 'fake',
+  name: 'Fake',
+  ready: () => true,
   complete: (request) => {
     signals.push(request.signal);
     return Promise.resolve({
@@ -104,9 +106,8 @@ async function setup() {
   for (const flow of [forever, ask, announce, broken]) host.flows.register(flow as Flow);
   const session = new SessionRuntime({
     host,
-    providerId: 'fake',
     directorId: 'least-recent',
-    modelDefaults: () => ({ text: 'm' }),
+    modelDefaults: () => ({ text: 'fake:m' }),
   });
   await session.join(person('user', 'human'));
   await session.join(person('bard', 'ai', ['talker']));

@@ -1,6 +1,6 @@
 # Virtuocity
 
-A text-focused LLM roleplaying experience. TypeScript web app, models via OpenRouter.
+A text-focused LLM roleplaying experience. TypeScript web app, models via OpenRouter, OpenAI, Anthropic and WIRO.
 
 ```sh
 npm install

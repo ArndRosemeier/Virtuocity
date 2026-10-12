@@ -11,7 +11,7 @@ const echo: Skill = {
   id: 'echo',
   name: 'Echo',
   backing: 'llm',
-  models: { text: 'skill-model' },
+  models: { text: 'fake:skill-model' },
   async takeTurn(ctx) {
     const result = await ctx.complete({ modality: 'text', messages: [] });
     await ctx.post(textContent(result.text), [result.stats]);
@@ -32,6 +32,8 @@ const listener: Skill = {
 
 const provider: ModelProvider = {
   id: 'fake',
+  name: 'Fake',
+  ready: () => true,
   complete: vi.fn(({ model }) =>
     Promise.resolve({
       text: `from ${model}`,
@@ -57,9 +59,8 @@ function setup() {
   host.providers.register(provider);
   return new SessionRuntime({
     host,
-    providerId: 'fake',
     directorId: 'least-recent',
-    modelDefaults: () => ({ text: 'default-model' }),
+    modelDefaults: () => ({ text: 'fake:default-model' }),
   });
 }
 
@@ -185,7 +186,6 @@ describe('SessionRuntime transcript', () => {
     host.skills.register(peek);
     const other = new SessionRuntime({
       host,
-      providerId: 'none',
       directorId: 'least-recent',
       modelDefaults: () => ({}),
     });

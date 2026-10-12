@@ -10,6 +10,8 @@ import type { Skill } from './skill';
 /** A provider that never answers, like a stuck model, until the call is aborted. */
 const stuck: ModelProvider = {
   id: 'stuck',
+  name: 'Fake',
+  ready: () => true,
   complete: ({ signal }) =>
     new Promise((_resolve, reject) => {
       signal?.addEventListener('abort', () => reject(new Error('aborted')));
@@ -39,9 +41,8 @@ function setup() {
   host.providers.register(stuck);
   return new SessionRuntime({
     host,
-    providerId: 'stuck',
     directorId: 'least-recent',
-    modelDefaults: () => ({ text: 'model' }),
+    modelDefaults: () => ({ text: 'stuck:model' }),
   });
 }
 

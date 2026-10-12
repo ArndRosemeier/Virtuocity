@@ -15,7 +15,6 @@ function session() {
   let t = 0;
   return new SessionRuntime({
     host: loadModules(new ModuleHost(), [coreModule]),
-    providerId: 'none',
     directorId: 'least-recent',
     modelDefaults: () => ({}),
     now: () => ++t,

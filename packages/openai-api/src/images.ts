@@ -1,5 +1,5 @@
 import type { CompletionRequest } from '@virtuocity/core';
-import { decodeBase64 } from '@virtuocity/core';
+import { decodeBase64, promptText } from '@virtuocity/core';
 import type { Answer } from './wire';
 
 /** Image-only models (no chat) are served here instead of chat completions. */
@@ -10,6 +10,9 @@ export interface ImagesResponse {
   readonly usage?: {
     readonly prompt_tokens?: number;
     readonly completion_tokens?: number;
+    /** OpenAI's names for the same counts. */
+    readonly input_tokens?: number;
+    readonly output_tokens?: number;
     readonly cost?: number;
   };
 }
@@ -25,11 +28,7 @@ export function needsImagesEndpoint(
 
 /** The images endpoint takes one prompt, so the conversation is flattened into it. */
 export function imagesBody(request: CompletionRequest): Record<string, unknown> {
-  const prompt = request.messages
-    .filter((m) => m.role !== 'tool')
-    .map((m) => m.content)
-    .join('\n\n');
-  return { model: request.model, prompt, n: 1 };
+  return { model: request.model, prompt: promptText(request.messages), n: 1 };
 }
 
 export function fromImagesResponse(body: ImagesResponse, model: string): Answer {
@@ -43,8 +42,8 @@ export function fromImagesResponse(body: ImagesResponse, model: string): Answer 
       bytes: decodeBase64(image.b64_json),
     })),
     usage: {
-      prompt_tokens: usage?.prompt_tokens ?? 0,
-      completion_tokens: usage?.completion_tokens ?? 0,
+      prompt_tokens: usage?.prompt_tokens ?? usage?.input_tokens ?? 0,
+      completion_tokens: usage?.completion_tokens ?? usage?.output_tokens ?? 0,
       ...(usage?.cost === undefined ? {} : { cost: usage.cost }),
     },
   };

@@ -16,7 +16,7 @@ import { JobQueue } from './jobs';
 import type { Implementation } from './implementation';
 import { ContractError, invokeAction } from './implementation';
 import type { ModelOverrides } from './models';
-import { resolveModel } from './models';
+import { parseModelRef, resolveModel } from './models';
 import type { ModuleHost } from './module';
 import type { Content } from './output';
 import type { CompletionRequest, CompletionResult, ModelRequest } from './provider';
@@ -42,7 +42,6 @@ const TRANSCRIPT = { docId: MAIN_TRANSCRIPT, docType: transcriptDoc } as const;
 
 export interface SessionConfig {
   readonly host: ModuleHost<unknown, unknown>;
-  readonly providerId: string;
   readonly directorId: string;
   /** Read on every call so settings changes apply immediately. */
   readonly modelDefaults: () => ModelOverrides;
@@ -330,15 +329,20 @@ export class SessionRuntime {
   }
 
   async #call(meta: CallMeta, request: CompletionRequest): Promise<CompletionResult> {
-    const provider = this.config.host.providers.get(this.config.providerId);
     const signals = [request.signal, this.#turn?.signal, this.flows.signal].filter(
       (s): s is AbortSignal => s !== undefined,
     );
     const signal = signals.length > 0 ? AbortSignal.any(signals) : undefined;
     const full = { ...request, ...(signal ? { signal } : {}) };
-    const result = await this.calls.track(meta, full, (r) => provider.complete(r));
+    const result = await this.calls.track(meta, full, (r) => this.#run(r));
     this.#spent.push(result.stats);
     return result;
+  }
+
+  /** Hands a call to the provider its model reference names, with the provider's own model id. */
+  #run(request: CompletionRequest): Promise<CompletionResult> {
+    const { provider, model } = parseModelRef(request.model);
+    return this.config.host.providers.get(provider).complete({ ...request, model });
   }
 
   /** A text call's messages with every standing instruction added; other modalities are left alone. */

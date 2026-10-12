@@ -212,7 +212,6 @@ function stageSession() {
   host.blueprints.register(stage);
   const session = new SessionRuntime({
     host,
-    providerId: 'none',
     directorId: 'least-recent',
     modelDefaults: () => ({}),
   });

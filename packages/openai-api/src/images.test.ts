@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { IMAGES_ENDPOINT } from './images';
-import { createOpenRouterProvider } from './index';
+import { createOpenRouterProvider } from './openrouter';
 
 const NOT_CHAT = JSON.stringify({
   error: {

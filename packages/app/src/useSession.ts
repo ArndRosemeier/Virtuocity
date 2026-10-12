@@ -34,7 +34,6 @@ export interface Actors {
 function createRuntime(host: AppHost, assets: AssetStore): SessionRuntime {
   return new SessionRuntime({
     host,
-    providerId: 'openrouter',
     directorId: 'least-recent',
     modelDefaults: () => readModelDefaults(host.modalities.list()),
     assets,

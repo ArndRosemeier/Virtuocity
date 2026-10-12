@@ -61,9 +61,8 @@ async function play(skillId: string, turns: number) {
   host.providers.register(scriptedProvider(summaryReply));
   const runtime = new SessionRuntime({
     host,
-    providerId: 'scripted',
     directorId: 'least-recent',
-    modelDefaults: () => ({ text: 'text-model' }),
+    modelDefaults: () => ({ text: 'scripted:text-model' }),
   });
   const actor = (id: string, skillIds: string[]) => ({
     id,

@@ -39,7 +39,7 @@ class Collector {
 
   add(chunk: Chunk): void {
     if (chunk.error) {
-      throw new Error(`OpenRouter stream failed: ${chunk.error.message ?? 'unknown error'}`);
+      throw new Error(`Stream failed: ${chunk.error.message ?? 'unknown error'}`);
     }
     if (chunk.model) this.model = chunk.model;
     if (chunk.usage) this.usage = chunk.usage;
@@ -82,7 +82,7 @@ function readLine(line: string, collector: Collector): boolean {
   return true;
 }
 
-/** Reads an OpenRouter event stream, passing text to `onText` as it arrives. */
+/** Reads a chat completion event stream, passing text to `onText` as it arrives. */
 export async function readStream(
   body: ReadableStream<Uint8Array>,
   onText: (delta: string) => void,

@@ -69,14 +69,48 @@ export interface ModelInfo {
   readonly pricing?: { readonly prompt: number; readonly completion: number };
 }
 
-/** A backend that can run model calls (OpenRouter in the first iteration). */
+/** A backend that can run model calls, such as OpenRouter, OpenAI or Anthropic. */
 export interface ModelProvider extends Identified {
+  /** Shown in pickers, e.g. "OpenAI". */
+  readonly name: string;
+  /** Whether it can run calls now, e.g. once its key is set. Pickers offer only ready providers. */
+  ready(): boolean;
   complete(request: CompletionRequest): Promise<CompletionResult>;
   /** The provider's model catalog, if it can list one. */
   listModels?(): Promise<readonly ModelInfo[]>;
 }
 
+/** What a provider called with the user's own key needs. */
+export interface ProviderOptions {
+  /** Returns the user's key for the provider; spend limits are set on the key itself. */
+  readonly apiKey: () => string;
+  readonly fetch?: typeof fetch;
+}
+
+/** Loads a catalog once and shares it; a failed load is tried again on the next call. */
+export function cachedCatalog(load: () => Promise<ModelInfo[]>): () => Promise<ModelInfo[]> {
+  let catalog: Promise<ModelInfo[]> | undefined;
+  return () => {
+    const pending =
+      catalog ??
+      load().catch((error: unknown) => {
+        catalog = undefined;
+        throw error;
+      });
+    catalog = pending;
+    return pending;
+  };
+}
+
 /** Models that can produce the given modality. */
 export function modelsFor(models: readonly ModelInfo[], modality: Modality): ModelInfo[] {
   return models.filter((m) => m.outputs.includes(modality));
+}
+
+/** A conversation flattened into one prompt, for models that take a single prompt (image models). */
+export function promptText(messages: readonly ChatMessage[]): string {
+  return messages
+    .filter((m) => m.role !== 'tool')
+    .map((m) => m.content)
+    .join('\n\n');
 }

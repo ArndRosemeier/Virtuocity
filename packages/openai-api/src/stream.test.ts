@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createOpenRouterProvider } from './index';
+import { createOpenRouterProvider } from './openrouter';
 import { readStream } from './stream';
 import { requestBody } from './wire';
 

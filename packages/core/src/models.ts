@@ -1,7 +1,53 @@
 /** Kinds of output a model can produce. Open-ended so modules can add more. */
 export type Modality = 'text' | 'image' | 'audio' | 'music' | (string & {});
 
-/** Model ids per modality, e.g. `{ text: 'anthropic/claude-sonnet-5.5' }`. */
+/**
+ * A model as settings store it: the provider's id, a colon, then the provider's
+ * own model id, e.g. `openrouter:anthropic/claude-sonnet-5.5` or `anthropic:claude-opus-5-5`.
+ */
+export type ModelRef = string;
+
+export interface ParsedModelRef {
+  readonly provider: string;
+  readonly model: string;
+}
+
+const REF = /^([a-z0-9-]+):(.+)$/;
+
+/** Splits a model reference into provider and model, or `undefined` when it names no provider. */
+export function readModelRef(ref: ModelRef): ParsedModelRef | undefined {
+  const match = REF.exec(ref);
+  return match?.[1] && match[2] ? { provider: match[1], model: match[2] } : undefined;
+}
+
+/** `readModelRef` for a reference that must be valid; throws when it names no provider. */
+export function parseModelRef(ref: ModelRef): ParsedModelRef {
+  const parsed = readModelRef(ref);
+  if (!parsed) throw new Error(`"${ref}" does not name a provider (provider:model)`);
+  return parsed;
+}
+
+export function modelRef(provider: string, model: string): ModelRef {
+  return `${provider}:${model}`;
+}
+
+/**
+ * Brings a stored model up to date: ids saved before there were several
+ * providers have no provider part and belong to `provider`.
+ */
+export function qualifyModel(value: string, provider: string): ModelRef {
+  return REF.test(value) ? value : modelRef(provider, value);
+}
+
+/** `qualifyModel` for every entry of a layer. */
+export function qualifyOverrides(overrides: ModelOverrides, provider: string): ModelOverrides {
+  const qualified: Record<string, string> = {};
+  for (const [modality, model] of Object.entries(overrides))
+    if (model) qualified[modality] = qualifyModel(model, provider);
+  return qualified;
+}
+
+/** Model references per modality, e.g. `{ text: 'openrouter:anthropic/claude-sonnet-5.5' }`. */
 export type ModelOverrides = Partial<Record<Modality, string>>;
 
 export interface ModelLayers {
