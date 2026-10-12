@@ -16,11 +16,6 @@ export function keySetting(providerId: string): Setting {
   return { key: `${KEY_PREFIX}${providerId}`, fallback: '' };
 }
 
-/** The CORS proxy a provider is reached through, for providers that refuse browser calls. */
-export function proxySetting(providerId: string): Setting {
-  return { key: `virtuocity.proxy.${providerId}`, fallback: '' };
-}
-
 const isKey = (key: string) => key.startsWith(KEY_PREFIX);
 
 /** Where the OpenRouter key was kept when it was the only provider. */

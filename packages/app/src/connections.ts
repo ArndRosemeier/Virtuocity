@@ -6,8 +6,6 @@ export interface Connection {
   readonly placeholder: string;
   readonly keysUrl: string;
   readonly keysSite: string;
-  /** Set when the provider can only be reached through a proxy the user deploys. */
-  readonly proxy?: { readonly setupUrl: string };
 }
 
 /** Every installed provider that needs the user's key, in the order Settings lists them. */
@@ -35,16 +33,5 @@ export const CONNECTIONS: readonly Connection[] = [
     placeholder: 'sk-ant-…',
     keysUrl: 'https://console.anthropic.com/settings/keys',
     keysSite: 'console.anthropic.com',
-  },
-  {
-    providerId: 'wiro',
-    label: 'WIRO',
-    offers: 'Image models. Use a project with API key authentication (no signature).',
-    placeholder: 'API key',
-    keysUrl: 'https://wiro.ai/panel/project',
-    keysSite: 'wiro.ai',
-    proxy: {
-      setupUrl: 'https://github.com/ArndRosemeier/Virtuocity/blob/main/docs/wiro-proxy.js',
-    },
   },
 ];

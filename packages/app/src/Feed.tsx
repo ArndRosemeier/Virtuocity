@@ -29,8 +29,8 @@ function Welcome({ host, session }: Pick<PanelProps, 'host' | 'session'>) {
           </Button>
         }
       >
-        Add a key for OpenRouter, OpenAI, Anthropic or WIRO to bring actors to life. Keys stay in
-        this browser.
+        Add a key for OpenRouter, OpenAI or Anthropic to bring actors to life. Keys stay in this
+        browser.
       </EmptyState>
     );
   }

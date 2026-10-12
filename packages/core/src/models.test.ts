@@ -39,9 +39,9 @@ describe('model references', () => {
     expect(qualifyModel('anthropic:claude-opus-5-5', 'openrouter')).toBe(
       'anthropic:claude-opus-5-5',
     );
-    expect(qualifyOverrides({ text: 'x/y', image: 'wiro:a/b' }, 'openrouter')).toEqual({
+    expect(qualifyOverrides({ text: 'x/y', image: 'openai:gpt-image-1' }, 'openrouter')).toEqual({
       text: 'openrouter:x/y',
-      image: 'wiro:a/b',
+      image: 'openai:gpt-image-1',
     });
   });
 });

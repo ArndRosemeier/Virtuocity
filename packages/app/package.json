@@ -30,7 +30,6 @@
     "@virtuocity/skill-system-prompt": "*",
     "@virtuocity/skill-writer": "*",
     "@virtuocity/ui": "*",
-    "@virtuocity/wiro": "*",
     "fflate": "^0.8.2",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
