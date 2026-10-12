@@ -19,7 +19,6 @@ import { channelsPanelModule } from './ChannelsPanel';
 import { composerModule } from './Composer';
 import { feedModule } from './Feed';
 import { jobsPanelModule } from './JobsPanel';
-import { memoryPanelModule } from './MemoryPanel';
 import { spacesPanelModule } from './SpacesPanel';
 import { taskPanelModule } from './TaskPanel';
 import { defaultRenderersModule } from './renderers';
@@ -36,7 +35,6 @@ export function createHost(): AppHost {
     composerModule,
     channelsPanelModule,
     castPanelModule,
-    memoryPanelModule,
     spacesPanelModule,
     taskPanelModule,
     jobsPanelModule,
