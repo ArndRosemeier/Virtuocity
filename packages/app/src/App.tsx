@@ -7,6 +7,7 @@ import { LibraryContext } from './library';
 import { Dialogs, dialogActions } from './Dialogs';
 import type { OpenDialog } from './Dialogs';
 import { Header } from './Header';
+import { useSidebarStyle } from './ResizeHandle';
 import { Area, Slot, contributions } from './Slot';
 import { AssetsContext } from './media';
 import { createHost } from './host';
@@ -39,6 +40,7 @@ export function App() {
 
   const actions = useMemo(() => dialogActions(setDialog), []);
   const left = contributions({ host, session }, 'left').length > 0;
+  const sidebars = useSidebarStyle();
 
   return (
     <AppActionsContext.Provider value={actions}>
@@ -46,7 +48,7 @@ export function App() {
         <LibraryContext.Provider value={library}>
           <ConflictsContext.Provider value={resolve}>
             <AskModelContext.Provider value={ask}>
-              <div className={left ? 'layout layout--left' : 'layout'}>
+              <div className={left ? 'layout layout--left' : 'layout'} style={sidebars}>
                 <Header host={host} session={session} assets={assets} />
                 <Slot name="left" host={host} session={session} />
                 <Area name="main" host={host} session={session} />
