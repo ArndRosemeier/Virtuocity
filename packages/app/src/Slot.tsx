@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { arrangeSlot, currentBlueprint } from '@virtuocity/core';
+import { ResizeHandle } from './ResizeHandle';
 import type { AppHost, PanelProps } from './types';
 
 type Contribution = ReturnType<AppHost['panels']['list']>[number];
@@ -10,19 +11,22 @@ export function contributions({ host, session }: PanelProps, slot: string): Cont
   return arrangeSlot(host.panels.list(), slot, layout);
 }
 
-/** Side panels, stacked with their titles; nothing at all when the slot is empty. */
+/** Side panels, stacked with their titles, with a resize edge; nothing at all when the slot is empty. */
 export function Slot({ name, host, session }: PanelProps & { name: string }) {
   const items = contributions({ host, session }, name);
   if (items.length === 0) return null;
   return (
-    <aside className={`slot slot--${name}`}>
-      {items.map(({ id, title, component: Panel }) => (
-        <section key={id} className="panel">
-          <h2 className="panel__title">{title}</h2>
-          <Panel session={session} host={host} />
-        </section>
-      ))}
-    </aside>
+    <>
+      <aside className={`slot slot--${name}`}>
+        {items.map(({ id, title, component: Panel }) => (
+          <section key={id} className="panel">
+            <h2 className="panel__title">{title}</h2>
+            <Panel session={session} host={host} />
+          </section>
+        ))}
+      </aside>
+      <ResizeHandle slot={name} />
+    </>
   );
 }
 

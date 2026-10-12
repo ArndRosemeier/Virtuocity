@@ -4,11 +4,14 @@
   grid-template:
     'header header header' var(--header-height)
     'left feed side' 1fr
-    'left composer side' auto / var(--left-width, 0) minmax(0, 1fr) var(--side-width);
+    'left composer side' auto / var(--left-width, 0) minmax(0, 1fr) var(
+      --side-size,
+      var(--side-width)
+    );
   height: 100dvh;
 }
 .layout--left {
-  --left-width: var(--side-width);
+  --left-width: var(--left-size, var(--side-width));
 }
 
 /* ---------- Header ---------- */
@@ -374,6 +377,29 @@
 }
 
 /* ---------- Side slots and panels ---------- */
+/* The resize edge shares the sidebar's grid cell, so it stays put while the sidebar scrolls. */
+.resize-handle {
+  z-index: 1;
+  width: 8px;
+  cursor: col-resize;
+  touch-action: none;
+}
+.resize-handle--left {
+  grid-area: left;
+  justify-self: end;
+  margin-right: -4px;
+}
+.resize-handle--side {
+  grid-area: side;
+  justify-self: start;
+  margin-left: -4px;
+}
+.resize-handle:hover,
+.resize-handle:active,
+.resize-handle:focus-visible {
+  outline: none;
+  background: linear-gradient(var(--accent), var(--accent)) center / 2px 100% no-repeat;
+}
 .slot--side {
   grid-area: side;
   overflow-y: auto;
@@ -532,6 +558,9 @@
       'side' auto / minmax(0, 1fr);
     height: auto;
     min-height: 100dvh;
+  }
+  .resize-handle {
+    display: none;
   }
   .slot--side,
   .slot--left {
