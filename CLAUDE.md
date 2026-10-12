@@ -22,3 +22,4 @@ codebase modular and free of duplication; CI enforces most of them.
 
 - `npm run dev`: start the web app
 - `npm run check`: typecheck, lint, boundaries, duplication, format, tests
+- Every push to `main` deploys the app to GitHub Pages (`.github/workflows/deploy.yml`).
