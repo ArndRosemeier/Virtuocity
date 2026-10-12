@@ -18,7 +18,13 @@ import {
   turnEnded,
 } from '@virtuocity/core';
 import type { IllustrateRequest } from './prompt';
-import { appearanceField, illustratePrompt, illustratorSettings, sceneToPaint } from './prompt';
+import {
+  appearanceField,
+  illustratePrompt,
+  illustratorSettings,
+  latestToPaint,
+  sceneToPaint,
+} from './prompt';
 
 export * from './prompt';
 
@@ -57,20 +63,39 @@ function latestPicture(ctx: SkillContext): { parts: OutputPart[] } {
   return { parts: last ? [{ kind: last.kind, data: last.data }] : [] };
 }
 
-/** Paints in the background; the picture becomes the scene, and joins the story if asked. */
+/** Paints a picture that becomes the scene, and joins the story if asked. */
+async function paintNow(
+  ctx: SkillContext,
+  description: string,
+  inStory: boolean,
+  signal?: AbortSignal,
+): Promise<void> {
+  const { picture, stats } = await illustrate(ctx, { description }, signal);
+  const part = { kind: IMAGE_PART, data: picture };
+  await showOnChannel(ctx.state, sceneChannel, part);
+  if (inStory) await ctx.post({ ...part, text: picture.alt }, [stats]);
+}
+
+/** Paints in the background, so the story never waits. */
 function paint(ctx: SkillContext, description: string, inStory: boolean): void {
-  ctx.startJob('Illustrating the scene', async ({ signal }) => {
-    const { picture, stats } = await illustrate(ctx, { description }, signal);
-    const part = { kind: IMAGE_PART, data: picture };
-    await showOnChannel(ctx.state, sceneChannel, part);
-    if (inStory) await ctx.post({ ...part, text: picture.alt }, [stats]);
-  });
+  ctx.startJob('Illustrating the scene', ({ signal }) =>
+    paintNow(ctx, description, inStory, signal),
+  );
+}
+
+/** Paints the newest message right away, when a person picks this illustrator. */
+async function paintOnRequest(ctx: SkillContext): Promise<void> {
+  const scene = latestToPaint(ctx.transcript, ctx.actor.id);
+  if (!scene) throw new Error('Nothing to paint yet: write what you want to see first.');
+  await paintNow(ctx, scene, readSettings(illustratorSettings, ctx.settings).inStory);
 }
 
 /**
  * Draws pictures with an image model, and shows the latest in its space. As
  * an actor in a scene it illustrates other actors' turns, and every new scene
  * announced with `sceneChanged`, in the background, so the story never waits.
+ * Picked by a person, it paints the newest message right away; with
+ * `automatic` off, that is the only time it paints.
  */
 export const illustratorSkill: Skill = {
   id: 'illustrator',
@@ -84,12 +109,14 @@ export const illustratorSkill: Skill = {
     }),
     implement(spaceContract, { fill: (_input, ctx) => Promise.resolve(latestPicture(ctx)) }),
   ],
+  onRequest: paintOnRequest,
   listensTo: [turnEnded.type, sceneChanged.type],
   onEvent: (event, ctx) => {
+    const { automatic, every, inStory } = readSettings(illustratorSettings, ctx.settings);
+    if (!automatic) return Promise.resolve();
     if (sceneChanged.is(event)) {
       paint(ctx, event.payload.description, false);
     } else if (turnEnded.is(event) && event.payload.actorId !== ctx.actor.id) {
-      const { every, inStory } = readSettings(illustratorSettings, ctx.settings);
       const scene = sceneToPaint(ctx.transcript, ctx.actor.id, event.payload.actorId, every);
       if (scene) paint(ctx, scene, inStory);
     }

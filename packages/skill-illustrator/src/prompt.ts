@@ -14,6 +14,12 @@ export const illustratorSettings = defineSettings({
     .max(20)
     .default(1)
     .describe('Paint after every this many messages from others'),
+  automatic: z
+    .boolean()
+    .default(true)
+    .describe(
+      "Paint on its own after other actors' turns. When off, it paints only when you click it under 'or ask:', from the newest message",
+    ),
   inStory: z
     .boolean()
     .default(true)
@@ -86,4 +92,13 @@ export function sceneToPaint(
     if (told(message)) since++;
   }
   return since % every === 0 ? text : undefined;
+}
+
+/** The newest message by someone else that tells something to paint, for a picture on request. */
+export function latestToPaint(
+  transcript: readonly Message[],
+  illustratorId: string,
+): string | undefined {
+  const message = transcript.findLast((m) => m.actorId !== illustratorId && told(m));
+  return message && told(message);
 }

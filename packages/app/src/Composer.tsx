@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { KeyboardEvent } from 'react';
-import type { SessionRuntime, TurnTakingInput } from '@virtuocity/core';
+import type { Actor, SessionRuntime, TurnTakingInput } from '@virtuocity/core';
 import { textContent } from '@virtuocity/core';
 import { Avatar, Button, Icon } from '@virtuocity/ui';
 import type { AppModule } from './types';
@@ -31,7 +31,25 @@ function useTurnRunner() {
   return { busy, error, run };
 }
 
-/** Pass, or pick exactly who speaks next. */
+/** An actor to pick for the next turn, or to ask to act. */
+function ActorChip({
+  actor,
+  disabled,
+  onPick,
+}: {
+  actor: Actor;
+  disabled: boolean;
+  onPick: () => void;
+}) {
+  return (
+    <button type="button" className="speaker-chip" disabled={disabled} onClick={onPick}>
+      <Avatar name={actor.personality.name} />
+      {actor.personality.name}
+    </button>
+  );
+}
+
+/** Pass, pick exactly who speaks next, or ask a support actor (e.g. an illustrator) to act. */
 function TurnBar({
   session,
   busy,
@@ -42,6 +60,8 @@ function TurnBar({
   run: (work: () => Promise<unknown>) => Promise<void>;
 }) {
   const speakers = session.speakers();
+  const askable = session.askable();
+  const pick = (actorId: string) => run(() => takeTurn(session, { kind: 'choose', actorId }));
   return (
     <div className="composer__turns">
       <Button
@@ -60,16 +80,11 @@ function TurnBar({
       )}
       {speakers.length > 0 && <span className="composer__label">or let speak:</span>}
       {speakers.map((a) => (
-        <button
-          key={a.id}
-          type="button"
-          className="speaker-chip"
-          disabled={busy}
-          onClick={() => void run(() => takeTurn(session, { kind: 'choose', actorId: a.id }))}
-        >
-          <Avatar name={a.personality.name} />
-          {a.personality.name}
-        </button>
+        <ActorChip key={a.id} actor={a} disabled={busy} onPick={() => void pick(a.id)} />
+      ))}
+      {askable.length > 0 && <span className="composer__label">or ask:</span>}
+      {askable.map((a) => (
+        <ActorChip key={a.id} actor={a} disabled={busy} onPick={() => void pick(a.id)} />
       ))}
       <span className="composer__hint">
         <Icon name="lantern" /> The session pauses after every turn.

@@ -1,6 +1,12 @@
 import type { Actor, Message } from '@virtuocity/core';
 import { describe, expect, it } from 'vitest';
-import { appearances, illustratePrompt, illustratorSettings, sceneToPaint } from './prompt';
+import {
+  appearances,
+  illustratePrompt,
+  illustratorSettings,
+  latestToPaint,
+  sceneToPaint,
+} from './prompt';
 
 const actor = (id: string, name: string, appearance?: string): Actor => ({
   id,
@@ -53,5 +59,17 @@ describe('sceneToPaint', () => {
   it('waits for enough messages since the last picture', () => {
     expect(sceneToPaint(story, 'ink', 'mira', 2)).toBe('The gate creaks.');
     expect(sceneToPaint(story, 'ink', 'mira', 3)).toBeUndefined();
+  });
+});
+
+describe('painting on request', () => {
+  it('picks the newest told message by someone else, skipping pictures and its own posts', () => {
+    const transcript = [
+      message('mira', 'A ship docks.'),
+      message('user', 'Show the harbour.'),
+      message('ink', ''),
+    ];
+    expect(latestToPaint(transcript, 'ink')).toBe('Show the harbour.');
+    expect(latestToPaint([message('ink', '')], 'ink')).toBeUndefined();
   });
 });

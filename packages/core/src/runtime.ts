@@ -198,17 +198,28 @@ export class SessionRuntime {
     return this.actors.filter((a) => a.controller === 'ai' && this.#turnSkill(a) !== undefined);
   }
 
-  /** Lets one specific actor take a turn. A turn ended with `stop` ends quietly, posting nothing more. */
+  /** AI support actors a person can ask to act (`onRequest`); the director never picks them. */
+  askable(): Actor[] {
+    return this.actors.filter(
+      (a) => a.controller === 'ai' && !this.#turnSkill(a) && this.#requestSkill(a) !== undefined,
+    );
+  }
+
+  /**
+   * Lets one specific actor take a turn, or act on request when it is askable.
+   * A turn ended with `stop` ends quietly, posting nothing more.
+   */
   async runTurn(actorId: string): Promise<void> {
     const actor = this.actors.find((a) => a.id === actorId);
-    const skill = actor && this.#turnSkill(actor);
-    if (!actor || !skill?.takeTurn) throw new Error(`"${actorId}" cannot take a turn`);
+    const skill = actor && (this.#turnSkill(actor) ?? this.#requestSkill(actor));
+    const act = skill?.takeTurn ?? skill?.onRequest;
+    if (!actor || !skill || !act) throw new Error(`"${actorId}" cannot take a turn`);
     const turn = new AbortController();
     this.#turn = turn;
     this.#speaking = actorId;
     await this.bus.emit(turnStarted.create({ actorId }));
     try {
-      await skill.takeTurn(this.#context(actor, skill));
+      await act.call(skill, this.#context(actor, skill));
     } catch (error) {
       if (!turn.signal.aborted) throw error;
     } finally {
@@ -275,6 +286,10 @@ export class SessionRuntime {
 
   #turnSkill(actor: Actor): Skill | undefined {
     return this.#skills(actor).find((s) => s.takeTurn);
+  }
+
+  #requestSkill(actor: Actor): Skill | undefined {
+    return this.#skills(actor).find((s) => s.onRequest);
   }
 
   #context(actor: Actor, skill: Skill): SkillContext {

@@ -37,6 +37,12 @@ export interface Skill extends Identified {
   onEvent?(event: VEvent, ctx: SkillContext): Promise<void>;
   /** Present on skills that let an actor take a turn, e.g. conversation. */
   takeTurn?(ctx: SkillContext): Promise<void>;
+  /**
+   * Present on skills that act only when a person asks, e.g. an illustrator
+   * painting the latest message. Runs like a turn but the director never picks
+   * it, and the actor stays support rather than cast.
+   */
+  onRequest?(ctx: SkillContext): Promise<void>;
 }
 
 /** A removed skill and how its per-actor settings become this skill's. */
