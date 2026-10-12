@@ -47,4 +47,21 @@ describe('chatView with a part of its own', () => {
     const view = chatView([message], [], (m) => ({ kind: 'shout', data: m.text.toUpperCase() }));
     expect(view.entries[0]?.part).toEqual({ kind: 'shout', data: 'HI' });
   });
+
+  it('puts each marker after the message it follows and leaves out stray ones', () => {
+    const view = chatView(
+      [
+        { id: '1', actorId: 'you', kind: 'text', data: 'a', text: 'a', createdAt: 0 },
+        { id: '2', actorId: 'n', kind: 'text', data: 'b', text: 'b', createdAt: 1 },
+      ],
+      [],
+      undefined,
+      [
+        { afterId: '1', label: 'Summarized', actorId: 'scribe' },
+        { afterId: 'gone', label: 'Lost', actorId: 'scribe' },
+      ],
+    );
+    expect(view.entries[0]?.markers).toEqual([{ actorId: 'scribe', label: 'Summarized' }]);
+    expect(view.entries[1]?.markers).toBeUndefined();
+  });
 });

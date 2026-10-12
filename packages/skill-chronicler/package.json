@@ -8,6 +8,8 @@
   },
   "dependencies": {
     "@virtuocity/contract-memory": "*",
+    "@virtuocity/contract-render": "*",
+    "@virtuocity/contract-space": "*",
     "@virtuocity/core": "*"
   }
 }

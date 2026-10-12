@@ -1,9 +1,12 @@
 import type { StoryLine } from '@virtuocity/contract-memory';
 import { summarizerContract } from '@virtuocity/contract-memory';
+import { markerContract } from '@virtuocity/contract-render';
+import { spaceContract } from '@virtuocity/contract-space';
 import type { Skill, SkillContext, VirtuocityModule } from '@virtuocity/core';
 import { implement, turnEnded } from '@virtuocity/core';
 import { chronicle } from './chronicle';
 import { memoryContributor, memoryDoc } from './memory';
+import { chronicleMarker, chronicleSpace } from './views';
 import { differentialPrompt, fullPrompt } from './prompt';
 import { chroniclerSettings } from './settings';
 
@@ -11,6 +14,7 @@ export * from './lines';
 export * from './memory';
 export * from './prompt';
 export * from './settings';
+export * from './views';
 
 interface Request {
   readonly lines: readonly StoryLine[];
@@ -55,6 +59,8 @@ function chronicler(
       implement(summarizerContract, {
         summarize: async (input, ctx) => ({ summary: await summarize(input, ctx) }),
       }),
+      chronicleMarker,
+      chronicleSpace,
     ],
     listensTo: [turnEnded.type],
     onEvent: (_event, ctx) => {
@@ -80,6 +86,8 @@ export const chroniclerModule: VirtuocityModule = {
   id: 'skill-chronicler',
   register: (host) => {
     host.contracts.register(summarizerContract);
+    host.contracts.register(markerContract);
+    host.contracts.register(spaceContract);
     host.docTypes.register(memoryDoc);
     host.contextContributors.register(memoryContributor);
     host.skills.register(differentialChroniclerSkill);

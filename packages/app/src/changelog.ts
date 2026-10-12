@@ -9,6 +9,15 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 36,
+    date: '2026-10-12',
+    changes: [
+      'A Chronicler no longer writes a note into the chat. Instead, a small "Summarized" line appears after the last message its summary covers. Click it to open the summary in the left sidebar; close it with the X.',
+      "Any actor can place such lines in the story (a new marker contract), and both renderers draw them. Clicking one opens that actor's space.",
+      'Each space in the left sidebar takes a third of its height and scrolls inside, so three fit without scrolling the sidebar.',
+    ],
+  },
+  {
     build: 35,
     date: '2026-10-12',
     changes: [

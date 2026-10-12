@@ -26,7 +26,12 @@ export const spaceContract = defineContract({
       description:
         'What the space shows now. Must be quick: do slow work in the background and keep its results in state.',
       input: z.object({}),
-      output: content,
+      output: content.extend({
+        onDemand: z
+          .boolean()
+          .optional()
+          .describe('Show the space only once opened, e.g. from a marker, with a way to close it'),
+      }),
     }),
     edit: optionalAction({
       description: 'A person changed what the space shows. Returns what it shows now.',

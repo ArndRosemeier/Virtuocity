@@ -1,3 +1,4 @@
+import { storyMarkerSchema } from './marker';
 import {
   action,
   check,
@@ -23,6 +24,10 @@ export const renderContract = defineContract({
         'How the session looks now. Must be quick: it runs whenever the session changes.',
       input: z.object({
         messages: z.array(messageSchema).describe('The session, as the person sees it'),
+        markers: z
+          .array(storyMarkerSchema)
+          .default([])
+          .describe('Small labeled lines other actors placed after messages'),
       }),
       output: z.object({
         parts: z.array(outputPartSchema).describe('The view, as output parts of any kind'),
@@ -55,3 +60,4 @@ export const renderContract = defineContract({
   ],
 });
 export * from './chat';
+export * from './marker';

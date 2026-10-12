@@ -1,4 +1,5 @@
 import type { Actor, OutputPart, messageSchema, z } from '@virtuocity/core';
+import type { StoryMarker } from './marker';
 
 /** A message as the render contract receives it. */
 export type StoryMessage = z.output<typeof messageSchema>;
@@ -18,6 +19,8 @@ export interface ChatEntry {
   readonly human: boolean;
   readonly part: OutputPart;
   readonly stats?: StoryMessage['stats'];
+  /** Markers placed after this message. */
+  readonly markers?: readonly Omit<StoryMarker, 'afterId'>[];
 }
 
 export interface ChatView {
@@ -26,14 +29,18 @@ export interface ChatView {
 
 /**
  * The story as a chat: every message in order, under its speaker's name.
- * `partOf` decides how each message is drawn; by default, as it is.
+ * `partOf` decides how each message is drawn; by default, as it is. Markers
+ * go with the message they follow; ones after no shown message are left out.
  */
 export function chatView(
   messages: readonly StoryMessage[],
   actors: readonly Actor[],
   partOf: (message: StoryMessage) => OutputPart = (m) => ({ kind: m.kind, data: m.data }),
+  markers: readonly StoryMarker[] = [],
 ): ChatView {
   const actorOf = (id: string) => actors.find((a) => a.id === id);
+  const markersAfter = (id: string) =>
+    markers.filter((k) => k.afterId === id).map(({ actorId, label }) => ({ actorId, label }));
   return {
     entries: messages.map((m) => ({
       id: m.id,
@@ -42,6 +49,7 @@ export function chatView(
       human: actorOf(m.actorId)?.controller === 'human',
       part: partOf(m),
       ...(m.stats ? { stats: m.stats } : {}),
+      ...(markersAfter(m.id).length > 0 ? { markers: markersAfter(m.id) } : {}),
     })),
   };
 }

@@ -1,6 +1,8 @@
 import { textContent } from '@virtuocity/core';
 import { summarizerContract } from '@virtuocity/contract-memory';
-import type { CompletionRequest, Skill } from '@virtuocity/core';
+import { markerContract } from '@virtuocity/contract-render';
+import { spaceContract } from '@virtuocity/contract-space';
+import type { ActionMap, CompletionRequest, Contract, Skill } from '@virtuocity/core';
 import {
   ModuleHost,
   SessionRuntime,
@@ -27,6 +29,17 @@ for (const skill of [differentialChroniclerSkill, fullChroniclerSkill]) {
     }
   });
 }
+
+function conformsTo<A extends ActionMap>(contract: Contract<A>) {
+  describe(`${fullChroniclerSkill.name} conforms to ${contract.name}`, () => {
+    const target = conformanceTarget(contract, { skills: [fullChroniclerSkill] });
+    for (const testCase of conformanceSuite(contract)) {
+      it(`${testCase.contractId}: ${testCase.name}`, () => testCase.run(target));
+    }
+  });
+}
+conformsTo(markerContract);
+conformsTo(spaceContract);
 
 /** Posts a long paragraph each turn and remembers what it was told it knows. */
 function narrator(known: string[]): Skill {
@@ -74,22 +87,21 @@ async function play(skillId: string, turns: number) {
 describe('chronicling a story', () => {
   it('summarizes older story in the background and never shortens the story', async () => {
     const { runtime, known, memory } = await play('differential-chronicler', 4);
-    const story = runtime.transcript('narrator');
+    const story = runtime.transcript();
     expect(story).toHaveLength(4);
     expect(memory.chronicler?.summary).toBe('Updated.');
     expect(memory.chronicler?.upTo).toBe(story[2]?.id);
     expect(known.at(-1)).toContain('The story so far');
   });
 
-  it('leaves a short note for people each time, which the actors never read', async () => {
-    const { runtime, prompts } = await play('differential-chronicler', 4);
-    const notes = runtime.transcript().filter((m) => m.actorId === 'chronicler');
-    expect(notes.map((m) => m.text)).toEqual([
-      'Updated the story so far (2 words).',
-      'Updated the story so far (1 word).',
-      'Updated the story so far (1 word).',
-    ]);
-    expect(prompts.some((p) => p.includes('Updated the story so far'))).toBe(false);
+  it('marks where its summary ends and shows the summary in its space on demand', async () => {
+    const { runtime } = await play('differential-chronicler', 4);
+    const story = runtime.transcript();
+    expect(story).toHaveLength(4);
+    const { markers } = await runtime.invoke('chronicler', markerContract, 'markers', {});
+    expect(markers).toEqual([{ afterId: story[2]?.id, label: 'Summarized' }]);
+    const space = await runtime.invoke('chronicler', spaceContract, 'fill', {});
+    expect(space).toEqual({ parts: [{ kind: 'text', data: 'Updated.' }], onDemand: true });
   });
 
   it('folds new story into the last summary when differential', async () => {
