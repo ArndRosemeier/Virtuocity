@@ -54,6 +54,7 @@ export const promptedPremiseSkill = premiseSkill({
   id: 'prompted-premise',
   name: 'Premise (from a prompt)',
   backing: 'llm',
+  modalities: ['text'],
   settings: promptedPremiseSettings,
   implements: implementing(promptedPremise),
 });

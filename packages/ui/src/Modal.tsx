@@ -11,7 +11,7 @@ export interface ModalProps {
   readonly footer?: ReactNode;
   /** Shows a primary button with this label that closes the dialog, when there is no footer. */
   readonly doneLabel?: string;
-  readonly size?: 'sm' | 'md';
+  readonly size?: 'sm' | 'md' | 'lg';
 }
 
 /** A native <dialog>: focus trapping, Escape and the backdrop come from the browser. */
@@ -41,7 +41,7 @@ export function Modal({
   return (
     <dialog
       ref={ref}
-      className={cx('v-modal', size === 'sm' && 'v-modal--sm')}
+      className={cx('v-modal', size !== 'md' && `v-modal--${size}`)}
       aria-label={title}
       onClose={onClose}
       onClick={(e) => e.target === e.currentTarget && onClose()}

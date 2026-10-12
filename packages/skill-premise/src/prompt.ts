@@ -13,7 +13,6 @@ export function premisePrompt(
     .join('\n');
   const system = [
     'You write the premise that opens a collaborative story.',
-    author.personality.description,
     'Describe the setting, the situation the characters are in, and the hook that sets things moving. Never decide what anyone does next.',
     `Write about ${settings.words} words of plain prose. No title, no preamble.`,
   ]

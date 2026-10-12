@@ -1,5 +1,5 @@
 import type { ModelOverrides } from '@virtuocity/core';
-import { readSettings, z } from '@virtuocity/core';
+import { actorUse, readSettings, z } from '@virtuocity/core';
 import {
   Field,
   ModelLayerEditor,
@@ -95,8 +95,13 @@ function ProfileFields({ host, draft, onChange }: FieldsProps) {
   );
 }
 
-export function ActorFields({ host, draft, onChange }: FieldsProps) {
-  const catalog = useModels(host);
+/** Who the actor is and what it can do; personality only when a chosen skill voices it. */
+function NameSkillsPersonality({
+  host,
+  draft,
+  onChange,
+  persona,
+}: FieldsProps & { persona: boolean }) {
   return (
     <>
       <Field label="Name">
@@ -110,34 +115,69 @@ export function ActorFields({ host, draft, onChange }: FieldsProps) {
           />
         )}
       </Field>
-      <Field
-        label="Personality"
-        hint="Voice, role, backstory, quirks. This is what the model plays."
-      >
-        {(id) => (
-          <TextArea
-            id={id}
-            rows={5}
-            value={draft.description}
-            placeholder="A sharp-tongued half-elf bard who hides a soft heart and a stolen map…"
-            onChange={(e) => onChange({ ...draft, description: e.target.value })}
-          />
-        )}
-      </Field>
-      <ProfileFields host={host} draft={draft} onChange={onChange} />
       <Section title="Skills">
         <SkillPicker host={host} draft={draft} onChange={onChange} />
       </Section>
-      <SkillSettings host={host} draft={draft} onChange={onChange} />
-      <Section title="Models">
-        <ModelLayerEditor
-          modalities={host.modalities.list()}
-          catalog={catalog}
-          value={draft.models}
-          onChange={(models) => onChange({ ...draft, models })}
-          inheritLabel="Use the default"
-        />
-      </Section>
+      {persona && (
+        <Field
+          label="Personality"
+          hint="Voice, role, backstory, quirks. This is what the model plays."
+        >
+          {(id) => (
+            <TextArea
+              id={id}
+              rows={5}
+              value={draft.description}
+              placeholder="A sharp-tongued half-elf bard who hides a soft heart and a stolen map…"
+              onChange={(e) => onChange({ ...draft, description: e.target.value })}
+            />
+          )}
+        </Field>
+      )}
     </>
+  );
+}
+
+/**
+ * Two columns: the name, skills and personality on the left; profile, skill
+ * settings and models on the right. Only what the chosen skills use is asked
+ * for: personality for skills that voice it, profile fields such as
+ * appearance for characters, models for the modalities in use.
+ */
+export function ActorFields({ host, draft, onChange }: FieldsProps) {
+  const catalog = useModels(host);
+  const skills = draft.skillIds.flatMap((id) => host.skills.find(id) ?? []);
+  const use = actorUse(skills);
+  const modalities = host.modalities.list().filter((m) => use.modalities.includes(m.id));
+  const hasSettings = skills.some((s) => s.settings);
+  return (
+    <div className="actor-fields">
+      <div className="stack">
+        <NameSkillsPersonality
+          host={host}
+          draft={draft}
+          onChange={onChange}
+          persona={use.persona}
+        />
+      </div>
+      <div className="stack">
+        {use.character && <ProfileFields host={host} draft={draft} onChange={onChange} />}
+        <SkillSettings host={host} draft={draft} onChange={onChange} />
+        {modalities.length > 0 && (
+          <Section title="Models">
+            <ModelLayerEditor
+              modalities={modalities}
+              catalog={catalog}
+              value={draft.models}
+              onChange={(models) => onChange({ ...draft, models })}
+              inheritLabel="Use the default"
+            />
+          </Section>
+        )}
+        {!hasSettings && modalities.length === 0 && (
+          <p className="muted">The chosen skills have nothing to set up.</p>
+        )}
+      </div>
+    </div>
   );
 }

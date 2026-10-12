@@ -50,6 +50,8 @@ export const writerSkill: Skill = {
   id: 'writer',
   name: 'Writer',
   backing: 'llm',
+  modalities: ['text'],
+  persona: true,
   settings: writerSettings,
   implements: [
     implement(writerContract, {

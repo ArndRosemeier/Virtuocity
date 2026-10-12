@@ -809,3 +809,22 @@
   width: 100%;
   max-height: none;
 }
+
+/* Actor dialog: two columns, one on narrow screens. */
+.actor-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-6);
+  align-items: start;
+}
+.actor-fields .skill-picker {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-1) var(--space-3);
+}
+@media (max-width: 760px) {
+  .actor-fields,
+  .actor-fields .skill-picker {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
