@@ -304,7 +304,10 @@ after turns once enough story lies beyond the newest `keepRecent` tokens. It get
 the summary by invoking the summarizer contract on its own actor, so any
 implementation can stand in. Two ship: the differential chronicler folds new
 lines into the last summary, the full chronicler rereads everything. Both run
-the contract's conformance suite. Summaries have no length setting: the
+the contract's conformance suite. After each update the chronicler posts a
+short note ("Updated the story so far (N words).") hidden from every non-human
+actor, so people see it in the chat while prompts never do; it leaves its own
+notes out of what it summarizes. Summaries have no length setting: the
 summarizer writes as much as it needs to keep every detail that may matter. The app's Memory panel shows, edits and
 forgets summaries (a forgotten one is rebuilt after the next turn).
 
