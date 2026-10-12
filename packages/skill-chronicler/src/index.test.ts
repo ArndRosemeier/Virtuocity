@@ -74,10 +74,22 @@ async function play(skillId: string, turns: number) {
 describe('chronicling a story', () => {
   it('summarizes older story in the background and never shortens the story', async () => {
     const { runtime, known, memory } = await play('differential-chronicler', 4);
-    expect(runtime.transcript()).toHaveLength(4);
+    const story = runtime.transcript('narrator');
+    expect(story).toHaveLength(4);
     expect(memory.chronicler?.summary).toBe('Updated.');
-    expect(memory.chronicler?.upTo).toBe(runtime.transcript()[2]?.id);
+    expect(memory.chronicler?.upTo).toBe(story[2]?.id);
     expect(known.at(-1)).toContain('The story so far');
+  });
+
+  it('leaves a short note for people each time, which the actors never read', async () => {
+    const { runtime, prompts } = await play('differential-chronicler', 4);
+    const notes = runtime.transcript().filter((m) => m.actorId === 'chronicler');
+    expect(notes.map((m) => m.text)).toEqual([
+      'Updated the story so far (2 words).',
+      'Updated the story so far (1 word).',
+      'Updated the story so far (1 word).',
+    ]);
+    expect(prompts.some((p) => p.includes('Updated the story so far'))).toBe(false);
   });
 
   it('folds new story into the last summary when differential', async () => {
