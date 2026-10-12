@@ -25,6 +25,12 @@ export async function ensureCast(host: AppHost, session: SessionRuntime): Promis
   await ensureStoryView(host, session);
 }
 
+/** Deletes the session's contents and starts an empty one with the human and a story view. */
+export async function clearSession(host: AppHost, session: SessionRuntime): Promise<void> {
+  await session.workspace.load([], null);
+  await ensureCast(host, session);
+}
+
 /** Where a session's actors live and how name clashes with them are settled. */
 export interface Actors {
   readonly library: Library;

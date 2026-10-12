@@ -1,10 +1,15 @@
+import { useState } from 'react';
 import type { Actor } from '@virtuocity/core';
+import { hasActed } from '@virtuocity/core';
 import { Avatar, Button, IconButton, Pill } from '@virtuocity/ui';
 import { useAppActions } from './actions';
+import { runSafely } from './LibraryActors';
+import { SessionGoesDialog } from './SessionGoesDialog';
 import { SetupGuide } from './SetupGuide';
 import { StoryViewPicker } from './StoryViewPicker';
 import { STORY_VIEW } from './storyView';
 import type { AppModule, PanelProps } from './types';
+import { clearSession } from './useSession';
 
 interface CastRowProps {
   readonly actor: Actor;
@@ -46,18 +51,39 @@ function CastRow({ actor: a, speaking, onLeave }: CastRowProps) {
 }
 
 /**
+ * Removing an actor that did nothing yet is clean. One that did something
+ * stays part of the session, so removing it deletes the session, after a warning.
+ */
+function useRemove({ host, session }: PanelProps) {
+  const [actor, setActor] = useState<Actor>();
+  const remove = (a: Actor) => {
+    if (hasActed(session.workspace.log.all(), a.id)) setActor(a);
+    else void session.leave(a.id);
+  };
+  const name = actor?.personality.name ?? '';
+  const dialog = actor && (
+    <SessionGoesDialog
+      title={`Remove ${name}`}
+      confirm="Delete the session"
+      onConfirm={() => runSafely(() => clearSession(host, session))}
+      onClose={() => setActor(undefined)}
+    >
+      {name} has already taken part in this session, so removing {name} means deleting the session.{' '}
+      {name} stays in your Library.
+    </SessionGoesDialog>
+  );
+  return [remove, dialog] as const;
+}
+
+/**
  * Who is in the scene: the cast (actors who talk) and, apart from it, support
  * actors who work behind the scenes. Actors can join and leave at any time.
  */
 function CastPanel({ host, session }: PanelProps) {
   const { openAddActor } = useAppActions();
+  const [remove, removeDialog] = useRemove({ host, session });
   const row = (a: Actor) => (
-    <CastRow
-      key={a.id}
-      actor={a}
-      speaking={session.speaking === a.id}
-      onLeave={() => void session.leave(a.id)}
-    />
+    <CastRow key={a.id} actor={a} speaking={session.speaking === a.id} onLeave={() => remove(a)} />
   );
   const cast = session.cast().filter((a) => a.controller === 'ai');
   const support = session.actors.filter(
@@ -82,6 +108,7 @@ function CastPanel({ host, session }: PanelProps) {
         Add actor
       </Button>
       <StoryViewPicker host={host} session={session} />
+      {removeDialog}
     </div>
   );
 }

@@ -1,0 +1,45 @@
+import type { ReactNode } from 'react';
+import { Button, Modal } from '@virtuocity/ui';
+
+/**
+ * Warns before an action that deletes the current session, so nothing in a
+ * session ever refers to an actor it no longer has.
+ */
+export function SessionGoesDialog({
+  title,
+  confirm,
+  children,
+  onConfirm,
+  onClose,
+}: {
+  title: string;
+  /** The confirm button's label. */
+  confirm: string;
+  /** Why the session goes. */
+  children: ReactNode;
+  onConfirm: () => void;
+  onClose: () => void;
+}) {
+  const footer = (
+    <>
+      <Button variant="ghost" onClick={onClose}>
+        Cancel
+      </Button>
+      <Button
+        variant="primary"
+        icon="trash"
+        onClick={() => {
+          onConfirm();
+          onClose();
+        }}
+      >
+        {confirm}
+      </Button>
+    </>
+  );
+  return (
+    <Modal open size="sm" title={title} onClose={onClose} footer={footer}>
+      <p>{children} Save the session to a file first if you want to keep it.</p>
+    </Modal>
+  );
+}

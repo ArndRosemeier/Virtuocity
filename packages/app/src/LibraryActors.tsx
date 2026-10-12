@@ -2,10 +2,11 @@ import { useState } from 'react';
 import type { Actor, SavedActor } from '@virtuocity/core';
 import { Avatar, Button, IconButton, Pill } from '@virtuocity/ui';
 import { ActorDialog } from './ActorDialog';
-import { CopyActorDialog, DeleteActorDialog } from './LibraryActorDialogs';
+import { CopyActorDialog } from './LibraryActorDialogs';
 import { saveEverywhere, useLibrary } from './library';
+import { SessionGoesDialog } from './SessionGoesDialog';
 import type { PanelProps } from './types';
-import { ensureCast } from './useSession';
+import { clearSession } from './useSession';
 
 export const runSafely = (action: () => Promise<unknown>) =>
   void action().catch((error: unknown) => alert(`Something went wrong: ${String(error)}`));
@@ -146,12 +147,19 @@ function DeleteInSession({
 }: PanelProps & { actor: Actor; onClose: () => void }) {
   const library = useLibrary();
   const deleteBoth = async () => {
-    await session.workspace.load([], null);
-    await ensureCast(host, session);
+    await clearSession(host, session);
     await library.remove(actor.id);
   };
+  const name = actor.personality.name;
   return (
-    <DeleteActorDialog actor={actor} onDelete={() => runSafely(deleteBoth)} onClose={onClose} />
+    <SessionGoesDialog
+      title={`Delete ${name}`}
+      confirm={`Delete ${name} and the session`}
+      onConfirm={() => runSafely(deleteBoth)}
+      onClose={onClose}
+    >
+      {name} is in the current session, so deleting {name} also deletes that session.
+    </SessionGoesDialog>
   );
 }
 
