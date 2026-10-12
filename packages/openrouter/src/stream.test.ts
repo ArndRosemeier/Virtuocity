@@ -35,6 +35,7 @@ describe('readStream', () => {
       model: 'x/m',
       text: 'Hello',
       toolCalls: [],
+      media: [],
       usage: { prompt_tokens: 5, completion_tokens: 2, cost: 0.001 },
     });
   });
@@ -159,5 +160,27 @@ describe('models without tool support', () => {
     expect(result.text).toBe('Hi');
     const second = fetchMock.mock.calls[1] as [string, RequestInit];
     expect(JSON.parse(String(second[1].body))).not.toHaveProperty('tools');
+  });
+});
+
+describe('generated images', () => {
+  const image = { image_url: { url: 'data:image/png;base64,AAEC' } };
+
+  it('asks for image output and reads pictures from a plain response', async () => {
+    const reply = { model: 'm', choices: [{ message: { content: '', images: [image] } }] };
+    const fetchMock = vi.fn(() => Promise.resolve(new Response(JSON.stringify(reply))));
+    const provider = createOpenRouterProvider({ apiKey: () => 'k', fetch: fetchMock });
+    const result = await provider.complete({ modality: 'image', model: 'm', messages: [] });
+    expect(result.media).toEqual([{ mime: 'image/png', bytes: new Uint8Array([0, 1, 2]) }]);
+    const sent = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(JSON.parse(String(sent[1].body))).toMatchObject({ modalities: ['image', 'text'] });
+  });
+
+  it('reads pictures from a stream', async () => {
+    const answer = await readStream(
+      body([delta({ images: [image] }), 'data: [DONE]\n\n']),
+      () => {},
+    );
+    expect(answer.media).toHaveLength(1);
   });
 });

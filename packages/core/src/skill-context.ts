@@ -1,6 +1,8 @@
 import type { Actor } from './actor';
+import type { AssetStore } from './assets';
 import type { ActionInput, ActionOutput, Contract } from './contract';
 import type { EventBus } from './events';
+import type { JobControl } from './jobs';
 import type { OutputPart } from './output';
 import type { Complete } from './provider';
 import type { Message } from './transcript';
@@ -35,6 +37,14 @@ export interface SkillContext {
    * contract its other skills implement. Calling one runs that skill.
    */
   readonly tools: readonly Tool[];
+  /** Where pictures, sound and other binary content are kept; messages hold asset ids. */
+  readonly assets: AssetStore;
+  /**
+   * Starts work that runs beside the story (e.g. generating a picture) and
+   * returns at once. People see it and can cancel it; pass `control.signal`
+   * to model calls. Errors end the job and are shown, never thrown.
+   */
+  startJob(label: string, run: (control: JobControl) => Promise<void>): void;
   /** Asks another actor to perform a contract action, e.g. an editor asking a reviewer for notes. */
   readonly invoke: InvokeAction;
 }

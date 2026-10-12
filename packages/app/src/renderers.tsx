@@ -1,5 +1,6 @@
-import type { ToolRun } from '@virtuocity/core';
-import { TOOL_USE } from '@virtuocity/core';
+import type { MediaPartData, ToolRun } from '@virtuocity/core';
+import { AUDIO_PART, IMAGE_PART, TOOL_USE } from '@virtuocity/core';
+import { AudioPart, ImagePart } from './media';
 import type { AppModule } from './types';
 
 const brief = (value: unknown) => {
@@ -30,6 +31,14 @@ export const defaultRenderersModule: AppModule = {
     host.renderers.register({
       id: TOOL_USE,
       render: (part) => <ToolUse run={part.data as ToolRun} />,
+    });
+    host.renderers.register({
+      id: IMAGE_PART,
+      render: (part) => <ImagePart data={part.data as MediaPartData} />,
+    });
+    host.renderers.register({
+      id: AUDIO_PART,
+      render: (part) => <AudioPart data={part.data as MediaPartData} />,
     });
   },
 };

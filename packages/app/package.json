@@ -16,6 +16,7 @@
     "@virtuocity/openrouter": "*",
     "@virtuocity/skill-conversation": "*",
     "@virtuocity/skill-dice": "*",
+    "@virtuocity/skill-illustrator": "*",
     "@virtuocity/skill-reviewer": "*",
     "@virtuocity/skill-writer": "*",
     "@virtuocity/ui": "*",

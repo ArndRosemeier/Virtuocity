@@ -1,12 +1,16 @@
 import type { Actor } from './actor';
 import { resolveImplementation } from './adapter';
+import type { AssetStore, StoredAsset } from './assets';
+import { createAssetStore } from './assets';
 import { CallLog } from './calls';
 import { CAST, castDoc } from './cast';
 import type { Contract } from './contract';
+import { createSkillContext } from './contexts';
 import { EventBus, defineEvent } from './events';
 import { FlowRunner } from './flow-runner';
 import type { VEvent } from './events';
 import { HumanTaskQueue } from './human-tasks';
+import { JobQueue } from './jobs';
 import type { Implementation } from './implementation';
 import { ContractError, invokeAction } from './implementation';
 import type { ModelOverrides } from './models';
@@ -16,11 +20,11 @@ import type { OutputPart } from './output';
 import type { CompletionResult, ModelRequest } from './provider';
 import type { Skill, SkillContext } from './skill';
 import type { InvokeAction } from './skill-context';
+import { memoryStore } from './storage';
 import type { RewindOptions } from './oplog';
 import type { SavedSession } from './persistence';
 import { migrateOperations, parseSavedSession } from './persistence';
 import type { CallStats } from './stats';
-import { skillTools } from './skill-tools';
 import type { Message } from './transcript';
 import { MAIN_TRANSCRIPT, postingOperation, transcriptDoc } from './transcript';
 import type { ChangeOptions } from './workspace';
@@ -40,6 +44,8 @@ export interface SessionConfig {
   readonly directorId: string;
   /** Read on every call so settings changes apply immediately. */
   readonly modelDefaults: () => ModelOverrides;
+  /** Where generated media is kept. Defaults to memory. */
+  readonly assets?: AssetStore;
   readonly newId?: () => string;
   readonly now?: () => number;
 }
@@ -59,6 +65,9 @@ export class SessionRuntime {
   readonly flows: FlowRunner;
   /** Traces of recent model calls, including text still streaming in. */
   readonly calls: CallLog;
+  /** Work running beside the story, e.g. pictures being generated. */
+  readonly jobs: JobQueue;
+  readonly assets: AssetStore;
   readonly #newId: () => string;
   readonly #now: () => number;
   readonly #spent: CallStats[] = [];
@@ -72,6 +81,8 @@ export class SessionRuntime {
     this.workspace = new Workspace({ bus, policies: () => config.host.policies.list(), ...ids });
     this.tasks = new HumanTaskQueue({ bus, ...ids });
     this.calls = new CallLog({ bus, ...ids });
+    this.jobs = new JobQueue({ bus, ...ids });
+    this.assets = config.assets ?? createAssetStore(memoryStore<StoredAsset>());
     this.flows = new FlowRunner(this, (id) => config.host.flows.get(id));
     this.bus.on('*', (event) => this.#dispatch(event));
   }
@@ -246,19 +257,8 @@ export class SessionRuntime {
   }
 
   #context(actor: Actor, skill: Skill): SkillContext {
-    const call = (contract: Contract, action: string, input: unknown) =>
-      this.invoke(actor.id, contract, action, input as never);
-    return {
-      actor,
-      bus: this.bus,
-      transcript: this.transcript(actor.id),
-      state: this.workspace.view(actor.id),
-      actors: this.actors,
-      post: (parts, stats) => this.post(actor.id, parts, stats),
-      invoke: this.invoke,
-      complete: (request) => this.#complete(actor, skill, request),
-      tools: skillTools(this.#skills(actor), skill, call),
-    };
+    const complete = (request: ModelRequest) => this.#complete(actor, skill, request);
+    return createSkillContext(this, actor, skill, { complete, skills: this.#skills(actor) });
   }
 
   /** Runs one model call for a skill: picks the model, traces the call, records its cost. */

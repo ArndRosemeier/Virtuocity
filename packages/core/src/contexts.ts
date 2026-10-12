@@ -1,0 +1,53 @@
+import type { Actor } from './actor';
+import type { AssetStore } from './assets';
+import type { Contract } from './contract';
+import type { EventBus } from './events';
+import type { JobQueue } from './jobs';
+import type { OutputPart } from './output';
+import type { Complete } from './provider';
+import type { Skill } from './skill';
+import type { InvokeAction, SkillContext } from './skill-context';
+import { skillTools } from './skill-tools';
+import type { CallStats } from './stats';
+import type { Message } from './transcript';
+import type { Workspace } from './workspace';
+
+/** The parts of a session a skill context is built from. */
+export interface ContextSource {
+  readonly bus: EventBus;
+  readonly workspace: Workspace;
+  readonly jobs: JobQueue;
+  readonly assets: AssetStore;
+  readonly actors: readonly Actor[];
+  readonly invoke: InvokeAction;
+  transcript(perspective?: string): readonly Message[];
+  post(
+    actorId: string,
+    parts: readonly OutputPart[],
+    stats?: readonly CallStats[],
+  ): Promise<Message>;
+}
+
+/** Everything one skill of one actor may touch while it runs. */
+export function createSkillContext(
+  source: ContextSource,
+  actor: Actor,
+  skill: Skill,
+  extras: { readonly complete: Complete; readonly skills: readonly Skill[] },
+): SkillContext {
+  const call = (contract: Contract, action: string, input: unknown) =>
+    source.invoke(actor.id, contract, action, input as never);
+  return {
+    actor,
+    bus: source.bus,
+    transcript: source.transcript(actor.id),
+    state: source.workspace.view(actor.id),
+    actors: source.actors,
+    assets: source.assets,
+    post: (parts, stats) => source.post(actor.id, parts, stats),
+    invoke: source.invoke,
+    complete: extras.complete,
+    tools: skillTools(extras.skills, skill, call),
+    startJob: (label, run) => void source.jobs.start({ actorId: actor.id, label }, run),
+  };
+}

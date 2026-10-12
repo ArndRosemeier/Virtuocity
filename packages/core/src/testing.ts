@@ -1,3 +1,4 @@
+import type { GeneratedMedia } from './media';
 import type { CompletionRequest, CompletionResult, ModelProvider, ToolCall } from './provider';
 
 /** Recorded model calls, keyed by the request that produced them. */
@@ -36,9 +37,14 @@ export function replayProvider(recording: Recording, id = 'replay'): ModelProvid
   };
 }
 
-/** A scripted answer: plain text, or text with tool calls. */
+/** A scripted answer: plain text, or text with tool calls or media. */
 export type ScriptedReply =
-  string | { readonly text?: string; readonly toolCalls?: readonly ToolCall[] };
+  | string
+  | {
+      readonly text?: string;
+      readonly toolCalls?: readonly ToolCall[];
+      readonly media?: readonly GeneratedMedia[];
+    };
 
 /**
  * Answers with fixed replies in order (or computed from the request), with
@@ -60,11 +66,12 @@ export function scriptedProvider(
     complete: (request) =>
       Promise.resolve().then(() => {
         const reply = next(request);
-        const { text = '', toolCalls } = typeof reply === 'string' ? { text: reply } : reply;
+        const { text = '', toolCalls, media } = typeof reply === 'string' ? { text: reply } : reply;
         for (const word of text.match(/\S+\s*/g) ?? []) request.onText?.(word);
         return {
           text,
           ...(toolCalls ? { toolCalls } : {}),
+          ...(media ? { media } : {}),
           stats: { model: request.model, promptTokens: 0, completionTokens: 0, costUsd: 0 },
         };
       }),
