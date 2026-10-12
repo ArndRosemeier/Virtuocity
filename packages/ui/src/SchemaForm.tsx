@@ -1,8 +1,9 @@
 import type { JsonSchema } from '@virtuocity/core';
 import { Button, IconButton } from './Button';
-import { Field, TextArea, TextInput } from './Field';
+import { Field, TextArea } from './Field';
 import type { TextField } from './LongText';
 import { LongText } from './LongText';
+import { NumberField } from './NumberField';
 import { defaultValue, itemSchema, kindOf, labelFor, propertiesOf } from './schemaFields';
 
 interface FieldProps {
@@ -87,14 +88,7 @@ export function SchemaField({ schema, id, value, onChange, field }: FieldProps) 
         />
       );
     case 'number':
-      return (
-        <TextInput
-          id={id}
-          type="number"
-          value={typeof value === 'number' ? value : ''}
-          onChange={(e) => onChange(e.target.value === '' ? undefined : Number(e.target.value))}
-        />
-      );
+      return <NumberField id={id} schema={schema} value={value} onChange={onChange} />;
     case 'enum':
       return (
         <select
