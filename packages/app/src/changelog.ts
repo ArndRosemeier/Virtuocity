@@ -9,6 +9,15 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 39,
+    date: '2026-10-12',
+    changes: [
+      'Settings has a new "Save & load" tab. Save all writes everything (the session, the whole Library, all pictures and all settings) into one zip file you pick. Your OpenRouter key is never included.',
+      'Load all reads such a zip file and, after a warning, replaces everything with what is in it. Nothing of the old state is kept except your OpenRouter key.',
+      'The header buttons that save and load a single session now say so in their tooltips.',
+    ],
+  },
+  {
     build: 38,
     date: '2026-10-12',
     changes: [

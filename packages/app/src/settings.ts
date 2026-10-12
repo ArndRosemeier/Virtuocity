@@ -73,3 +73,37 @@ export function useModelDefaults(modalities: readonly ModalityInfo[]): ModelOver
 
 /** The skill tags last picked in the Library, as a JSON list of skill ids. */
 export const LIBRARY_TAGS: Setting = { key: 'virtuocity.library.tags', fallback: '[]' };
+
+const PREFIX = 'virtuocity.';
+
+function settingKeys(): string[] {
+  try {
+    return Object.keys(localStorage).filter((k) => k.startsWith(PREFIX));
+  } catch {
+    return [...memory.keys()];
+  }
+}
+
+/** Every stored setting except the OpenRouter key, which never leaves this browser. */
+export function readAllSettings(): Record<string, string> {
+  const all: Record<string, string> = {};
+  for (const key of settingKeys()) {
+    if (key !== API_KEY.key) all[key] = readSetting({ key, fallback: '' });
+  }
+  return all;
+}
+
+/** Replaces every stored setting except the OpenRouter key, which stays as it is. */
+export function replaceAllSettings(values: Record<string, string>): void {
+  for (const key of settingKeys()) {
+    if (key === API_KEY.key) continue;
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      memory.delete(key);
+    }
+  }
+  for (const [key, value] of Object.entries(values)) {
+    if (key.startsWith(PREFIX) && key !== API_KEY.key) writeSetting({ key, fallback: '' }, value);
+  }
+}
