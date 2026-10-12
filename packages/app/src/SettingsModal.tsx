@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button, Field, Modal, ModelLayerEditor, SecretInput, Section, Tabs } from '@virtuocity/ui';
 import type { TabDef } from '@virtuocity/ui';
 import { API_KEY, THEME, useModelDefaults, useSetting, writeModelDefaults } from './settings';
+import { BackupTab } from './BackupTab';
 import { RendererSelect } from './RendererSelect';
 import { RENDERER, rendererActors } from './storyView';
 import { SHOW_GUIDE } from './SetupGuide';
@@ -111,7 +112,7 @@ function AppearanceTab({ host }: { host: AppHost }) {
   );
 }
 
-export type SettingsTab = 'connection' | 'models' | 'appearance';
+export type SettingsTab = 'connection' | 'models' | 'appearance' | 'backup';
 
 export function SettingsModal({
   host,
@@ -134,6 +135,7 @@ export function SettingsModal({
       icon: 'palette',
       content: () => <AppearanceTab host={host} />,
     },
+    { id: 'backup', label: 'Save & load', icon: 'download', content: () => <BackupTab /> },
   ];
   return (
     <Modal open={open} title="Settings" onClose={onClose} doneLabel="Done">

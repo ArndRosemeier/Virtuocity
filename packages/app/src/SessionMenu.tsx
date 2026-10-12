@@ -16,7 +16,7 @@ interface SessionMenuProps {
 
 const fileName = () => `virtuocity-${new Date().toISOString().slice(0, 10)}.json`;
 
-/** Save all to a file, load from a file, or start over. The session itself autosaves. */
+/** Save the session to a file, load one from a file, or start over. The session itself autosaves. */
 export function SessionMenu({ host, session, assets }: SessionMenuProps) {
   const { openNewSession } = useAppActions();
   const library = useLibrary();
@@ -38,8 +38,8 @@ export function SessionMenu({ host, session, assets }: SessionMenuProps) {
 
   return (
     <>
-      <IconButton icon="download" label="Save all to a file" onClick={exportFile} />
-      <IconButton icon="upload" label="Load from a file" onClick={importFile} />
+      <IconButton icon="download" label="Save this session to a file" onClick={exportFile} />
+      <IconButton icon="upload" label="Load a session from a file" onClick={importFile} />
       <IconButton icon="restart" label="New session" onClick={openNewSession} />
     </>
   );
