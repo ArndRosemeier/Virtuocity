@@ -11,6 +11,13 @@ export interface Release {
 
 export const RELEASES: readonly Release[] = [
   {
+    build: 31,
+    date: '2026-10-12',
+    changes: [
+      'A Stop button sits next to whoever is writing. It cancels a stuck or unwanted answer right away, keeps nothing of it, and the session waits for you again. It works for retries too.',
+    ],
+  },
+  {
     build: 30,
     date: '2026-10-12',
     changes: [

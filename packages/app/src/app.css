@@ -258,6 +258,10 @@
   color: var(--text-muted);
   font-size: var(--text-sm);
 }
+.typing__stop {
+  display: flex;
+  justify-content: flex-end;
+}
 .typing__dots {
   display: inline-flex;
   gap: 3px;

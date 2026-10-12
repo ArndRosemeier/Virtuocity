@@ -92,7 +92,9 @@ app ──► any module ──► ui ──────────► core
   `leave` at any time (the app only lets an actor leave while `hasActed` in
   `cast.ts` is false; removing one that acted deletes the session); `post` adds a message; `pass` lets the director pick one
   AI turn; `runTurn` lets a chosen actor speak; `retryMessage` (`retry.ts`)
-  rewinds to before an actor's message and lets that actor speak again. Each call runs at most one AI
+  rewinds to before an actor's message and lets that actor speak again. `stop`
+  aborts the current turn's model calls and the running flow; a stopped turn
+  ends quietly. Each call runs at most one AI
   turn, then the session pauses. `turn.started` / `turn.ended` events and
   `speaking` tell the UI who is writing. Every event is delivered to the `onEvent` of
   each skill whose `listensTo` names it.

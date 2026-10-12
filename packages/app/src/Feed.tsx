@@ -59,7 +59,16 @@ function Welcome({ session }: Pick<PanelProps, 'session'>) {
   );
 }
 
-/** What the speaking actor is writing right now, as it streams in. */
+/** Stops a stuck or unwanted answer; nothing of it is kept. */
+function StopButton({ session }: Pick<PanelProps, 'session'>) {
+  return (
+    <Button size="sm" variant="ghost" icon="close" onClick={() => void session.stop()}>
+      Stop
+    </Button>
+  );
+}
+
+/** What the speaking actor is writing right now, as it streams in, with a way to stop it. */
 function Live({ host, session, actorId, name }: PanelProps & { actorId: string; name: string }) {
   const call = session.calls.running(actorId).at(-1);
   const text = call?.text.trim() ?? '';
@@ -73,10 +82,18 @@ function Live({ host, session, actorId, name }: PanelProps & { actorId: string; 
           <i />
           <i />
         </span>
+        <StopButton session={session} />
       </div>
     );
   }
-  return <MessageView host={host} name={name} part={{ kind: 'text', data: text }} live />;
+  return (
+    <>
+      <MessageView host={host} name={name} part={{ kind: 'text', data: text }} live />
+      <div className="typing__stop">
+        <StopButton session={session} />
+      </div>
+    </>
+  );
 }
 
 /** A story without a story view (e.g. rewound to before it had one) gets the default back. */

@@ -54,12 +54,7 @@ function TurnBar({
         Pass
       </Button>
       {busy && session.flows.running && (
-        <Button
-          size="sm"
-          variant="ghost"
-          icon="close"
-          onClick={() => void session.flows.interrupt()}
-        >
+        <Button size="sm" variant="ghost" icon="close" onClick={() => void session.stop()}>
           Stop
         </Button>
       )}
