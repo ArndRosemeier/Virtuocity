@@ -95,6 +95,15 @@ describe('SessionRuntime', () => {
     expect(session.speaking).toBeUndefined();
   });
 
+  it('assists the person with the default model, traced and counted', async () => {
+    const session = setup();
+    const messages = [{ role: 'user' as const, content: 'grumpy teen' }];
+    const result = await session.assist({ modality: 'text', messages }, 'transform');
+    expect(result.text).toBe('from default-model');
+    expect(session.calls.list()[0]).toMatchObject({ actorId: 'user', skillId: 'transform' });
+    expect(session.allStats()).toHaveLength(1);
+  });
+
   it('lets actors leave at any time', async () => {
     const session = setup();
     await session.join(ai('bard', ['echo']));

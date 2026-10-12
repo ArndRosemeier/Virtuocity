@@ -5,6 +5,8 @@ import { useAppActions } from './actions';
 import { openTextFile, saveTextFile } from './files';
 import type { AppHost } from './types';
 import { ensureCast } from './useSession';
+import { syncCast, useLibrary } from './library';
+import { useResolveConflicts } from './conflicts';
 
 interface SessionMenuProps {
   readonly host: AppHost;
@@ -17,6 +19,8 @@ const fileName = () => `virtuocity-${new Date().toISOString().slice(0, 10)}.json
 /** Save all to a file, load from a file, or start over. The session itself autosaves. */
 export function SessionMenu({ host, session, assets }: SessionMenuProps) {
   const { openNewSession } = useAppActions();
+  const library = useLibrary();
+  const resolve = useResolveConflicts();
   const run = (action: () => Promise<void>) =>
     void action().catch((error: unknown) => alert(`Something went wrong: ${String(error)}`));
 
@@ -28,6 +32,7 @@ export function SessionMenu({ host, session, assets }: SessionMenuProps) {
       const text = await openTextFile();
       if (text === undefined) return;
       await session.load(await importBundle(text, assets));
+      await syncCast(library, session, resolve);
       await ensureCast(host, session);
     });
 

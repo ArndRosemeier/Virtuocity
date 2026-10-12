@@ -7,7 +7,7 @@ function ChannelsPanel({ host, session }: PanelProps) {
   const contents = channelContents(session.workspace.view(USER_ID));
   const showing = host.channels.list().filter((c) => contents[c.id]);
   if (showing.length === 0) {
-    return <p className="muted">Pictures and sound that stay up while the story moves on.</p>;
+    return <p className="muted">Pictures and sound that stay up while the session moves on.</p>;
   }
   return (
     <div className="stack channels">

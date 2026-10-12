@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useReducer } from 'react';
-import type { Actor, AssetStore, KeyValueStore } from '@virtuocity/core';
+import type { Actor, AssetStore, KeyValueStore, Library, ResolveConflicts } from '@virtuocity/core';
 import { SessionRuntime, headMoved, stateChanged } from '@virtuocity/core';
 import type { AppHost } from './types';
 import { readModelDefaults } from './settings';
 import { ensureStoryView } from './storyView';
+import { syncCast } from './library';
+import { prepareLibrary } from './seed';
 
 export const USER_ID = 'user';
 /** The autosaved session; the app keeps one session for now. */
@@ -23,11 +25,25 @@ export async function ensureCast(host: AppHost, session: SessionRuntime): Promis
   await ensureStoryView(host, session);
 }
 
+/** Deletes the session's contents and starts an empty one with the human and a story view. */
+export async function clearSession(host: AppHost, session: SessionRuntime): Promise<void> {
+  await session.workspace.load([], null);
+  await ensureCast(host, session);
+}
+
+/** Where a session's actors live and how name clashes with them are settled. */
+export interface Actors {
+  readonly library: Library;
+  readonly resolve: ResolveConflicts;
+}
+
 async function restore(
   host: AppHost,
   session: SessionRuntime,
   store: KeyValueStore<unknown>,
+  { library, resolve }: Actors,
 ): Promise<void> {
+  await prepareLibrary(library, host);
   const saved = await store.get(CURRENT_SESSION);
   if (saved !== undefined) {
     try {
@@ -36,6 +52,7 @@ async function restore(
       console.error('Could not restore the saved session; starting fresh.', error);
     }
   }
+  await syncCast(library, session, resolve);
   await ensureCast(host, session);
 }
 
@@ -55,6 +72,7 @@ export function useSession(
   host: AppHost,
   store: KeyValueStore<unknown>,
   assets: AssetStore,
+  actors: Actors,
 ): SessionRuntime {
   const session = useMemo(
     () =>
@@ -71,8 +89,8 @@ export function useSession(
   useEffect(() => session.bus.on('*', refresh), [session]);
   useEffect(() => {
     let stop = () => {};
-    void restore(host, session, store).then(() => (stop = autosave(session, store)));
+    void restore(host, session, store, actors).then(() => (stop = autosave(session, store)));
     return () => stop();
-  }, [host, session, store]);
+  }, [host, session, store, actors]);
   return session;
 }

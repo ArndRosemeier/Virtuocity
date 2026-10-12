@@ -4,7 +4,8 @@ import type { SettingsTab } from './SettingsModal';
 /** App-level dialogs any component or panel can open. */
 export interface AppActions {
   openSettings(tab?: SettingsTab): void;
-  openNewActor(): void;
+  /** Opens the Library to pick an actor for the session, or make a new one. */
+  openAddActor(): void;
   openEditActor(actorId: string): void;
   /** Picks a blueprint and starts over. */
   openNewSession(): void;

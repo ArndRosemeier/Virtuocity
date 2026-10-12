@@ -4,18 +4,27 @@ import type { Blueprint } from './blueprint';
 import {
   arrangeSlot,
   blueprintProblems,
-  builtInActors,
   castBlueprint,
   defaultChoices,
+  defaultActors,
   defineBlueprint,
   roleNeeds,
+  setupGuide,
 } from './blueprint';
 import { action, defineContract } from './contract';
 import { coreModule } from './core-module';
 import { implement } from './implementation';
 import { ModuleHost, loadModules } from './module';
 import { SessionRuntime } from './runtime';
-import { currentBlueprint, sessionStarted, startBlueprint, startSavedSetup } from './setup';
+import {
+  SETUP,
+  currentBlueprint,
+  hideGuide,
+  sessionStarted,
+  setupDoc,
+  startBlueprint,
+  startSavedSetup,
+} from './setup';
 import type { Skill } from './skill';
 
 const painter = defineContract({
@@ -62,13 +71,40 @@ describe('layouts', () => {
 });
 
 describe('blueprints', () => {
-  it('lists the actors blueprints bring, skipping roles nothing can fill', () => {
-    const listed = builtInActors([stage], [talk]);
-    expect(listed.map((b) => [b.id, b.actor.skillIds])).toEqual([['stage:narrator', ['talk']]]);
-    expect(builtInActors([stage], [talk, paint]).map((b) => b.id)).toEqual([
-      'stage:narrator',
-      'stage:painter',
+  it('offers default actors with fresh ids, skipping roles nothing can fill', () => {
+    let n = 0;
+    const newId = () => `id-${++n}`;
+    const listed = defaultActors([stage], [talk], newId);
+    expect(listed.map((a) => [a.id, a.personality.name, a.skillIds])).toEqual([
+      ['id-1', 'Narrator', ['talk']],
     ]);
+    const twice = defaultActors([stage, stage], [talk, paint], newId);
+    expect(twice.map((a) => a.personality.name)).toEqual([
+      'Narrator',
+      'Painter',
+      'Narrator 2',
+      'Painter 2',
+    ]);
+  });
+
+  it('guides the setup: each actor fills the first open role it fits', () => {
+    const actor = (id: string, skillIds: string[]) => ({
+      id,
+      controller: 'ai' as const,
+      personality: person(id),
+      skillIds,
+    });
+    const guide = (actors: ReturnType<typeof actor>[], skills = [talk, paint]) =>
+      setupGuide(stage, skills, actors).map((l) => [l.label, l.available, l.actor?.id]);
+    expect(guide([])).toEqual([
+      ['Narrator', true, undefined],
+      ['Painter', true, undefined],
+    ]);
+    expect(guide([actor('p', ['paint']), actor('n', ['talk', 'paint'])])).toEqual([
+      ['Narrator', true, 'n'],
+      ['Painter', true, 'p'],
+    ]);
+    expect(guide([], [talk])[1]).toEqual(['Painter', false, undefined]);
   });
 
   it('rejects two roles with one id', () => {
@@ -137,7 +173,7 @@ describe('blueprints', () => {
     expect(started).toHaveLength(1);
   });
 
-  it('starts a saved setup with the layout of its blueprint, if installed', async () => {
+  it('starts a saved setup with library actors and the layout of its blueprint', async () => {
     const { host, session } = stageSession();
     const actors = castBlueprint(stage, defaultChoices(stage, [talk]));
     const setup = {
@@ -146,14 +182,27 @@ describe('blueprints', () => {
       savedAt: 0,
       name: 'Mine',
       description: '',
-      actors,
+      actorIds: ['narrator', 'deleted'],
     } as const;
-    await startSavedSetup(session, { ...setup, blueprintId: 'stage' }, host.blueprints);
+    await startSavedSetup(session, { ...setup, blueprintId: 'stage' }, actors, host.blueprints);
     expect(currentBlueprint(session, host.blueprints)?.id).toBe('stage');
     await session.workspace.load([], null);
-    await startSavedSetup(session, { ...setup, blueprintId: 'gone' }, host.blueprints);
+    await startSavedSetup(session, { ...setup, blueprintId: 'gone' }, actors, host.blueprints);
     expect(currentBlueprint(session, host.blueprints)).toBeUndefined();
     expect(session.actors.map((a) => a.id)).toEqual(['narrator']);
+  });
+
+  it('starts a blueprint with nobody, and remembers a hidden guide', async () => {
+    const { host, session } = stageSession();
+    await startBlueprint(session, stage);
+    expect(session.actors).toEqual([]);
+    expect(session.workspace.read(SETUP, setupDoc).guideHidden).toBeUndefined();
+    await hideGuide(session);
+    expect(session.workspace.read(SETUP, setupDoc)).toEqual({
+      blueprintId: 'stage',
+      guideHidden: true,
+    });
+    expect(currentBlueprint(session, host.blueprints)?.id).toBe('stage');
   });
 });
 

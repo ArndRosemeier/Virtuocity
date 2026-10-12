@@ -21,7 +21,7 @@ vision behind this lives in [vision.md](vision.md).
 | `@virtuocity/contract-visual`    | `illustrator@1` contract.                                              |
 | `@virtuocity/skill-illustrator`  | Image-model skill implementing `illustrator@1`; illustrates turns.     |
 | `@virtuocity/book-room`          | Walking skeleton: `manuscript` document and `book-pipeline` flow.      |
-| `@virtuocity/roleplay`           | `roleplay` blueprint: narrator, companion, optional illustrator.       |
+| `@virtuocity/roleplay`           | `roleplay` blueprint: a narrator, plus optional players and support.   |
 | `@virtuocity/app`                | Vite + React web app. Decides which modules are installed.             |
 
 New skills, blueprints and providers are new packages under `packages/`. New
@@ -61,9 +61,15 @@ app ──► any module ──► ui ──────────► core
   come only from its skills; any actor can take any seat.
 - **Skill** (`skill.ts`): one interface, backed by `llm`, `code` or `hybrid`.
   `onEvent` for reacting (silent and support actors), `takeTurn` for actors that
-  speak. Conversation is just a skill with `takeTurn`.
+  speak. Conversation is just a skill with `takeTurn`. A skill that takes over
+  a removed one lists it in `replaces`; `upgradeActor` (`skill-upgrade.ts`)
+  moves actors onto it, and the app's `Library` applies that to stored actors
+  and to every actor it adopts, sessions' casts included.
 - **Models** (`models.ts`): `resolveModel` picks skill override, then actor
   override, then the core default for the modality.
+- **Assist** (`runtime.assist`): a model call made for the person, not an actor
+  (e.g. "Transform by AI" on long text fields, `LongText` in `ui`), with the
+  default model; traced and counted like any call.
 - **ModelProvider** (`provider.ts`): runs calls and returns `CallStats`;
   `listModels` returns its catalog (`ModelInfo`: modalities, context, price).
 - **Modalities** (`host.modalities`): the modalities the app offers a default
@@ -83,7 +89,8 @@ app ──► any module ──► ui ──────────► core
   The default (`least-recent`) is registered by `coreModule`.
 - **Flows** (`flow.ts`, `flow-runner.ts`): see [Flows](#flows) below.
 - **SessionRuntime** (`runtime.ts`): a running session. Actors `join` and
-  `leave` at any time; `post` adds a message; `pass` lets the director pick one
+  `leave` at any time (the app only lets an actor leave while `hasActed` in
+  `cast.ts` is false; removing one that acted deletes the session); `post` adds a message; `pass` lets the director pick one
   AI turn; `runTurn` lets a chosen actor speak. Each call runs at most one AI
   turn, then the session pauses. `turn.started` / `turn.ended` events and
   `speaking` tell the UI who is writing. Every event is delivered to the `onEvent` of
@@ -249,21 +256,25 @@ request, schema)` asks for JSON matching a zod schema, then shows the model
 ## Blueprints
 
 A blueprint (`defineBlueprint`, `host.blueprints`) is a ready-made setup such
-as Roleplay or Book room: the roles it casts and the layout it asks for.
+as Roleplay or Book room: the layout it asks for and the roles it suggests.
+Starting one adds no actors; the user adds actors from the library.
 
-- A role names who the actor is (personality, settings, profile, models) and
-  what it must be able to do: `speaks` (takes turns) and `needs` (contracts).
-  It never names a skill. `roleNeeds` lists the installed skills that can
-  fill each need; the user picks one when there is a choice.
-- `optional` roles are left out when nothing can fill them and can be dropped
-  by the user. `blueprintProblems` explains why a blueprint cannot start.
-- `castBlueprint` turns the choices into actors; `startBlueprint` records the
-  blueprint in the `setup` document and casts them. `currentBlueprint` reads
-  it back, so the layout survives saving and loading.
+- A role names what an actor must be able to do: `speaks` (takes turns) and
+  `needs` (contracts). It never names a skill. `roleNeeds` lists the installed
+  skills that can fill each need. `label` and `hint` describe the role in the
+  setup guide; `optional` roles are listed as options.
+- `setupGuide` matches the session's actors to the roles (each actor fills the
+  first open role it `fitsRole`). The app shows it at the top of the Cast panel
+  until it is hidden (`hideGuide`, kept in the `setup` document) or turned off.
+- A role's personality, settings, profile and models describe its default
+  actor: `defaultActors` casts them with fresh ids (`castBlueprint`,
+  `defaultChoices`), and the app adds them to the library once, on the first start.
+- `startBlueprint` records the blueprint in the `setup` document;
+  `currentBlueprint` reads it back, so the layout survives saving and loading.
 - `layout` names, per slot, the contributions to show and their order
   (`arrangeSlot`); a slot it leaves out shows everything. The app shows
   several `main` views as tabs. Book room shows only the manuscript and no
-  composer; Roleplay shows the story and the composer.
+  composer; Roleplay shows the session and the composer.
 
 ## Channels
 
@@ -296,12 +307,15 @@ forgets summaries (a forgotten one is rebuilt after the next turn).
 ## Premise
 
 `sessionStarted` (core) fires once when a session is started from a blueprint
-or saved setup and its cast has joined, never when a saved session loads.
+or saved setup and its cast has joined, never when a saved session loads
+(`isStarting` tells whether that cast is still joining).
 `contract-premise` defines `premise@2.0`, which returns messages of any
 kind, so a premise may be text, a picture or sound. `skill-premise` listens for
-`sessionStarted`, invokes the premise contract on its own actor and posts the
-result as the story's opening. Two implementations ship: a fixed text written
-in the actor's settings, and one a model writes from a prompt.
+`sessionStarted`, and for its own `actorJoined` outside a start, and while the
+session is still empty invokes the premise contract on its own actor and posts
+the result as the opening. One implementation ships, "Premise": a text
+written in the actor's settings (Transform by AI turns a few words into one).
+It replaced "Premise (from a prompt)", whose prompt becomes the text.
 
 ## Spaces
 
@@ -345,16 +359,25 @@ edits it, and does not list it as a cast member.
 
 ## Library
 
-`Library` keeps actors and setups apart from any session, in an injected
-`KeyValueStore` (IndexedDB in the app). Items are validated on read, so a bad
-entry is skipped rather than breaking the list. `saveActor`, `saveSetup`,
-`remove`, `exportText`/`importText` (a `virtuocity.library` file) and
-`subscribe` for change notifications. The app's Library also lists what installed
-blueprints bring (`builtInActors`), marked built-in, so built-in and saved
-items live in one place; built-ins are protected, and any actor can be copied (`copyOfActor`) into an
-editable variation (`updateActor`). A saved setup remembers the blueprint
-it came from; `startSavedSetup` casts it with that blueprint's layout when the
-blueprint is still installed.
+`Library` keeps the actors and setups, in an injected `KeyValueStore`
+(IndexedDB in the app). Items are validated on read, so a bad entry is skipped.
+
+- **One actor, one identity.** A library actor's id is its actor id, and the
+  session uses that very actor: adding joins it as is, and editing saves it to
+  the library and the session alike (the app's `saveEverywhere`). A variation
+  is an explicit copy with a new name.
+- **Names are unique** (`nameKey` ignores case and extra spaces); `saveActor`
+  throws `NameTakenError`. The id stays hidden underneath, so renaming is one edit.
+- **Adopting.** `adopt(actors, resolve)` makes the library hold incoming actors
+  under their own ids, e.g. a loaded session's cast (the app's `syncCast`) or
+  an imported library file. New names are added, identical actors linked, and
+  names taken by different actors go to `resolve` (keep or replace).
+- **Deleting** an actor the session uses deletes that session too, after a
+  warning, so nothing refers to a deleted actor.
+- A saved setup lists actor ids and the blueprint it came from;
+  `startSavedSetup` joins those actors with that blueprint's layout.
+- `migrate` brings older libraries up to date (matching ids, unique names,
+  setups that refer to actors instead of holding copies).
 
 ## Turn flow in the app
 

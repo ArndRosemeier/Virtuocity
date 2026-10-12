@@ -1,6 +1,9 @@
 import type { JsonSchema } from '@virtuocity/core';
 import { Button, IconButton } from './Button';
-import { Field, TextArea, TextInput } from './Field';
+import { Field, TextArea } from './Field';
+import type { TextField } from './LongText';
+import { LongText } from './LongText';
+import { NumberField } from './NumberField';
 import { defaultValue, itemSchema, kindOf, labelFor, propertiesOf } from './schemaFields';
 
 interface FieldProps {
@@ -9,6 +12,8 @@ interface FieldProps {
   readonly id?: string | undefined;
   readonly value: unknown;
   readonly onChange: (value: unknown) => void;
+  /** What the field is called, for help such as "Transform by AI". */
+  readonly field?: TextField | undefined;
 }
 
 const asRecord = (value: unknown): Record<string, unknown> =>
@@ -26,6 +31,7 @@ function ObjectFields({ schema, value, onChange }: FieldProps) {
             <SchemaField
               id={id}
               schema={sub}
+              field={{ label: sub.title ?? labelFor(key), hint: sub.description }}
               value={record[key]}
               onChange={(next) => onChange({ ...record, [key]: next })}
             />
@@ -61,8 +67,12 @@ function ArrayFields({ schema, value, onChange }: FieldProps) {
   );
 }
 
+/** The field a string belongs to: as its object names it, or from its own schema. */
+const fieldOf = (schema: JsonSchema, field: TextField | undefined): TextField =>
+  field ?? { label: schema.title ?? 'Text', hint: schema.description };
+
 /** One control for any JSON Schema, nesting for objects and lists. */
-export function SchemaField({ schema, id, value, onChange }: FieldProps) {
+export function SchemaField({ schema, id, value, onChange, field }: FieldProps) {
   switch (kindOf(schema)) {
     case 'object':
       return <ObjectFields schema={schema} value={value} onChange={onChange} />;
@@ -78,14 +88,7 @@ export function SchemaField({ schema, id, value, onChange }: FieldProps) {
         />
       );
     case 'number':
-      return (
-        <TextInput
-          id={id}
-          type="number"
-          value={typeof value === 'number' ? value : ''}
-          onChange={(e) => onChange(e.target.value === '' ? undefined : Number(e.target.value))}
-        />
-      );
+      return <NumberField id={id} schema={schema} value={value} onChange={onChange} />;
     case 'enum':
       return (
         <select
@@ -103,11 +106,12 @@ export function SchemaField({ schema, id, value, onChange }: FieldProps) {
       );
     case 'string':
       return (
-        <TextArea
+        <LongText
           id={id}
           rows={2}
+          field={fieldOf(schema, field)}
           value={typeof value === 'string' ? value : ''}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={onChange}
         />
       );
     default:

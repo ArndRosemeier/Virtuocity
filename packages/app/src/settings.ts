@@ -74,3 +74,6 @@ export function useModelDefaults(modalities: readonly ModalityInfo[]): ModelOver
   );
   return readModelDefaults(modalities);
 }
+
+/** The skill tags last picked in the Library, as a JSON list of skill ids. */
+export const LIBRARY_TAGS: Setting = { key: 'virtuocity.library.tags', fallback: '[]' };

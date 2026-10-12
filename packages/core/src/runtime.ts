@@ -2,6 +2,7 @@ import type { Actor } from './actor';
 import { resolveImplementation } from './adapter';
 import type { AssetStore, StoredAsset } from './assets';
 import { createAssetStore } from './assets';
+import type { CallMeta } from './calls';
 import { CallLog } from './calls';
 import { CAST, castDoc } from './cast';
 import type { Contract } from './contract';
@@ -18,7 +19,7 @@ import type { ModelOverrides } from './models';
 import { resolveModel } from './models';
 import type { ModuleHost } from './module';
 import type { Content } from './output';
-import type { CompletionResult, ModelRequest } from './provider';
+import type { CompletionRequest, CompletionResult, ModelRequest } from './provider';
 import type { Skill, SkillContext } from './skill';
 import type { InvokeAction } from './skill-context';
 import { memoryStore } from './storage';
@@ -274,17 +275,30 @@ export class SessionRuntime {
   }
 
   /** Runs one model call for a skill: picks the model, traces the call, records its cost. */
-  async #complete(actor: Actor, skill: Skill, request: ModelRequest): Promise<CompletionResult> {
+  #complete(actor: Actor, skill: Skill, request: ModelRequest): Promise<CompletionResult> {
     const model = resolveModel(request.modality, {
       defaults: this.config.modelDefaults(),
       actor: actor.models,
       skill: skill.models,
     });
+    const messages = this.#instructed(actor, request);
+    return this.#call({ actorId: actor.id, skillId: skill.id }, { ...request, messages, model });
+  }
+
+  /**
+   * A model call made for the person rather than for an actor, e.g. rewriting a
+   * text field. It uses the default model for the modality, with no standing
+   * instructions, and is traced and counted like any other call.
+   */
+  assist(request: ModelRequest, purpose: string): Promise<CompletionResult> {
+    const model = resolveModel(request.modality, { defaults: this.config.modelDefaults() });
+    return this.#call({ actorId: 'user', skillId: purpose }, { ...request, model });
+  }
+
+  async #call(meta: CallMeta, request: CompletionRequest): Promise<CompletionResult> {
     const provider = this.config.host.providers.get(this.config.providerId);
     const signal = request.signal ?? this.flows.signal;
-    const messages = this.#instructed(actor, request);
-    const full = { ...request, messages, model, ...(signal ? { signal } : {}) };
-    const meta = { actorId: actor.id, skillId: skill.id };
+    const full = { ...request, ...(signal ? { signal } : {}) };
     const result = await this.calls.track(meta, full, (r) => provider.complete(r));
     this.#spent.push(result.stats);
     return result;

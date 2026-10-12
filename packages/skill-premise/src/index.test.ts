@@ -12,20 +12,22 @@ import {
   loadModules,
   scriptedProvider,
   startBlueprint,
+  upgradeActor,
 } from '@virtuocity/core';
 import { describe, expect, it } from 'vitest';
-import { fixedPremiseSkill, premiseModule, promptedPremiseSkill } from './index';
+import { fixedPremiseSkill, premiseModule } from './index';
 
 const provider = () => scriptedProvider(() => 'A lighthouse keeper finds a door in the rock.');
 
-for (const skill of [fixedPremiseSkill, promptedPremiseSkill]) {
-  describe(`${skill.name} conforms to premise`, () => {
-    const target = conformanceTarget(premiseContract, { skills: [skill], provider: provider() });
-    for (const testCase of conformanceSuite(premiseContract)) {
-      it(`${testCase.contractId}: ${testCase.name}`, () => testCase.run(target));
-    }
+describe(`${fixedPremiseSkill.name} conforms to premise`, () => {
+  const target = conformanceTarget(premiseContract, {
+    skills: [fixedPremiseSkill],
+    provider: provider(),
   });
-}
+  for (const testCase of conformanceSuite(premiseContract)) {
+    it(`${testCase.contractId}: ${testCase.name}`, () => testCase.run(target));
+  }
+});
 
 const quiet: Skill = {
   id: 'quiet',
@@ -58,21 +60,6 @@ const actor = (id: string, skillIds: string[], settings?: Record<string, unknown
 });
 
 describe('opening a session', () => {
-  it('posts the premise once the cast has joined', async () => {
-    const { runtime, ended } = session();
-    await startBlueprint(runtime, stage, [
-      actor('premise', ['prompted-premise'], { 'prompted-premise': { prompt: 'Lighthouses' } }),
-      actor('wren', ['quiet']),
-    ]);
-    await ended;
-    const [opening] = runtime.transcript();
-    expect(opening?.actorId).toBe('premise');
-    expect(opening).toMatchObject(textContent('A lighthouse keeper finds a door in the rock.'));
-    const request = runtime.calls.list()[0]?.request.messages[1]?.content;
-    expect(request).toContain('about: Lighthouses');
-    expect(request).toContain('wren: wren is here.');
-  });
-
   it('uses a fixed premise word for word, without a model', async () => {
     const { runtime, ended } = session();
     const settings = { 'fixed-premise': { premise: 'You wake on a moving train.' } };
@@ -82,6 +69,17 @@ describe('opening a session', () => {
     expect(runtime.calls.list()).toHaveLength(0);
   });
 
+  it('opens an empty story when it joins after the start', async () => {
+    const { runtime, ended } = session();
+    await startBlueprint(runtime, stage);
+    const settings = { 'fixed-premise': { premise: 'You wake on a moving train.' } };
+    await runtime.join(actor('premise', ['fixed-premise'], settings));
+    await runtime.join(actor('premise', ['fixed-premise'], settings));
+    await ended;
+    expect(runtime.transcript()).toHaveLength(1);
+    expect(runtime.transcript()[0]).toMatchObject(textContent('You wake on a moving train.'));
+  });
+
   it('stays silent when it joins a story that has already begun', async () => {
     const { runtime } = session();
     await runtime.join(actor('wren', ['quiet']));
@@ -89,5 +87,16 @@ describe('opening a session', () => {
     await startBlueprint(runtime, stage, [actor('premise', ['fixed-premise'])]);
     expect(runtime.jobs.list()).toHaveLength(0);
     expect(runtime.transcript()).toHaveLength(1);
+  });
+});
+
+describe('the removed "Premise (from a prompt)" skill', () => {
+  it('becomes the Premise skill, with its prompt as the premise text', () => {
+    const old = actor('premise', ['prompted-premise'], {
+      'prompted-premise': { prompt: 'Lighthouses', words: 150 },
+    });
+    const upgraded = upgradeActor(old, [fixedPremiseSkill]);
+    expect(upgraded.skillIds).toEqual(['fixed-premise']);
+    expect(upgraded.settings).toEqual({ 'fixed-premise': { premise: 'Lighthouses' } });
   });
 });
