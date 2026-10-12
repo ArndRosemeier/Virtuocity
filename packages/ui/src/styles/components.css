@@ -408,3 +408,30 @@
 .v-empty__body {
   max-width: 32rem;
 }
+
+/* Forms generated from JSON Schema (human tasks) */
+.v-schema-object {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.v-schema-array {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: start;
+}
+
+.v-schema-array__item {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+  width: 100%;
+}
+
+.v-schema-array__item > :first-child {
+  flex: 1;
+}
+
+.v-field input[type='checkbox'] {
+  justify-self: start;
+}

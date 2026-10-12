@@ -1,8 +1,16 @@
 import { useState } from 'react';
 import type { KeyboardEvent } from 'react';
-import type { SessionRuntime } from '@virtuocity/core';
+import type { SessionRuntime, TurnTakingInput } from '@virtuocity/core';
 import { Avatar, Button, Icon } from '@virtuocity/ui';
 import { USER_ID } from './useSession';
+
+/** Runs one round of the turn-taking flow, surfacing a failed run as an error. */
+async function takeTurn(session: SessionRuntime, input: TurnTakingInput): Promise<void> {
+  const result = await session.flows.run('turn-taking', input);
+  if (result.outcome === 'failed') {
+    throw result.error instanceof Error ? result.error : new Error(String(result.error));
+  }
+}
 
 function useTurnRunner() {
   const [busy, setBusy] = useState(false);
@@ -39,10 +47,20 @@ function TurnBar({
         variant="ghost"
         icon="skip"
         disabled={busy || speakers.length === 0}
-        onClick={() => void run(() => session.pass())}
+        onClick={() => void run(() => takeTurn(session, { kind: 'pass' }))}
       >
         Pass
       </Button>
+      {busy && session.flows.running && (
+        <Button
+          size="sm"
+          variant="ghost"
+          icon="close"
+          onClick={() => void session.flows.interrupt()}
+        >
+          Stop
+        </Button>
+      )}
       {speakers.length > 0 && <span className="composer__label">or let speak:</span>}
       {speakers.map((a) => (
         <button
@@ -50,7 +68,7 @@ function TurnBar({
           type="button"
           className="speaker-chip"
           disabled={busy}
-          onClick={() => void run(() => session.runTurn(a.id))}
+          onClick={() => void run(() => takeTurn(session, { kind: 'choose', actorId: a.id }))}
         >
           <Avatar name={a.personality.name} />
           {a.personality.name}
@@ -76,7 +94,7 @@ export function Composer({ session }: { session: SessionRuntime }) {
       if (!text) return;
       setDraft('');
       await session.post(USER_ID, [{ kind: 'text', data: text }]);
-      await session.pass();
+      await takeTurn(session, { kind: 'pass' });
     });
 
   const onKey = (e: KeyboardEvent) => {

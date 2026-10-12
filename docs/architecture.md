@@ -69,6 +69,7 @@ app ──► any module ──► ui ──────────► core
   mostly plain code; skills can `replace` it.
 - **Director** (`turns.ts`): picks the next speaker when the human passes.
   The default (`least-recent`) is registered by `coreModule`.
+- **Flows** (`flow.ts`, `flow-runner.ts`): see [Flows](#flows) below.
 - **SessionRuntime** (`runtime.ts`): a running session. Actors `join` and
   `leave` at any time; `post` adds a message; `pass` lets the director pick one
   AI turn; `runTurn` lets a chosen actor speak. Each call runs at most one AI
@@ -142,6 +143,27 @@ type, actorId)` folds only the operations that actor may see (their own, and
 - **Caching.** Folded states are cached per operation and perspective. Operations
   never change, so the cache can't go stale.
 
+## Flows
+
+A flow (`defineFlow`, registered in `host.flows`) orchestrates a session:
+turn-taking, a writing pipeline, a game loop. `runtime.flows.run(flowId, input)`
+starts one run; the run does some steps through its `FlowContext` (`runTurn`,
+`invoke`, `state`, `pickNext`) and returns, which pauses the session.
+
+- **Steps and limits.** Every turn and contract action is a step. A run stops
+  with `step-limit` when it reaches `maxSteps` (default 20), so autonomous loops
+  can't run away. Only one run happens at a time.
+- **Interrupt.** `flows.interrupt()` aborts the run: no further steps, model calls
+  made during the run are cancelled through its `AbortSignal`, and open human
+  tasks are cancelled.
+- **Humans in the loop.** A flow that invokes an action on a human actor simply
+  waits; the app shows the `HumanTask` as a form generated from its JSON Schema
+  (`SchemaField` in the UI kit) in the "Your tasks" panel.
+- **No hidden state.** Flows keep nothing between runs; they read documents to
+  decide what comes next, so rewinding, branching and loading also move the flow.
+- **Turn-taking** (`turn-taking.ts`) is the default flow: pass (the director
+  picks) or choose a speaker, one turn, pause.
+
 ## Turn flow in the app
 
 After every turn the session pauses. The human can **Act** (post, then the
@@ -150,6 +172,7 @@ character), or press a character's name to let exactly that one speak.
 
 ## Not built yet
 
-See the roadmap in the project's design notes. Next up: flows, which will also
-show human tasks as forms in the UI. The app autosaves one session; a session
-library comes with blueprints.
+See the roadmap in the project's design notes. Next up: a book-room walking
+skeleton on top of flows, then the provider upgrade (streaming, tool calls,
+structured output) and background jobs. The app autosaves one session; a
+session library comes with blueprints.

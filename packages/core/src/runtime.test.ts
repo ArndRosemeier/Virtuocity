@@ -63,8 +63,8 @@ describe('SessionRuntime', () => {
   it('runs one turn on pass, with the skill model override and stats', async () => {
     const session = setup();
     await session.join(ai('bard', ['echo']));
-    const next = await session.pass();
-    expect(next?.id).toBe('bard');
+    const result = await session.flows.run('turn-taking', { kind: 'pass' });
+    expect(result).toEqual({ outcome: 'paused', steps: 1 });
     const [message] = session.transcript();
     expect(message?.parts[0]?.data).toBe('from skill-model');
     expect(message?.stats?.[0]?.model).toBe('skill-model');
@@ -74,7 +74,7 @@ describe('SessionRuntime', () => {
     const session = setup();
     await session.join(ai('scribe', ['listener']));
     expect(session.speakers()).toEqual([]);
-    expect(await session.pass()).toBeUndefined();
+    expect(await session.pickNext()).toBeUndefined();
     counter.seen = 0;
     await session.post('user', [{ kind: 'text', data: 'hi' }]);
     expect(counter.seen).toBe(1);

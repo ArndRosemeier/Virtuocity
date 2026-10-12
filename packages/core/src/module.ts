@@ -2,6 +2,7 @@ import type { Seat } from './actor';
 import type { ContractAdapter } from './adapter';
 import { ContractRegistry } from './contract-registry';
 import type { DocType } from './doc-type';
+import type { Flow } from './flow';
 import type { ModalityInfo } from './models';
 import type { Identified } from './registry';
 import { Registry } from './registry';
@@ -38,6 +39,7 @@ export class ModuleHost<R = unknown, C = unknown> {
   readonly gameModes = new Registry<GameMode>('game mode');
   readonly providers = new Registry<ModelProvider>('model provider');
   readonly directors = new Registry<Director>('director');
+  readonly flows = new Registry<Flow>('flow');
   readonly renderers = new RendererRegistry<R>();
   readonly panels = new Registry<PanelContribution<C>>('panel');
 }

@@ -330,3 +330,40 @@
     display: none;
   }
 }
+
+/* Human tasks */
+.tasks {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.task {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.task__title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.task__input {
+  margin: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.task__input dt {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.task__input dd {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.task__actions {
+  display: flex;
+  gap: var(--space-2);
+}

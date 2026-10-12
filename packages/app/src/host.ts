@@ -4,6 +4,7 @@ import { conversationModule } from '@virtuocity/skill-conversation';
 import { diceModule } from '@virtuocity/skill-dice';
 import { reviewerModule } from '@virtuocity/skill-reviewer';
 import { castPanelModule } from './CastPanel';
+import { taskPanelModule } from './TaskPanel';
 import { defaultRenderersModule } from './renderers';
 import { API_KEY, readSetting } from './settings';
 import type { AppHost, AppModule, PanelProps } from './types';
@@ -15,6 +16,7 @@ export function createHost(): AppHost {
     coreModule as AppModule,
     defaultRenderersModule,
     castPanelModule,
+    taskPanelModule,
     openRouterModule({ apiKey: () => readSetting(API_KEY) }) as AppModule,
     conversationModule as AppModule,
     diceModule as AppModule,

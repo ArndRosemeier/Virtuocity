@@ -9,5 +9,7 @@ export * from './ModelLayerEditor';
 export * from './ModelPicker';
 export * from './modelSearch';
 export * from './Pill';
+export * from './SchemaForm';
+export * from './schemaFields';
 export * from './Tabs';
 export * from './cx';
