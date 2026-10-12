@@ -5,6 +5,7 @@ import type { SettingsTab } from './SettingsModal';
 export interface AppActions {
   openSettings(tab?: SettingsTab): void;
   openNewActor(): void;
+  openEditActor(actorId: string): void;
 }
 
 export const AppActionsContext = createContext<AppActions | null>(null);

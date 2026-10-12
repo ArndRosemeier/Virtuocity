@@ -27,6 +27,7 @@ export * from './provider';
 export * from './random';
 export * from './registry';
 export * from './runtime';
+export * from './settings';
 export * from './skill';
 export * from './skill-tools';
 export * from './stats';

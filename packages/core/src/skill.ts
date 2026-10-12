@@ -5,6 +5,7 @@ import type { VEvent } from './events';
 import type { Implementation } from './implementation';
 import type { ModelOverrides } from './models';
 import type { Identified } from './registry';
+import type { SettingsSchema } from './settings';
 import type { SkillContext } from './skill-context';
 
 export type { SkillContext } from './skill-context';
@@ -19,6 +20,8 @@ export interface Skill extends Identified {
   readonly backing: 'llm' | 'code' | 'hybrid';
   /** Model overrides that beat the actor's own overrides. */
   readonly models?: ModelOverrides;
+  /** What can be set per actor, built with `defineSettings`; the app renders a form from it. */
+  readonly settings?: SettingsSchema;
   /** Contracts this skill implements, built with `implement`. */
   readonly implements?: readonly Implementation[];
   /** Event types this skill reacts to (used by silent and support actors). */

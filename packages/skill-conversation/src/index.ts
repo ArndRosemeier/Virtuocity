@@ -1,6 +1,6 @@
 import type { Skill, VirtuocityModule } from '@virtuocity/core';
-import { completeWithTools, toolUseParts } from '@virtuocity/core';
-import { buildPrompt } from './prompt';
+import { completeWithTools, readSettings, toolUseParts } from '@virtuocity/core';
+import { buildPrompt, conversationSettings } from './prompt';
 
 export * from './prompt';
 
@@ -12,8 +12,10 @@ export const conversationSkill: Skill = {
   id: 'conversation',
   name: 'Conversation',
   backing: 'llm',
+  settings: conversationSettings,
   async takeTurn(ctx) {
-    const messages = buildPrompt(ctx.actor, ctx.actors, ctx.transcript);
+    const settings = readSettings(conversationSettings, ctx.settings);
+    const messages = buildPrompt(ctx.actor, ctx.actors, ctx.transcript, settings);
     const request = { modality: 'text', messages };
     const { result, calls, runs } = await completeWithTools(ctx.complete, request, ctx.tools);
     const text = { kind: 'text', data: result.text.trim() };

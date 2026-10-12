@@ -27,3 +27,15 @@ describe('writePrompt', () => {
     expect(revision).toMatch(/previous draft[\s\S]*Draft[\s\S]*- Slower/);
   });
 });
+
+describe('target length', () => {
+  it('asks for the configured number of words', () => {
+    const ada = {
+      id: 'ada',
+      controller: 'ai' as const,
+      personality: { name: 'Ada', description: '' },
+      skillIds: [],
+    };
+    expect(writePrompt(ada, { brief: 'x' }, 250)[0]?.content).toContain('about 250 words');
+  });
+});

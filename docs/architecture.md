@@ -206,6 +206,18 @@ request, schema)` asks for JSON matching a zod schema, then shows the model
   draws a picture from a description. As an actor, the illustrator draws each
   other actor's turn in a background job and posts the picture.
 
+## Settings and profiles
+
+- **Skill settings** (`settings.ts`): a skill declares `settings` with
+  `defineSettings` (every field has a default). Values are stored per actor in
+  `actor.settings[skillId]`; skills read them with
+  `readSettings(schema, ctx.settings)`, which fills defaults and drops invalid
+  values. The app renders a form for each chosen skill from the schema.
+- **Profile fields**: modules register `ProfileField`s in `host.profileFields`
+  (the illustrator adds `appearance`). Values live in `actor.profile[fieldId]`
+  and any skill reads them with `profileValue(actor, field)`. Settings belong to
+  one skill; profile fields describe the actor for everyone.
+
 ## Turn flow in the app
 
 After every turn the session pauses. The human can **Act** (post, then the
@@ -217,5 +229,5 @@ actor), or press an actor's name to let exactly that one speak.
 See the roadmap in the project's design notes. The book room (draft, review,
 approve chapters with a writer, a reviewer and you as editor) is the first
 walking skeleton. Audio generation has the plumbing (parts, renderer) but no
-provider support yet. Next up: context assembly, profiles and skill settings. The app autosaves one session; a
+provider support yet. Next up: context assembly within a token budget. The app autosaves one session; a
 session library comes with blueprints.

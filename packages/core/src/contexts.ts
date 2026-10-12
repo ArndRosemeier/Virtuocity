@@ -39,6 +39,7 @@ export function createSkillContext(
     source.invoke(actor.id, contract, action, input as never);
   return {
     actor,
+    settings: actor.settings?.[skill.id],
     bus: source.bus,
     transcript: source.transcript(actor.id),
     state: source.workspace.view(actor.id),

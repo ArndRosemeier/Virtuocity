@@ -1,6 +1,16 @@
 import { writerContract } from '@virtuocity/contract-writing';
 import type { Actor, ChatMessage, Skill, VirtuocityModule } from '@virtuocity/core';
-import { implement } from '@virtuocity/core';
+import { defineSettings, implement, readSettings, z } from '@virtuocity/core';
+
+export const writerSettings = defineSettings({
+  targetWords: z
+    .number()
+    .int()
+    .min(50)
+    .max(5000)
+    .default(600)
+    .describe('About how many words each draft should have'),
+});
 
 export interface WriteRequest {
   readonly brief: string;
@@ -10,11 +20,16 @@ export interface WriteRequest {
 }
 
 /** The writer's instructions, in the writer actor's own voice. */
-export function writePrompt(actor: Actor, request: WriteRequest): ChatMessage[] {
+export function writePrompt(
+  actor: Actor,
+  request: WriteRequest,
+  targetWords = writerSettings.parse({}).targetWords,
+): ChatMessage[] {
   const system = [
     `You are ${actor.personality.name}, a writer.`,
     actor.personality.description,
     'Write only the requested prose: no title, no commentary, no notes to the reader.',
+    `Aim for about ${targetWords} words.`,
   ]
     .filter(Boolean)
     .join('\n\n');
@@ -35,12 +50,17 @@ export const writerSkill: Skill = {
   id: 'writer',
   name: 'Writer',
   backing: 'llm',
+  settings: writerSettings,
   implements: [
     implement(writerContract, {
       write: async (input, ctx) => {
         const result = await ctx.complete({
           modality: 'text',
-          messages: writePrompt(ctx.actor, input),
+          messages: writePrompt(
+            ctx.actor,
+            input,
+            readSettings(writerSettings, ctx.settings).targetWords,
+          ),
         });
         return { text: result.text.trim() };
       },

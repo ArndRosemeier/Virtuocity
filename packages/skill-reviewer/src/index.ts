@@ -1,8 +1,8 @@
 import { criticContract, reviewerContract } from '@virtuocity/contract-critique';
 import type { Skill, SkillContext, VirtuocityModule } from '@virtuocity/core';
-import { completeStructured, implement } from '@virtuocity/core';
+import { completeStructured, implement, readSettings } from '@virtuocity/core';
 import type { z } from '@virtuocity/core';
-import { reviewPrompt } from './prompt';
+import { reviewPrompt, reviewerSettings } from './prompt';
 
 export * from './prompt';
 
@@ -21,7 +21,8 @@ async function ask<S extends z.ZodType>(
   input: Draft,
   schema: S,
 ): Promise<z.output<S>> {
-  const messages = reviewPrompt(ctx.actor, task, input, schema);
+  const { strictness } = readSettings(reviewerSettings, ctx.settings);
+  const messages = reviewPrompt(ctx.actor, { task, strictness }, input, schema);
   const { value } = await completeStructured(ctx.complete, { modality: 'text', messages }, schema);
   return value;
 }
@@ -31,6 +32,7 @@ export const reviewerSkill: Skill = {
   id: 'reviewer',
   name: 'Reviewer',
   backing: 'llm',
+  settings: reviewerSettings,
   implements: [
     implement(reviewerContract, {
       critique: (input, ctx) => ask(ctx, CRITIQUE, input, actions.critique.output),
