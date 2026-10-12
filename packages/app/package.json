@@ -25,6 +25,7 @@
     "@virtuocity/skill-illustrator": "*",
     "@virtuocity/skill-premise": "*",
     "@virtuocity/skill-reviewer": "*",
+    "@virtuocity/skill-roleplay-view": "*",
     "@virtuocity/skill-system-prompt": "*",
     "@virtuocity/skill-writer": "*",
     "@virtuocity/ui": "*",

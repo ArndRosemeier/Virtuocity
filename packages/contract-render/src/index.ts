@@ -53,3 +53,4 @@ export const renderContract = defineContract({
     },
   ],
 });
+export * from './chat';

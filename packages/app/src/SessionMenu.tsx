@@ -3,9 +3,11 @@ import { exportBundle, importBundle } from '@virtuocity/core';
 import { IconButton } from '@virtuocity/ui';
 import { useAppActions } from './actions';
 import { openTextFile, saveTextFile } from './files';
+import type { AppHost } from './types';
 import { ensureCast } from './useSession';
 
 interface SessionMenuProps {
+  readonly host: AppHost;
   readonly session: SessionRuntime;
   readonly assets: AssetStore;
 }
@@ -13,7 +15,7 @@ interface SessionMenuProps {
 const fileName = () => `virtuocity-${new Date().toISOString().slice(0, 10)}.json`;
 
 /** Save all to a file, load from a file, or start over. The session itself autosaves. */
-export function SessionMenu({ session, assets }: SessionMenuProps) {
+export function SessionMenu({ host, session, assets }: SessionMenuProps) {
   const { openNewSession } = useAppActions();
   const run = (action: () => Promise<void>) =>
     void action().catch((error: unknown) => alert(`Something went wrong: ${String(error)}`));
@@ -26,7 +28,7 @@ export function SessionMenu({ session, assets }: SessionMenuProps) {
       const text = await openTextFile();
       if (text === undefined) return;
       await session.load(await importBundle(text, assets));
-      await ensureCast(session);
+      await ensureCast(host, session);
     });
 
   return (

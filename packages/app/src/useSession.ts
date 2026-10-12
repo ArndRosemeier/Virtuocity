@@ -18,12 +18,16 @@ const user: Actor = {
 };
 
 /** Makes sure the human and a story view are in the cast, e.g. after loading or starting fresh. */
-export async function ensureCast(session: SessionRuntime): Promise<void> {
+export async function ensureCast(host: AppHost, session: SessionRuntime): Promise<void> {
   if (!session.actors.some((a) => a.id === USER_ID)) await session.join(user);
-  await ensureStoryView(session);
+  await ensureStoryView(host, session);
 }
 
-async function restore(session: SessionRuntime, store: KeyValueStore<unknown>): Promise<void> {
+async function restore(
+  host: AppHost,
+  session: SessionRuntime,
+  store: KeyValueStore<unknown>,
+): Promise<void> {
   const saved = await store.get(CURRENT_SESSION);
   if (saved !== undefined) {
     try {
@@ -32,7 +36,7 @@ async function restore(session: SessionRuntime, store: KeyValueStore<unknown>): 
       console.error('Could not restore the saved session; starting fresh.', error);
     }
   }
-  await ensureCast(session);
+  await ensureCast(host, session);
 }
 
 /** Saves the session shortly after every change to its state. */
@@ -67,8 +71,8 @@ export function useSession(
   useEffect(() => session.bus.on('*', refresh), [session]);
   useEffect(() => {
     let stop = () => {};
-    void restore(session, store).then(() => (stop = autosave(session, store)));
+    void restore(host, session, store).then(() => (stop = autosave(session, store)));
     return () => stop();
-  }, [session, store]);
+  }, [host, session, store]);
   return session;
 }

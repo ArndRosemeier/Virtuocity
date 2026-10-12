@@ -1,5 +1,5 @@
 import type { CallStats, OutputPart } from '@virtuocity/core';
-import type { ChatView } from '@virtuocity/skill-chat-view';
+import type { ChatView } from '@virtuocity/contract-render';
 import { Avatar } from '@virtuocity/ui';
 import { StatsBadge } from './StatsBadge';
 import type { AppHost } from './types';

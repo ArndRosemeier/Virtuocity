@@ -4,9 +4,18 @@ import { useAppActions } from './actions';
 import { Calls } from './Calls';
 import { SessionMenu } from './SessionMenu';
 import { StatsBadge } from './StatsBadge';
+import type { AppHost } from './types';
 import { WhatsNew } from './WhatsNew';
 
-export function Header({ session, assets }: { session: SessionRuntime; assets: AssetStore }) {
+export function Header({
+  host,
+  session,
+  assets,
+}: {
+  host: AppHost;
+  session: SessionRuntime;
+  assets: AssetStore;
+}) {
   const { openSettings, openLibrary } = useAppActions();
   return (
     <header className="app-header">
@@ -21,7 +30,7 @@ export function Header({ session, assets }: { session: SessionRuntime; assets: A
         <StatsBadge stats={session.allStats()} showModels={false} />
         <Calls session={session} />
         <IconButton icon="bookmark" label="Library" onClick={openLibrary} />
-        <SessionMenu session={session} assets={assets} />
+        <SessionMenu host={host} session={session} assets={assets} />
         <IconButton icon="settings" label="Settings" onClick={() => openSettings()} />
       </div>
     </header>

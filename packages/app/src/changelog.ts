@@ -11,6 +11,14 @@ export interface Release {
 
 export const RELEASES: readonly Release[] = [
   {
+    build: 20,
+    date: '2026-10-12',
+    changes: [
+      'The story view is now an actor you pick, so a view can bring its own skills. Pick it in Settings › Appearance (for new stories) or at the bottom of the Cast panel (for this story); the pencil next to it edits it, e.g. its system prompt.',
+      'New Roleplay renderer: it tells every text model it may keep <hidden> notes and use markdown, and draws the story with markdown, direct speech highlighted, and every XML section foldable. Hidden notes start folded.',
+    ],
+  },
+  {
     build: 19,
     date: '2026-10-12',
     changes: [

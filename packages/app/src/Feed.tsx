@@ -5,7 +5,7 @@ import { useAppActions } from './actions';
 import { MessageView } from './ChatView';
 import { USER_ID } from './useSession';
 import { API_KEY, useSetting } from './settings';
-import { STORY_VIEW, currentRenderer, ensureStoryView } from './storyView';
+import { STORY_VIEW, ensureStoryView, storyView } from './storyView';
 import type { AppModule, PanelProps } from './types';
 import { useParts } from './useParts';
 
@@ -75,13 +75,13 @@ function Live({ host, session, actorId, name }: PanelProps & { actorId: string; 
 }
 
 /** A story without a story view (e.g. rewound to before it had one) gets the default back. */
-function NoStoryView({ session }: Pick<PanelProps, 'session'>) {
+function NoStoryView({ host, session }: PanelProps) {
   return (
     <EmptyState
       icon="eye"
       title="Nothing draws this story"
       action={
-        <Button variant="primary" onClick={() => void ensureStoryView(session)}>
+        <Button variant="primary" onClick={() => void ensureStoryView(host, session)}>
           Use the default view
         </Button>
       }
@@ -93,7 +93,8 @@ function NoStoryView({ session }: Pick<PanelProps, 'session'>) {
 
 /** The story as its story view draws it: output parts, drawn through the renderer registry. */
 function StoryView({ host, session }: PanelProps) {
-  const renderer = currentRenderer(session) ?? '';
+  const view = storyView(session);
+  const renderer = view ? view.skillIds.join() : '';
   const shown = useParts(
     session,
     () =>
@@ -102,7 +103,7 @@ function StoryView({ host, session }: PanelProps) {
       }),
     renderer,
   );
-  if (!renderer) return <NoStoryView session={session} />;
+  if (!view) return <NoStoryView host={host} session={session} />;
   if (!shown) return null;
   if ('error' in shown) return <p className="job__error">{shown.error}</p>;
   return shown.parts.map((part, i) => <div key={i}>{host.renderers.render(part)}</div>);

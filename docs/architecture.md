@@ -327,12 +327,19 @@ are combined in the order they joined.
 How the story looks is a contract too. `contract-render` defines `render@1.0`:
 `render` takes the story's messages and returns the view as output parts,
 which the app draws with its renderers, so a view can be a chat, a page of
-prose or a storyboard. Every story has exactly one story view: an AI actor with
-the fixed id `story-view` whose one skill implements the contract. The app adds
-it when a story starts or loads (the default comes from Settings › Appearance)
-and the Cast panel swaps its skill for this story; it is not listed as a cast
-member. `skill-chat-view` is the standard view: a `chat-view` part listing every
-message under its speaker's name, drawn by the app as the familiar chat.
+prose or a storyboard. It also holds the shared `chat-view` output kind
+(`chatView`, with an optional per-message `partOf`). Every story has exactly
+one story view: a copy, under the fixed id `story-view`, of a ready-made
+renderer actor (`host.actors`) whose skills include a render skill, so a view
+can bring other skills such as a system prompt. The app adds the default one
+(Settings › Appearance) when a story starts or loads; the Cast panel swaps or
+edits it, and does not list it as a cast member.
+
+- `skill-chat-view`: the Chat view actor, the plain chat.
+- `skill-roleplay-view`: the Roleplay renderer actor, a System prompt about
+  `<hidden>` notes and markdown plus the Roleplay view, which turns text
+  messages into `rich-text` parts (markdown blocks, highlighted speech, every
+  XML element a fold, `<hidden>` folded).
 
 ## Library
 

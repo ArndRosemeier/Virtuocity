@@ -4,8 +4,8 @@ import { copyOfActor } from '@virtuocity/core';
 import { Avatar, Button, IconButton, Pill } from '@virtuocity/ui';
 import { useAppActions } from './actions';
 import { useLibrary } from './library';
-import { RendererSelect } from './RendererSelect';
-import { STORY_VIEW, currentRenderer, setRenderer } from './storyView';
+import { StoryViewPicker } from './StoryViewPicker';
+import { STORY_VIEW } from './storyView';
 import type { AppModule, PanelProps } from './types';
 
 const SAVED_NOTE_MS = 2000;
@@ -73,7 +73,6 @@ function CastPanel({ host, session }: PanelProps) {
       setSaved(actor.id);
       setTimeout(() => setSaved(null), SAVED_NOTE_MS);
     });
-  const renderer = currentRenderer(session);
   const row = (a: Actor) => (
     <CastRow
       key={a.id}
@@ -106,15 +105,7 @@ function CastPanel({ host, session }: PanelProps) {
       <Button icon="plus" onClick={openNewActor}>
         Add actor
       </Button>
-      {renderer !== undefined && (
-        <RendererSelect
-          host={host}
-          label="Story view"
-          hint="How this story is drawn."
-          value={renderer}
-          onChange={(skillId) => void setRenderer(session, skillId)}
-        />
-      )}
+      <StoryViewPicker host={host} session={session} />
     </div>
   );
 }

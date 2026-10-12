@@ -34,7 +34,7 @@ export function App() {
       <AssetsContext.Provider value={assets}>
         <LibraryContext.Provider value={library}>
           <div className={left ? 'layout layout--left' : 'layout'}>
-            <Header session={session} assets={assets} />
+            <Header host={host} session={session} assets={assets} />
             <Slot name="left" host={host} session={session} />
             <Area name="main" host={host} session={session} />
             <Slot name="side" host={host} session={session} />
