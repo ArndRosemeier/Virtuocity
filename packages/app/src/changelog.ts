@@ -11,6 +11,14 @@ export interface Release {
 
 export const RELEASES: readonly Release[] = [
   {
+    build: 20,
+    date: '2026-10-12',
+    changes: [
+      'The Library is wider, with actors and setups side by side.',
+      'Filter the Library by skill: tags at the top list the skills your actors and setups use. Pick one or more to see only the items that have all of them. Your pick is remembered for the next time you open the Library.',
+    ],
+  },
+  {
     build: 19,
     date: '2026-10-12',
     changes: [
