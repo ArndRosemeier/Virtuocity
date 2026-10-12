@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useReducer } from 'react';
 import type { Actor, AssetStore, KeyValueStore, Library, ResolveConflicts } from '@virtuocity/core';
-import { SessionRuntime, headMoved, stateChanged } from '@virtuocity/core';
+import { SessionRuntime } from '@virtuocity/core';
+import { SessionCatalog } from './sessions';
+import { SessionSwitcher } from './switcher';
 import type { AppHost } from './types';
 import { readModelDefaults } from './settings';
 import { ensureStoryView } from './storyView';
@@ -8,9 +10,6 @@ import { syncCast } from './library';
 import { prepareLibrary } from './seed';
 
 export const USER_ID = 'user';
-/** The autosaved session; the app keeps one session for now. */
-export const CURRENT_SESSION = 'current';
-const AUTOSAVE_DELAY_MS = 400;
 
 const user: Actor = {
   id: USER_ID,
@@ -25,72 +24,55 @@ export async function ensureCast(host: AppHost, session: SessionRuntime): Promis
   await ensureStoryView(host, session);
 }
 
-/** Deletes the session's contents and starts an empty one with the human and a story view. */
-export async function clearSession(host: AppHost, session: SessionRuntime): Promise<void> {
-  await session.workspace.load([], null);
-  await ensureCast(host, session);
-}
-
 /** Where a session's actors live and how name clashes with them are settled. */
 export interface Actors {
   readonly library: Library;
   readonly resolve: ResolveConflicts;
 }
 
-async function restore(
-  host: AppHost,
-  session: SessionRuntime,
-  store: KeyValueStore<unknown>,
-  { library, resolve }: Actors,
-): Promise<void> {
-  await prepareLibrary(library, host);
-  const saved = await store.get(CURRENT_SESSION);
-  if (saved !== undefined) {
-    try {
-      await session.load(saved);
-    } catch (error) {
-      console.error('Could not restore the saved session; starting fresh.', error);
-    }
-  }
-  await syncCast(library, session, resolve);
-  await ensureCast(host, session);
+/** A runtime set up the way the app runs sessions. */
+function createRuntime(host: AppHost, assets: AssetStore): SessionRuntime {
+  return new SessionRuntime({
+    host,
+    providerId: 'openrouter',
+    directorId: 'least-recent',
+    modelDefaults: () => readModelDefaults(host.modalities.list()),
+    assets,
+  });
 }
 
-/** Saves the session shortly after every change to its state. */
-function autosave(session: SessionRuntime, store: KeyValueStore<unknown>): () => void {
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const schedule = () => {
-    clearTimeout(timer);
-    timer = setTimeout(() => void store.set(CURRENT_SESSION, session.save()), AUTOSAVE_DELAY_MS);
-  };
-  const offs = [session.bus.on(stateChanged, schedule), session.bus.on(headMoved, schedule)];
-  return () => offs.forEach((off) => off());
-}
-
-/** One running session for the page, restored from storage and saved on every change. */
+/**
+ * The page's one runtime and the switcher that loads stored sessions into it.
+ * On start it opens the session that was open last; every change is saved.
+ */
 export function useSession(
   host: AppHost,
   store: KeyValueStore<unknown>,
   assets: AssetStore,
-  actors: Actors,
-): SessionRuntime {
-  const session = useMemo(
+  { library, resolve }: Actors,
+): { session: SessionRuntime; switcher: SessionSwitcher } {
+  const session = useMemo(() => createRuntime(host, assets), [host, assets]);
+  const switcher = useMemo(
     () =>
-      new SessionRuntime({
-        host,
-        providerId: 'openrouter',
-        directorId: 'least-recent',
-        modelDefaults: () => readModelDefaults(host.modalities.list()),
-        assets,
+      new SessionSwitcher({
+        runtime: session,
+        catalog: new SessionCatalog(store, () => crypto.randomUUID()),
+        prepare: async (runtime) => {
+          await syncCast(library, runtime, resolve);
+          await ensureCast(host, runtime);
+        },
+        scratch: () => createRuntime(host, assets),
       }),
-    [host, assets],
+    [host, session, store, assets, library, resolve],
   );
   const [, refresh] = useReducer((n: number) => n + 1, 0);
   useEffect(() => session.bus.on('*', refresh), [session]);
   useEffect(() => {
     let stop = () => {};
-    void restore(host, session, store, actors).then(() => (stop = autosave(session, store)));
+    void prepareLibrary(library, host)
+      .then(() => switcher.restore())
+      .then(() => (stop = switcher.autosave()));
     return () => stop();
-  }, [host, session, store, actors]);
-  return session;
+  }, [host, library, switcher]);
+  return { session, switcher };
 }

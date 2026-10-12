@@ -6,7 +6,8 @@ import { CopyActorDialog } from './LibraryActorDialogs';
 import { saveEverywhere, useLibrary } from './library';
 import { SessionGoesDialog } from './SessionGoesDialog';
 import type { PanelProps } from './types';
-import { clearSession } from './useSession';
+import type { SessionEntry } from './sessions';
+import { useSwitcher } from './switcher';
 
 export const runSafely = (action: () => Promise<unknown>) =>
   void action().catch((error: unknown) => alert(`Something went wrong: ${String(error)}`));
@@ -34,7 +35,9 @@ export function Row({
 
 /** The dialog open over the actor list. */
 type Open =
-  { readonly kind: 'new' } | { readonly kind: 'edit' | 'copy' | 'delete'; readonly actor: Actor };
+  | { readonly kind: 'new' }
+  | { readonly kind: 'edit' | 'copy' | 'delete'; readonly actor: Actor }
+  | { readonly kind: 'delete-with'; readonly actor: Actor; readonly sessions: SessionEntry[] };
 
 function ActorButtons({
   actor,
@@ -135,30 +138,39 @@ function ActorListDialog({
     const copy = (a: Actor) => runSafely(() => library.saveActor(a));
     return <CopyActorDialog actor={actor} takenNames={names} onCopy={copy} onClose={onClose} />;
   }
-  return <DeleteInSession host={host} session={session} actor={actor} onClose={onClose} />;
+  return open.kind === 'delete-with' ? (
+    <DeleteWithSessions actor={actor} sessions={open.sessions} onClose={onClose} />
+  ) : null;
 }
 
-/** Deleting an actor the session uses: the session goes too, after a warning. */
-function DeleteInSession({
-  host,
-  session,
+/** Deleting an actor that sessions use: those sessions go too, after a warning. */
+function DeleteWithSessions({
   actor,
+  sessions,
   onClose,
-}: PanelProps & { actor: Actor; onClose: () => void }) {
+}: {
+  actor: Actor;
+  sessions: readonly SessionEntry[];
+  onClose: () => void;
+}) {
   const library = useLibrary();
-  const deleteBoth = async () => {
-    await clearSession(host, session);
+  const switcher = useSwitcher();
+  const deleteAll = async () => {
+    for (const entry of sessions) await switcher.remove(entry.id);
     await library.remove(actor.id);
   };
   const name = actor.personality.name;
+  const list = sessions.map((e) => e.name).join(', ');
+  const one = sessions.length === 1;
   return (
     <SessionGoesDialog
       title={`Delete ${name}`}
-      confirm={`Delete ${name} and the session`}
-      onConfirm={() => runSafely(deleteBoth)}
+      confirm={one ? `Delete ${name} and the session` : `Delete ${name} and the sessions`}
+      onConfirm={() => runSafely(deleteAll)}
       onClose={onClose}
     >
-      {name} is in the current session, so deleting {name} also deletes that session.
+      {name} is in {one ? 'the session' : 'the sessions'} {list}, so deleting {name} also deletes{' '}
+      {one ? 'that session' : 'those sessions'}.
     </SessionGoesDialog>
   );
 }
@@ -192,10 +204,13 @@ export function LibraryActors({
       await session.join(actor);
       onAdded?.();
     });
+  const switcher = useSwitcher();
   const remove = (actor: Actor) =>
-    inSession(actor.id)
-      ? setOpen({ kind: 'delete', actor })
-      : runSafely(() => library.remove(actor.id));
+    runSafely(async () => {
+      const sessions = await switcher.sessionsWith(actor.id);
+      if (sessions.length > 0) setOpen({ kind: 'delete-with', actor, sessions });
+      else await library.remove(actor.id);
+    });
   const onOpen = (next: Open) => (next.kind === 'delete' ? remove(next.actor) : setOpen(next));
   return (
     <>

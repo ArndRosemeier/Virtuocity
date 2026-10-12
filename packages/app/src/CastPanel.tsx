@@ -9,7 +9,7 @@ import { SetupGuide } from './SetupGuide';
 import { StoryViewPicker } from './StoryViewPicker';
 import { STORY_VIEW } from './storyView';
 import type { AppModule, PanelProps } from './types';
-import { clearSession } from './useSession';
+import { useSwitcher } from './switcher';
 
 interface CastRowProps {
   readonly actor: Actor;
@@ -54,7 +54,8 @@ function CastRow({ actor: a, speaking, onLeave }: CastRowProps) {
  * Removing an actor that did nothing yet is clean. One that did something
  * stays part of the session, so removing it deletes the session, after a warning.
  */
-function useRemove({ host, session }: PanelProps) {
+function useRemove({ session }: PanelProps) {
+  const switcher = useSwitcher();
   const [actor, setActor] = useState<Actor>();
   const remove = (a: Actor) => {
     if (hasActed(session.workspace.log.all(), a.id)) setActor(a);
@@ -65,7 +66,7 @@ function useRemove({ host, session }: PanelProps) {
     <SessionGoesDialog
       title={`Remove ${name}`}
       confirm="Delete the session"
-      onConfirm={() => runSafely(() => clearSession(host, session))}
+      onConfirm={() => runSafely(() => switcher.removeOpen())}
       onClose={() => setActor(undefined)}
     >
       {name} has already taken part in this session, so removing {name} means deleting the session.{' '}

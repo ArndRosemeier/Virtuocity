@@ -39,7 +39,7 @@ export function SessionGoesDialog({
   );
   return (
     <Modal open size="sm" title={title} onClose={onClose} footer={footer}>
-      <p>{children} Save the session to a file first if you want to keep it.</p>
+      <p>{children} Save to a file first if you want to keep it.</p>
     </Modal>
   );
 }

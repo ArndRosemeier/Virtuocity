@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import type { SavedSetup } from '@virtuocity/core';
 import { startBlueprint, startSavedSetup } from '@virtuocity/core';
-import { Button, Modal } from '@virtuocity/ui';
+import { Modal } from '@virtuocity/ui';
 import { setupNames, useLibrary, useLibraryItems } from './library';
 import type { PanelProps } from './types';
-import { ensureCast } from './useSession';
+import { runSafely } from './LibraryActors';
+import { StartFooter, useSessionName } from './SessionName';
+import { useSwitcher } from './switcher';
 
 /** Starting without a setup: just you, adding actors yourself. */
 const EMPTY = '';
@@ -80,12 +82,12 @@ function Choices({
 }
 
 /**
- * Starts a new session, replacing the current one. A setup brings its layout
- * and a guide but no actors; a saved cast brings its actors from the library.
+ * Starts a new, named session; the one that was open stays in the session
+ * list. A setup brings its layout and a guide but no actors; a saved cast
+ * brings its actors from the library.
  */
 export function BlueprintDialog({
   host,
-  session,
   open,
   onClose,
 }: PanelProps & { open: boolean; onClose: () => void }) {
@@ -94,32 +96,26 @@ export function BlueprintDialog({
   const blueprint = host.blueprints.find(selected);
   const { setups } = useLibraryItems();
   const saved = setups.find((s) => s.id === selected);
+  const switcher = useSwitcher();
+  const { name, ok, field } = useSessionName();
 
-  const start = async () => {
-    await session.workspace.load([], null);
-    await ensureCast(host, session);
-    if (blueprint) await startBlueprint(session, blueprint);
-    else if (saved) await startSavedSetup(session, saved, await library.actors(), host.blueprints);
+  const start = () => {
+    if (!ok) return;
     onClose();
+    runSafely(() =>
+      switcher.startNew(name, async (session) => {
+        if (blueprint) await startBlueprint(session, blueprint);
+        else if (saved)
+          await startSavedSetup(session, saved, await library.actors(), host.blueprints);
+      }),
+    );
   };
-
-  const footer = (
-    <>
-      <Button variant="ghost" onClick={onClose}>
-        Cancel
-      </Button>
-      <Button variant="primary" icon="sparkles" onClick={() => void start()}>
-        Start
-      </Button>
-    </>
-  );
+  const footer = <StartFooter ok={ok} onStart={start} onClose={onClose} />;
 
   return (
     <Modal open={open} title="New session" onClose={onClose} footer={footer}>
       <div className="stack">
-        <p className="muted">
-          This replaces the current session. Save it to a file first if you want to keep it.
-        </p>
+        {field}
         <Choices host={host} setups={setups} selected={selected} onSelect={setSelected} />
       </div>
     </Modal>

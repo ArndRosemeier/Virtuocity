@@ -7,8 +7,10 @@ export interface AppActions {
   /** Opens the Library to pick an actor for the session, or make a new one. */
   openAddActor(): void;
   openEditActor(actorId: string): void;
-  /** Picks a blueprint and starts over. */
+  /** Names a new session and picks a setup for it. */
   openNewSession(): void;
+  /** The list of sessions and templates. */
+  openSessions(): void;
   openLibrary(): void;
 }
 
