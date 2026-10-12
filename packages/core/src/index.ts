@@ -21,6 +21,7 @@ export * from './human-tasks';
 export * from './jobs';
 export * from './library';
 export * from './implementation';
+export * from './instructions';
 export * from './media';
 export * from './models';
 export * from './module';
