@@ -3,6 +3,15 @@ import type { Actor } from './actor';
 import { actorSchema } from './cast';
 import type { KeyValueStore } from './storage';
 
+/** A copy of an actor to make a variation from, named so it is easy to tell apart. */
+export function copyOfActor(actor: Actor, id: string): Actor {
+  return {
+    ...actor,
+    id,
+    personality: { ...actor.personality, name: `${actor.personality.name} (copy)` },
+  };
+}
+
 /** An actor kept for reuse in any session. */
 export interface SavedActor {
   readonly kind: 'actor';
@@ -86,6 +95,11 @@ export class Library {
 
   saveActor(actor: Actor): Promise<SavedActor> {
     return this.#put({ kind: 'actor', id: this.#newId(), savedAt: this.#now(), actor });
+  }
+
+  /** Replaces a saved actor, keeping its library id. */
+  updateActor(id: string, actor: Actor): Promise<SavedActor> {
+    return this.#put({ kind: 'actor', id, savedAt: this.#now(), actor });
   }
 
   saveSetup(draft: SetupDraft): Promise<SavedSetup> {

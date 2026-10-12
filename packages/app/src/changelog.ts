@@ -15,6 +15,7 @@ export const RELEASES: readonly Release[] = [
     date: '2026-10-12',
     changes: [
       'The Library now shows everything: the built-in setups (Roleplay, Book room) and their actors, marked built-in, next to the ones you saved. Add any of them to the scene.',
+      'Copy any actor to make a variation: in the Library a copy is saved and opens for editing, and in the cast the copy joins the scene. Built-in actors stay protected; your saved actors can now be edited.',
     ],
   },
   {

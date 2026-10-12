@@ -273,7 +273,8 @@ entry is skipped rather than breaking the list. `saveActor`, `saveSetup`,
 `remove`, `exportText`/`importText` (a `virtuocity.library` file) and
 `subscribe` for change notifications. The app's Library also lists what installed
 blueprints bring (`builtInActors`), marked built-in, so built-in and saved
-items live in one place; built-ins can be added but not deleted. A saved setup remembers the blueprint
+items live in one place; built-ins are protected, and any actor can be copied (`copyOfActor`) into an
+editable variation (`updateActor`). A saved setup remembers the blueprint
 it came from; `startSavedSetup` casts it with that blueprint's layout when the
 blueprint is still installed.
 

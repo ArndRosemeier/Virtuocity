@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import type { Actor } from '@virtuocity/core';
-import { builtInActors, currentBlueprint } from '@virtuocity/core';
+import { builtInActors, copyOfActor, currentBlueprint } from '@virtuocity/core';
 import { Avatar, Button, Field, IconButton, Modal, Pill, Section, TextInput } from '@virtuocity/ui';
+import { ActorDialog } from './ActorDialog';
 import { openTextFile, saveTextFile } from './files';
 import { useLibrary, useLibraryItems } from './library';
 import type { PanelProps } from './types';
@@ -32,37 +33,86 @@ function Row({
 
 const BUILT_IN = <Pill>built-in</Pill>;
 
-/** Built-in actors (from the installed setups) first, then the ones you saved. */
+interface Editing {
+  readonly libraryId: string;
+  readonly actor: Actor;
+}
+
+function ActorButtons({
+  actor,
+  onAdd,
+  onCopy,
+}: {
+  actor: Actor;
+  onAdd: () => void;
+  onCopy: () => void;
+}) {
+  return (
+    <>
+      <Button size="sm" icon="plus" onClick={onAdd}>
+        Add
+      </Button>
+      <IconButton size="sm" icon="copy" label={`Copy ${actor.personality.name}`} onClick={onCopy} />
+    </>
+  );
+}
+
+/**
+ * Built-in actors (from the installed setups) first, then the ones you saved.
+ * Built-ins are protected; copy one to make a variation you can edit.
+ */
 function Actors({ host, session }: PanelProps) {
   const library = useLibrary();
   const { actors } = useLibraryItems();
+  const [editing, setEditing] = useState<Editing | null>(null);
   const builtIn = builtInActors(host.blueprints.list(), host.skills.list());
   const add = (actor: Actor) => run(() => session.join({ ...actor, id: crypto.randomUUID() }));
-  const addButton = (actor: Actor) => (
-    <Button size="sm" icon="plus" onClick={() => add(actor)}>
-      Add
-    </Button>
+  const copy = (actor: Actor) =>
+    run(async () => {
+      const saved = await library.saveActor(copyOfActor(actor, crypto.randomUUID()));
+      setEditing({ libraryId: saved.id, actor: saved.actor });
+    });
+  const buttons = (actor: Actor) => (
+    <ActorButtons actor={actor} onAdd={() => add(actor)} onCopy={() => copy(actor)} />
   );
   return (
-    <ul className="cast__list">
-      {builtIn.map(({ id, blueprint, actor }) => (
-        <Row key={id} name={actor.personality.name} detail={`From ${blueprint.name}`}>
-          {BUILT_IN}
-          {addButton(actor)}
-        </Row>
-      ))}
-      {actors.map(({ id, actor }) => (
-        <Row key={id} name={actor.personality.name} detail={actor.personality.description}>
-          {addButton(actor)}
-          <IconButton
-            size="sm"
-            icon="trash"
-            label={`Delete ${actor.personality.name} from the library`}
-            onClick={() => run(() => library.remove(id))}
-          />
-        </Row>
-      ))}
-    </ul>
+    <>
+      <ul className="cast__list">
+        {builtIn.map(({ id, blueprint, actor }) => (
+          <Row key={id} name={actor.personality.name} detail={`From ${blueprint.name}`}>
+            {BUILT_IN}
+            {buttons(actor)}
+          </Row>
+        ))}
+        {actors.map(({ id, actor }) => (
+          <Row key={id} name={actor.personality.name} detail={actor.personality.description}>
+            {buttons(actor)}
+            <IconButton
+              size="sm"
+              icon="edit"
+              label={`Edit ${actor.personality.name}`}
+              onClick={() => setEditing({ libraryId: id, actor })}
+            />
+            <IconButton
+              size="sm"
+              icon="trash"
+              label={`Delete ${actor.personality.name} from the library`}
+              onClick={() => run(() => library.remove(id))}
+            />
+          </Row>
+        ))}
+      </ul>
+      {editing && (
+        <ActorDialog
+          host={host}
+          session={session}
+          actor={editing.actor}
+          open
+          onClose={() => setEditing(null)}
+          onSave={(next) => run(() => library.updateActor(editing.libraryId, next))}
+        />
+      )}
+    </>
   );
 }
 

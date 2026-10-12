@@ -48,7 +48,8 @@ export function actorFromDraft(id: string, draft: Draft): Actor {
 
 /**
  * Creates an AI actor, or edits one when `actor` is given. Models are optional
- * overrides of the defaults, per modality.
+ * overrides of the defaults, per modality. Saving joins the session, unless
+ * `onSave` says where the actor goes instead (e.g. back into the library).
  */
 export function ActorDialog({
   host,
@@ -56,19 +57,21 @@ export function ActorDialog({
   actor,
   open,
   onClose,
+  onSave = (next) => void session.join(next),
 }: {
   host: AppHost;
   session: SessionRuntime;
   actor?: Actor | undefined;
   open: boolean;
   onClose: () => void;
+  onSave?: (actor: Actor) => void;
 }) {
   const [draft, setDraft] = useState<Draft>(() => draftOf(actor));
 
   const submit = (e?: FormEvent) => {
     e?.preventDefault();
     if (!draft.name.trim()) return;
-    void session.join(actorFromDraft(actor?.id ?? crypto.randomUUID(), draft));
+    onSave(actorFromDraft(actor?.id ?? crypto.randomUUID(), draft));
     onClose();
   };
 
