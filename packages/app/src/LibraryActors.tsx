@@ -137,7 +137,7 @@ function ActorListDialog({
   return <DeleteInSession host={host} session={session} actor={actor} onClose={onClose} />;
 }
 
-/** Deleting an actor the session uses: remove it from the session, or start a new one. */
+/** Deleting an actor the session uses: the session goes too, after a warning. */
 function DeleteInSession({
   host,
   session,
@@ -145,22 +145,13 @@ function DeleteInSession({
   onClose,
 }: PanelProps & { actor: Actor; onClose: () => void }) {
   const library = useLibrary();
-  const newSession = async () => {
+  const deleteBoth = async () => {
     await session.workspace.load([], null);
     await ensureCast(host, session);
     await library.remove(actor.id);
   };
-  const removeFromSession = async () => {
-    await session.leave(actor.id);
-    await library.remove(actor.id);
-  };
   return (
-    <DeleteActorDialog
-      actor={actor}
-      onRemoveFromSession={() => runSafely(removeFromSession)}
-      onNewSession={() => runSafely(newSession)}
-      onClose={onClose}
-    />
+    <DeleteActorDialog actor={actor} onDelete={() => runSafely(deleteBoth)} onClose={onClose} />
   );
 }
 

@@ -2,11 +2,11 @@ import type { ModelOverrides } from '@virtuocity/core';
 import { actorUse, readSettings, z } from '@virtuocity/core';
 import {
   Field,
+  LongText,
   ModelLayerEditor,
   Pill,
   SchemaField,
   Section,
-  TextArea,
   TextInput,
 } from '@virtuocity/ui';
 import type { AppHost } from './types';
@@ -95,6 +95,8 @@ function ProfileFields({ host, draft, onChange }: FieldsProps) {
   );
 }
 
+const PERSONALITY_HINT = 'Voice, role, backstory, quirks. This is what the model plays.';
+
 /** Who the actor is and what it can do; personality only when a chosen skill voices it. */
 function NameSkillsPersonality({
   host,
@@ -123,17 +125,15 @@ function NameSkillsPersonality({
         <SkillPicker host={host} draft={draft} onChange={onChange} />
       </Section>
       {persona && (
-        <Field
-          label="Personality"
-          hint="Voice, role, backstory, quirks. This is what the model plays."
-        >
+        <Field label="Personality" hint={PERSONALITY_HINT}>
           {(id) => (
-            <TextArea
+            <LongText
               id={id}
               rows={5}
+              field={{ label: 'Personality', hint: PERSONALITY_HINT }}
               value={draft.description}
               placeholder="A sharp-tongued half-elf bard who hides a soft heart and a stolen map…"
-              onChange={(e) => onChange({ ...draft, description: e.target.value })}
+              onChange={(description) => onChange({ ...draft, description })}
             />
           )}
         </Field>

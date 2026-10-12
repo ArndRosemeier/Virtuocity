@@ -64,6 +64,9 @@ app ──► any module ──► ui ──────────► core
   speak. Conversation is just a skill with `takeTurn`.
 - **Models** (`models.ts`): `resolveModel` picks skill override, then actor
   override, then the core default for the modality.
+- **Assist** (`runtime.assist`): a model call made for the person, not an actor
+  (e.g. "Transform by AI" on long text fields, `LongText` in `ui`), with the
+  default model; traced and counted like any call.
 - **ModelProvider** (`provider.ts`): runs calls and returns `CallStats`;
   `listModels` returns its catalog (`ModelInfo`: modalities, context, price).
 - **Modalities** (`host.modalities`): the modalities the app offers a default
@@ -362,8 +365,8 @@ edits it, and does not list it as a cast member.
   under their own ids, e.g. a loaded session's cast (the app's `syncCast`) or
   an imported library file. New names are added, identical actors linked, and
   names taken by different actors go to `resolve` (keep or replace).
-- **Deleting** an actor the session uses asks to remove it from the session or
-  start a new one, so nothing refers to a deleted actor.
+- **Deleting** an actor the session uses deletes that session too, after a
+  warning, so nothing refers to a deleted actor.
 - A saved setup lists actor ids and the blueprint it came from;
   `startSavedSetup` joins those actors with that blueprint's layout.
 - `migrate` brings older libraries up to date (matching ids, unique names,

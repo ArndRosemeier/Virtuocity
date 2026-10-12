@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Library, createAssetStore } from '@virtuocity/core';
 import { AppActionsContext } from './actions';
 import { ConflictsContext, useConflictDialog } from './conflicts';
+import { AskModelContext, askModel } from './transform';
 import { LibraryContext } from './library';
 import { Dialogs, dialogActions } from './Dialogs';
 import type { OpenDialog } from './Dialogs';
@@ -22,6 +23,7 @@ export function App() {
   const [resolve, conflictDialog] = useConflictDialog();
   const actors = useMemo(() => ({ library, resolve }), [library, resolve]);
   const session = useSession(host, sessions, assets, actors);
+  const ask = useMemo(() => askModel(session), [session]);
   const [dialog, setDialog] = useState<OpenDialog | null>(null);
   useTheme();
   useEffect(() => {
@@ -37,20 +39,22 @@ export function App() {
       <AssetsContext.Provider value={assets}>
         <LibraryContext.Provider value={library}>
           <ConflictsContext.Provider value={resolve}>
-            <div className={left ? 'layout layout--left' : 'layout'}>
-              <Header host={host} session={session} assets={assets} />
-              <Slot name="left" host={host} session={session} />
-              <Area name="main" host={host} session={session} />
-              <Slot name="side" host={host} session={session} />
-              <Area name="input" host={host} session={session} />
-            </div>
-            <Dialogs
-              host={host}
-              session={session}
-              dialog={dialog}
-              onClose={() => setDialog(null)}
-            />
-            {conflictDialog}
+            <AskModelContext.Provider value={ask}>
+              <div className={left ? 'layout layout--left' : 'layout'}>
+                <Header host={host} session={session} assets={assets} />
+                <Slot name="left" host={host} session={session} />
+                <Area name="main" host={host} session={session} />
+                <Slot name="side" host={host} session={session} />
+                <Area name="input" host={host} session={session} />
+              </div>
+              <Dialogs
+                host={host}
+                session={session}
+                dialog={dialog}
+                onClose={() => setDialog(null)}
+              />
+              {conflictDialog}
+            </AskModelContext.Provider>
           </ConflictsContext.Provider>
         </LibraryContext.Provider>
       </AssetsContext.Provider>
