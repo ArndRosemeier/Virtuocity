@@ -1,73 +1,29 @@
 import type {
   CompletionRequest,
   CompletionResult,
-  ModelInfo,
   ModelProvider,
+  ProviderOptions,
   VirtuocityModule,
 } from '@virtuocity/core';
+import { cachedCatalog } from '@virtuocity/core';
+import { failUnlessOk, jsonPost, readAnswer } from './http';
 import type { ImagesResponse } from './images';
 import { IMAGES_ENDPOINT, fromImagesResponse, imagesBody, needsImagesEndpoint } from './images';
 import { fetchModels } from './models';
-import { readStream } from './stream';
-import type { Answer, WireImage, WireToolCall, WireUsage } from './wire';
-import { fromWireCalls, fromWireImages, requestBody, toResult } from './wire';
-
-export * from './models';
+import { requestBody, toResult } from './wire';
 
 const ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
+const NAME = 'OpenRouter';
 
-export interface OpenRouterOptions {
-  /** Returns the user's OpenRouter key; spend limits are set on the key itself. */
-  readonly apiKey: () => string;
-  readonly fetch?: typeof fetch;
+export interface OpenRouterOptions extends ProviderOptions {
   readonly appTitle?: string;
-}
-
-interface OpenRouterResponse {
-  readonly model: string;
-  readonly choices: readonly {
-    readonly message: {
-      readonly content: string | null;
-      readonly tool_calls?: readonly WireToolCall[];
-      readonly images?: readonly WireImage[];
-    };
-  }[];
-  readonly usage?: WireUsage;
-}
-
-function fromResponse(body: OpenRouterResponse): Answer {
-  const message = body.choices[0]?.message;
-  return {
-    model: body.model,
-    text: message?.content ?? '',
-    toolCalls: fromWireCalls(message?.tool_calls),
-    media: fromWireImages(message?.images),
-    usage: body.usage,
-  };
-}
-
-async function readAnswer(response: Response, request: CompletionRequest): Promise<Answer> {
-  if (request.onText && response.body) return readStream(response.body, request.onText);
-  const answer = fromResponse((await response.json()) as OpenRouterResponse);
-  if (answer.text) request.onText?.(answer.text);
-  return answer;
 }
 
 export function createOpenRouterProvider(options: OpenRouterOptions): ModelProvider {
   const doFetch = options.fetch ?? globalThis.fetch.bind(globalThis);
-  let catalog: Promise<ModelInfo[]> | undefined;
+  const listModels = cachedCatalog(() => fetchModels(doFetch));
   /** Models that turned out to be image-only, so they go straight to the images endpoint. */
   const imageOnly = new Set<string>();
-  const listModels = () => {
-    const pending =
-      catalog ??
-      fetchModels(doFetch).catch((error: unknown) => {
-        catalog = undefined;
-        throw error;
-      });
-    catalog = pending;
-    return pending;
-  };
   /** What a model outputs, per the catalog the model picker offers. */
   const outputsOf = async (model: string) => {
     const found = (await listModels()).find((m) => m.id === model);
@@ -76,23 +32,21 @@ export function createOpenRouterProvider(options: OpenRouterOptions): ModelProvi
   };
   return {
     id: 'openrouter',
+    name: NAME,
+    ready: () => options.apiKey() !== '',
     listModels,
     async complete(request: CompletionRequest): Promise<CompletionResult> {
-      const post = (url: string, body: Record<string, unknown>) =>
-        doFetch(url, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${options.apiKey()}`,
-            'Content-Type': 'application/json',
-            'X-Title': options.appTitle ?? 'Virtuocity',
-          },
-          body: JSON.stringify(body),
-          ...(request.signal ? { signal: request.signal } : {}),
-        });
+      const headers = {
+        Authorization: `Bearer ${options.apiKey()}`,
+        'X-Title': options.appTitle ?? 'Virtuocity',
+      };
+      const post = jsonPost(doFetch, headers, request);
+      const chat = (r: CompletionRequest, outputs?: readonly string[]) =>
+        post(ENDPOINT, { ...requestBody(r, outputs), usage: { include: true } });
       const images = () => post(IMAGES_ENDPOINT, imagesBody(request));
       if (imageOnly.has(request.model)) return fromImages(await images(), request.model);
       const outputs = request.modality === 'image' ? await outputsOf(request.model) : undefined;
-      let response = await post(ENDPOINT, requestBody(request, outputs));
+      let response = await chat(request, outputs);
       let error = response.ok ? '' : await response.text();
       if (needsImagesEndpoint(response.status, error, request)) {
         imageOnly.add(request.model);
@@ -100,24 +54,18 @@ export function createOpenRouterProvider(options: OpenRouterOptions): ModelProvi
       }
       if (isToolsUnsupported(response.status, error, request)) {
         // The model cannot call tools; let it answer without them.
-        response = await post(ENDPOINT, requestBody(withoutTools(request), outputs));
+        response = await chat(withoutTools(request), outputs);
         error = response.ok ? '' : await response.text();
       }
-      await failUnlessOk(response, error);
+      await failUnlessOk(NAME, response, error);
       return toResult(await readAnswer(response, request), request.model);
     },
   };
 }
 
-async function failUnlessOk(response: Response, error?: string): Promise<void> {
-  if (response.ok) return;
-  const text = error ?? (await response.text());
-  throw new Error(`OpenRouter request failed (${response.status}): ${text}`);
-}
-
 /** An answer from the images endpoint, which image-only models use. */
 async function fromImages(response: Response, model: string): Promise<CompletionResult> {
-  await failUnlessOk(response);
+  await failUnlessOk(NAME, response);
   const answer = fromImagesResponse((await response.json()) as ImagesResponse, model);
   return toResult(answer, model);
 }

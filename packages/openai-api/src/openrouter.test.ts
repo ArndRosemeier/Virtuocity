@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createOpenRouterProvider } from './index';
+import { createOpenRouterProvider } from './openrouter';
 
 describe('OpenRouter provider', () => {
   it('sends the request and maps text and usage stats', async () => {

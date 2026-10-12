@@ -1,6 +1,8 @@
 import { bookRoomModule } from '@virtuocity/book-room';
 import { ModuleHost, coreModule, loadModules } from '@virtuocity/core';
-import { openRouterModule } from '@virtuocity/openrouter';
+import { anthropicModule } from '@virtuocity/anthropic';
+import { openAIModule, openRouterModule } from '@virtuocity/openai-api';
+import { wiroModule } from '@virtuocity/wiro';
 import { conversationModule } from '@virtuocity/skill-conversation';
 import { diceModule } from '@virtuocity/skill-dice';
 import { chroniclerModule } from '@virtuocity/skill-chronicler';
@@ -22,9 +24,12 @@ import { jobsPanelModule } from './JobsPanel';
 import { spacesPanelModule } from './SpacesPanel';
 import { taskPanelModule } from './TaskPanel';
 import { defaultRenderersModule } from './renderers';
-import { API_KEY, readSetting } from './settings';
+import { keySetting, readSetting } from './settings';
 import type { AppHost, AppModule, PanelProps } from './types';
 import type { ComponentType, ReactNode } from 'react';
+
+/** Reads the user's key for a provider at call time, so key changes apply at once. */
+const keyOf = (providerId: string) => ({ apiKey: () => readSetting(keySetting(providerId)) });
 
 /** The one place that decides which modules are installed. */
 export function createHost(): AppHost {
@@ -38,7 +43,10 @@ export function createHost(): AppHost {
     spacesPanelModule,
     taskPanelModule,
     jobsPanelModule,
-    openRouterModule({ apiKey: () => readSetting(API_KEY) }) as AppModule,
+    openRouterModule(keyOf('openrouter')) as AppModule,
+    openAIModule(keyOf('openai')) as AppModule,
+    anthropicModule(keyOf('anthropic')) as AppModule,
+    wiroModule(keyOf('wiro')) as AppModule,
     conversationModule as AppModule,
     diceModule as AppModule,
     reviewerModule as AppModule,

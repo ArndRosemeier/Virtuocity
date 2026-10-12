@@ -29,12 +29,11 @@ function session() {
   );
   const host = loadModules(new ModuleHost(), [coreModule, systemPromptModule]);
   host.skills.register(talker);
-  host.providers.register({ id: 'fake', complete });
+  host.providers.register({ id: 'fake', name: 'Fake', ready: () => true, complete });
   const runtime = new SessionRuntime({
     host,
-    providerId: 'fake',
     directorId: 'least-recent',
-    modelDefaults: () => ({ text: 'm', image: 'i' }),
+    modelDefaults: () => ({ text: 'fake:m', image: 'fake:i' }),
   });
   return { runtime, complete };
 }

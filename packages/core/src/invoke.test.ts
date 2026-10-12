@@ -80,7 +80,6 @@ async function session(skills: Skill[], ...actors: Actor[]) {
   skills.forEach((s) => host.skills.register(s));
   const runtime = new SessionRuntime({
     host,
-    providerId: 'none',
     directorId: 'least-recent',
     modelDefaults: () => ({}),
   });

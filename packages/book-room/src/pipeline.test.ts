@@ -65,7 +65,6 @@ async function setup(editorApproves: boolean[]) {
   host.skills.register(strictReviewer());
   const session = new SessionRuntime({
     host,
-    providerId: 'none',
     directorId: 'least-recent',
     modelDefaults: () => ({}),
   });

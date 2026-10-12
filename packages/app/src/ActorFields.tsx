@@ -10,7 +10,7 @@ import {
   TextInput,
 } from '@virtuocity/ui';
 import type { AppHost } from './types';
-import { useModels } from './useModels';
+import { useProviderCatalogs } from './useModels';
 
 export interface Draft {
   readonly name: string;
@@ -154,7 +154,7 @@ export function ActorFields({
   onChange,
   nameError,
 }: FieldsProps & { nameError?: string | undefined }) {
-  const catalog = useModels(host);
+  const providers = useProviderCatalogs(host);
   const skills = draft.skillIds.flatMap((id) => host.skills.find(id) ?? []);
   const use = actorUse(skills);
   const modalities = host.modalities.list().filter((m) => use.modalities.includes(m.id));
@@ -177,7 +177,7 @@ export function ActorFields({
           <Section title="Models">
             <ModelLayerEditor
               modalities={modalities}
-              catalog={catalog}
+              providers={providers}
               value={draft.models}
               onChange={(models) => onChange({ ...draft, models })}
               inheritLabel="Use the default"

@@ -7,7 +7,7 @@ import type {
 } from '@virtuocity/core';
 import { decodeDataUrl } from '@virtuocity/core';
 
-/** OpenRouter's (OpenAI-compatible) shapes, as far as we use them. */
+/** OpenAI's chat completion shapes (which OpenRouter speaks too), as far as we use them. */
 export interface WireToolCall {
   readonly id: string;
   readonly type: 'function';
@@ -20,7 +20,7 @@ export interface WireUsage {
   readonly cost?: number;
 }
 
-/** A generated picture, as OpenRouter returns it. */
+/** A generated picture, as OpenRouter returns it in chat answers. */
 export interface WireImage {
   readonly image_url: { readonly url: string };
 }
@@ -66,7 +66,6 @@ export function requestBody(
   return {
     model: request.model,
     messages: request.messages.map(toWireMessage),
-    usage: { include: true },
     ...(request.modality === 'image' ? { modalities: imageModalities(outputs) } : {}),
     ...(request.onText ? { stream: true } : {}),
     ...(tools?.length

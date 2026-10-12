@@ -5,7 +5,7 @@ Status: draft, from the brainstorm with Arnd on 2026-10-12.
 ## Fixed decisions
 
 - TypeScript web app.
-- All model access goes through OpenRouter.
+- Model access goes through providers the user holds keys for: OpenRouter, OpenAI, Anthropic and WIRO.
 - Modular from day one: the core is small, and everything else plugs in through registries.
 
 ## Core concepts
@@ -110,9 +110,9 @@ The resolution order is: skill, then actor, then core default.
 
 ## Cost and model stats
 
-- Every message produced with an AI call carries optional stats: the model used, token counts and cost (taken from OpenRouter's usage data).
+- Every message produced with an AI call carries optional stats: the model used, token counts and cost (taken from the provider's usage data, where it reports cost).
 - Session totals are shown.
-- No built-in spending limits. Limits are left to whoever creates the OpenRouter key.
+- No built-in spending limits. Limits are left to whoever creates the provider keys.
 
 ## Open questions
 

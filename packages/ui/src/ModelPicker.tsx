@@ -15,8 +15,8 @@ export interface ModelPickerProps {
   readonly loading?: boolean;
   readonly error?: string | undefined;
   /** Label of the "no override" choice; omit to make a model required. */
-  readonly defaultLabel?: string;
-  readonly id?: string;
+  readonly defaultLabel?: string | undefined;
+  readonly id?: string | undefined;
 }
 
 function ModelMeta({ model }: { model: ModelInfo }) {

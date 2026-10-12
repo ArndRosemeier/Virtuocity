@@ -1,19 +1,14 @@
-import type { ModalityInfo, ModelInfo, ModelOverrides } from '@virtuocity/core';
-import { modelsFor } from '@virtuocity/core';
+import type { ModalityInfo, ModelOverrides } from '@virtuocity/core';
 import { Field } from './Field';
-import { ModelPicker } from './ModelPicker';
-
-export interface ModelCatalogState {
-  readonly models: readonly ModelInfo[];
-  readonly loading: boolean;
-  readonly error?: string | undefined;
-}
+import type { ProviderCatalog } from './ProviderModelPicker';
+import { ProviderModelPicker } from './ProviderModelPicker';
 
 export interface ModelLayerEditorProps {
   /** Modalities to offer a picker for. */
   readonly modalities: readonly ModalityInfo[];
-  readonly catalog: ModelCatalogState;
-  /** One model id per modality; a missing entry means "inherit". */
+  /** The providers that are ready to use, each with its catalog. */
+  readonly providers: readonly ProviderCatalog[];
+  /** One model reference per modality; a missing entry means "inherit". */
   readonly value: ModelOverrides;
   readonly onChange: (next: ModelOverrides) => void;
   /** What "no entry" means at this layer, e.g. "Use the default". */
@@ -26,7 +21,7 @@ export interface ModelLayerEditorProps {
  */
 export function ModelLayerEditor({
   modalities,
-  catalog,
+  providers,
   value,
   onChange,
   inheritLabel,
@@ -43,13 +38,12 @@ export function ModelLayerEditor({
       {modalities.map((modality) => (
         <Field key={modality.id} label={modality.label} hint={modality.description}>
           {(id) => (
-            <ModelPicker
+            <ProviderModelPicker
               id={id}
-              models={modelsFor(catalog.models, modality.id)}
+              providers={providers}
+              modality={modality.id}
               value={value[modality.id]}
               onChange={(model) => set(modality.id, model)}
-              loading={catalog.loading}
-              error={catalog.error}
               defaultLabel={inheritLabel}
             />
           )}

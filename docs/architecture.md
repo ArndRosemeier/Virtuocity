@@ -12,7 +12,9 @@ vision behind this lives in [vision.md](vision.md).
 | `@virtuocity/core`               | Concepts and extension points. No UI, no network, no other packages.   |
 | `@virtuocity/contract-dice`      | `dice-roller@1` contract.                                              |
 | `@virtuocity/contract-critique`  | `critic@1` and `reviewer@1` (extends `critic@1`) contracts.            |
-| `@virtuocity/openrouter`         | `ModelProvider` for OpenRouter, reports model, tokens and cost.        |
+| `@virtuocity/openai-api`         | `ModelProvider`s for OpenRouter and OpenAI (same chat API).            |
+| `@virtuocity/anthropic`          | `ModelProvider` for Anthropic's Messages API (Claude).                 |
+| `@virtuocity/wiro`               | `ModelProvider` for WIRO image models (run a task, poll, fetch).       |
 | `@virtuocity/skill-conversation` | Conversation skill: lets an actor speak in character via a text model. |
 | `@virtuocity/skill-dice`         | Code-only skill implementing `dice-roller@1`.                          |
 | `@virtuocity/skill-reviewer`     | LLM skill implementing `reviewer@1` (and so `critic@1`).               |
@@ -68,12 +70,18 @@ app ──► any module ──► ui ──────────► core
   moves actors onto it, and the app's `Library` applies that to stored actors
   and to every actor it adopts, sessions' casts included.
 - **Models** (`models.ts`): `resolveModel` picks skill override, then actor
-  override, then the core default for the modality.
+  override, then the core default for the modality. A model is stored as a
+  reference `provider:model` (`parseModelRef`); the runtime hands each call to
+  the provider it names. `qualifyModel` upgrades ids saved before there were
+  several providers (they belong to OpenRouter).
 - **Assist** (`runtime.assist`): a model call made for the person, not an actor
   (e.g. "Transform by AI" on long text fields, `LongText` in `ui`), with the
   default model; traced and counted like any call.
 - **ModelProvider** (`provider.ts`): runs calls and returns `CallStats`;
-  `listModels` returns its catalog (`ModelInfo`: modalities, context, price).
+  `listModels` returns its catalog (`ModelInfo`: modalities, context, price);
+  `name` and `ready()` (its key is set) drive the two-step provider/model
+  pickers (`ProviderModelPicker` in `ui`). Keys live in the browser, so every
+  provider is called straight from it.
   The OpenRouter provider asks an image model for exactly the outputs its
   catalog entry lists (pictures only, or pictures and text).
 - **Modalities** (`host.modalities`): the modalities the app offers a default

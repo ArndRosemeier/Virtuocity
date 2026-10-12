@@ -8,7 +8,6 @@ const host = loadModules(new ModuleHost(), [coreModule]);
 const runtime = () =>
   new SessionRuntime({
     host,
-    providerId: 'none',
     directorId: 'least-recent',
     modelDefaults: () => ({}),
   });

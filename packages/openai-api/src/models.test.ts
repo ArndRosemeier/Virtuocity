@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createOpenRouterProvider } from './index';
+import { createOpenRouterProvider } from './openrouter';
 import { fetchModels, toModelInfo } from './models';
 
 describe('OpenRouter model catalog', () => {

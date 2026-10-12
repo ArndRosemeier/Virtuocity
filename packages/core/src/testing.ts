@@ -16,6 +16,8 @@ export function requestKey(request: CompletionRequest): string {
 export function recordingProvider(inner: ModelProvider, recording: Recording): ModelProvider {
   return {
     id: inner.id,
+    name: inner.name,
+    ready: () => inner.ready(),
     complete: async (request) => {
       const result = await inner.complete(request);
       recording.calls[requestKey(request)] = result;
@@ -28,6 +30,8 @@ export function recordingProvider(inner: ModelProvider, recording: Recording): M
 export function replayProvider(recording: Recording, id = 'replay'): ModelProvider {
   return {
     id,
+    name: 'Replay',
+    ready: () => true,
     complete: (request) => {
       const key = requestKey(request);
       const result = Object.hasOwn(recording.calls, key) ? recording.calls[key] : undefined;
@@ -63,6 +67,8 @@ export function scriptedProvider(
   };
   return {
     id,
+    name: 'Scripted',
+    ready: () => true,
     complete: (request) =>
       Promise.resolve().then(() => {
         const reply = next(request);
