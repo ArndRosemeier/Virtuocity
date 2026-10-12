@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createOpenRouterProvider } from './index';
-import { toModelInfo } from './models';
+import { fetchModels, toModelInfo } from './models';
 
 describe('OpenRouter model catalog', () => {
   it('maps modalities and converts per-token prices to per-million', () => {
@@ -26,6 +26,22 @@ describe('OpenRouter model catalog', () => {
     const info = toModelInfo({ id: 'a', name: 'A', pricing: { prompt: '-1', completion: '0' } });
     expect(info.outputs).toEqual(['text']);
     expect(info.pricing).toBeUndefined();
+  });
+
+  it('asks for every output modality and follows pages', async () => {
+    const page = (n: number, start: number) => ({
+      data: Array.from({ length: n }, (_, i) => ({ id: `m${start + i}`, name: 'M' })),
+    });
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify(page(1000, 0))))
+      .mockResolvedValueOnce(new Response(JSON.stringify(page(3, 1000))));
+    const models = await fetchModels(fetchMock);
+    expect(models).toHaveLength(1003);
+    expect(fetchMock.mock.calls.map((c) => String(c[0]))).toEqual([
+      'https://openrouter.ai/api/v1/models?output_modalities=all&limit=1000&offset=0',
+      'https://openrouter.ai/api/v1/models?output_modalities=all&limit=1000&offset=1000',
+    ]);
   });
 
   it('fetches the catalog once and retries after a failure', async () => {
