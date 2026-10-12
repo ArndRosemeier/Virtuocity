@@ -17,13 +17,6 @@ export const chroniclerSettings = defineSettings({
     .max(20000)
     .default(1500)
     .describe('Update the summary once this many tokens of older story are not in it yet'),
-  summaryWords: z
-    .number()
-    .int()
-    .min(50)
-    .max(2000)
-    .default(300)
-    .describe('About how many words the summary has'),
 });
 
 export type ChroniclerSettings = z.output<typeof chroniclerSettings>;
