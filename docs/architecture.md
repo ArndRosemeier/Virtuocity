@@ -60,9 +60,11 @@ app ──► any module ──► ui ──────────► core
   `listModels` returns its catalog (`ModelInfo`: modalities, context, price).
 - **Modalities** (`host.modalities`): the modalities the app offers a default
   model for. `coreModule` registers text, image and audio; modules add more.
-- **MessageTree** (`session.ts`): history as a tree. Every message is editable;
-  `rewindTo` removes everything below by default or keeps it as a branch.
-  Messages carry optional `CallStats`.
+- **Workspace** (`workspace.ts`, `oplog.ts`, `doc-type.ts`): all shared state.
+  See [State](#state) below.
+- **Transcript** (`transcript.ts`): the conversation as one document type.
+  Messages carry optional `CallStats`; `runtime.allStats()` counts every AI call,
+  including ones on discarded branches.
 - **Renderers** (`output.ts`): every output kind has one active renderer,
   mostly plain code; skills can `replace` it.
 - **Director** (`turns.ts`): picks the next speaker when the human passes.
@@ -110,6 +112,26 @@ JSON Schema, so one definition drives validation, LLM tool calls and human forms
   suite in its tests, using `scriptedProvider` or `replayProvider` (and
   `seededRandom`) to stay deterministic.
 
+## State
+
+Every change to shared state, in every document, is an **operation** in one
+`OpLog`. The log is a tree: the path from the root to the head is the current
+state, and other leaves are branches. Rewind, branch, undo and redo move the
+head, so all documents (transcript, outline, inventory, scene) move together.
+
+- **Document types** (`defineDocType`, registered in `host.docTypes`): a pure
+  reducer `apply(state, op)` plus a zod validator for operations and a version.
+  Operations must address stable ids, not positions, and reducers must ignore
+  operations about things they don't have, because those may be hidden.
+- **Perspective.** An operation may name an `audience`. `workspace.read(docId,
+type, actorId)` folds only the operations that actor may see (their own, and
+  those without an audience or with them in it). Skills get `ctx.state`, a view
+  from their actor's perspective, and `ctx.transcript`, the transcript as their
+  actor sees it. The UI reads the transcript from the human's perspective.
+- **Permissions.** Every `WritePolicy` in `host.policies` must allow a change.
+- **Caching.** Folded states are cached per operation and perspective. Operations
+  never change, so the cache can't go stale.
+
 ## Turn flow in the app
 
 After every turn the session pauses. The human can **Act** (post, then the
@@ -118,6 +140,6 @@ character), or press a character's name to let exactly that one speak.
 
 ## Not built yet
 
-See the roadmap in the project's design notes. Next up: one operation log for
-all shared state (with branching, perspectives and persistence), then flows,
-which will also show human tasks as forms in the UI.
+See the roadmap in the project's design notes. Next up: persistence (save,
+load, file export, asset store and migrations for document versions), then
+flows, which will also show human tasks as forms in the UI.

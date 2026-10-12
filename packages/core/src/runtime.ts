@@ -10,11 +10,14 @@ import type { ModelOverrides } from './models';
 import { resolveModel } from './models';
 import type { ModuleHost } from './module';
 import type { OutputPart } from './output';
-import { MessageTree } from './session';
-import type { Message } from './session';
 import type { Skill, SkillContext } from './skill';
 import type { InvokeAction } from './skill-context';
+import type { RewindOptions } from './oplog';
 import type { CallStats } from './stats';
+import type { Message } from './transcript';
+import { MAIN_TRANSCRIPT, postingOperation, transcriptDoc } from './transcript';
+import type { ChangeOptions } from './workspace';
+import { Workspace } from './workspace';
 
 export const actorJoined = defineEvent<{ readonly actorId: string }>('actor.joined');
 export const actorLeft = defineEvent<{ readonly actorId: string }>('actor.left');
@@ -22,12 +25,16 @@ export const messagePosted = defineEvent<{ readonly messageId: string }>('messag
 export const turnStarted = defineEvent<{ readonly actorId: string }>('turn.started');
 export const turnEnded = defineEvent<{ readonly actorId: string }>('turn.ended');
 
+const TRANSCRIPT = { docId: MAIN_TRANSCRIPT, docType: transcriptDoc } as const;
+
 export interface SessionConfig {
   readonly host: ModuleHost<unknown, unknown>;
   readonly providerId: string;
   readonly directorId: string;
   /** Read on every call so settings changes apply immediately. */
   readonly modelDefaults: () => ModelOverrides;
+  readonly newId?: () => string;
+  readonly now?: () => number;
 }
 
 /**
@@ -37,13 +44,23 @@ export interface SessionConfig {
  */
 export class SessionRuntime {
   readonly bus = new EventBus();
-  readonly messages = new MessageTree();
+  /** All shared state: every document, folded from one operation log. */
+  readonly workspace: Workspace;
   /** Contract actions waiting for a human to answer. */
-  readonly tasks = new HumanTaskQueue({ bus: this.bus });
+  readonly tasks: HumanTaskQueue;
   readonly #actors = new Map<string, Actor>();
+  readonly #newId: () => string;
+  readonly #now: () => number;
+  readonly #spent: CallStats[] = [];
   #speaking: string | undefined;
 
   constructor(private readonly config: SessionConfig) {
+    this.#newId = config.newId ?? (() => crypto.randomUUID());
+    this.#now = config.now ?? Date.now;
+    const { bus } = this;
+    const ids = { newId: this.#newId, now: this.#now };
+    this.workspace = new Workspace({ bus, policies: () => config.host.policies.list(), ...ids });
+    this.tasks = new HumanTaskQueue({ bus, ...ids });
     this.bus.on('*', (event) => this.#dispatch(event));
   }
 
@@ -66,14 +83,54 @@ export class SessionRuntime {
     if (this.#actors.delete(actorId)) await this.bus.emit(actorLeft.create({ actorId }));
   }
 
+  /** The main transcript at the head, from an actor's perspective or omnisciently. */
+  transcript(perspective?: string): readonly Message[] {
+    return this.workspace.read(MAIN_TRANSCRIPT, transcriptDoc, perspective).messages;
+  }
+
   async post(
     actorId: string,
     parts: readonly OutputPart[],
     stats?: readonly CallStats[],
+    options: ChangeOptions = {},
   ): Promise<Message> {
-    const message = this.messages.append({ actorId, parts, ...(stats ? { stats } : {}) });
+    const message: Message = {
+      id: this.#newId(),
+      actorId,
+      parts,
+      ...(stats ? { stats } : {}),
+      createdAt: this.#now(),
+    };
+    const payload = { type: 'append', message } as const;
+    await this.workspace.change({ ...options, actorId, ...TRANSCRIPT, payload });
     await this.bus.emit(messagePosted.create({ messageId: message.id }, actorId));
     return message;
+  }
+
+  async editMessage(
+    actorId: string,
+    messageId: string,
+    parts: readonly OutputPart[],
+  ): Promise<void> {
+    const payload = { type: 'edit', messageId, parts } as const;
+    await this.workspace.change({ actorId, ...TRANSCRIPT, payload });
+  }
+
+  /**
+   * Moves all state back to just after a message was posted (or just before,
+   * with `before`, e.g. to regenerate it). Every document rewinds together.
+   */
+  async rewindToMessage(
+    messageId: string,
+    options: RewindOptions & { readonly before?: boolean } = {},
+  ): Promise<void> {
+    const op = postingOperation(this.workspace.log, messageId);
+    await this.workspace.rewindTo(options.before ? op.parentId : op.id, options);
+  }
+
+  /** Stats of every AI call in the session, including ones on discarded branches. */
+  allStats(): readonly CallStats[] {
+    return this.#spent;
   }
 
   /** AI actors that hold a turn-taking skill. */
@@ -99,7 +156,8 @@ export class SessionRuntime {
   /** The human passes: the director picks one AI actor to take a turn. */
   async pass(): Promise<Actor | undefined> {
     const director = this.config.host.directors.get(this.config.directorId);
-    const next = await director.pickNext({ candidates: this.speakers(), messages: this.messages });
+    const candidates = this.speakers();
+    const next = await director.pickNext({ candidates, transcript: this.transcript() });
     if (next) await this.runTurn(next.id);
     return next;
   }
@@ -151,19 +209,21 @@ export class SessionRuntime {
     return {
       actor,
       bus: this.bus,
-      messages: this.messages,
+      transcript: this.transcript(actor.id),
+      state: this.workspace.view(actor.id),
       actors: this.actors,
       post: (parts, stats) => this.post(actor.id, parts, stats),
       invoke: this.invoke,
-      complete: (request) => {
+      complete: async (request) => {
         const model = resolveModel(request.modality, {
           defaults: this.config.modelDefaults(),
           actor: actor.models,
           skill: skill.models,
         });
-        return this.config.host.providers
-          .get(this.config.providerId)
-          .complete({ ...request, model });
+        const provider = this.config.host.providers.get(this.config.providerId);
+        const result = await provider.complete({ ...request, model });
+        this.#spent.push(result.stats);
+        return result;
       },
     };
   }

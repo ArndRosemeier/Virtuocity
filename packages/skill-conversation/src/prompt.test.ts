@@ -10,7 +10,6 @@ const actor = (id: string, name: string): Actor => ({
 });
 const msg = (actorId: string, text: string): Message => ({
   id: text,
-  parentId: null,
   actorId,
   createdAt: 0,
   parts: [{ kind: 'text', data: text }],
