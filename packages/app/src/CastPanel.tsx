@@ -60,7 +60,7 @@ function CastRow({ actor: a, speaking, saved, onSave, onCopy, onLeave }: CastRow
  * actors who work behind the scenes. Actors can join and leave at any time.
  */
 function CastPanel({ host, session }: PanelProps) {
-  const { openNewActor, openEditActor } = useAppActions();
+  const { openAddActor, openEditActor } = useAppActions();
   const library = useLibrary();
   const [saved, setSaved] = useState<string | null>(null);
   /** Adds a copy to the scene and opens it, so a variation is one edit away. */
@@ -102,7 +102,7 @@ function CastPanel({ host, session }: PanelProps) {
           </ul>
         </>
       )}
-      <Button icon="plus" onClick={openNewActor}>
+      <Button icon="plus" onClick={openAddActor}>
         Add actor
       </Button>
       <StoryViewPicker host={host} session={session} />

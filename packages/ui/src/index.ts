@@ -12,4 +12,5 @@ export * from './Pill';
 export * from './SchemaForm';
 export * from './schemaFields';
 export * from './Tabs';
+export * from './TagPicker';
 export * from './cx';

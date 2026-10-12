@@ -58,6 +58,7 @@ export function ActorDialog({
   open,
   onClose,
   onSave = (next) => void session.join(next),
+  saveLabel = actor ? 'Save' : 'Add to scene',
 }: {
   host: AppHost;
   session: SessionRuntime;
@@ -65,6 +66,7 @@ export function ActorDialog({
   open: boolean;
   onClose: () => void;
   onSave?: (actor: Actor) => void;
+  saveLabel?: string;
 }) {
   const [draft, setDraft] = useState<Draft>(() => draftOf(actor));
 
@@ -86,7 +88,7 @@ export function ActorDialog({
         disabled={!draft.name.trim()}
         onClick={() => submit()}
       >
-        {actor ? 'Save' : 'Add to scene'}
+        {saveLabel}
       </Button>
     </>
   );
