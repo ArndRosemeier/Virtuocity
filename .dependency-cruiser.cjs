@@ -15,12 +15,20 @@ module.exports = {
       to: { path: '^packages/(?!core/)' },
     },
     {
-      name: 'modules-only-use-core',
+      name: 'modules-only-use-core-ui-and-contracts',
       comment:
-        'Modules (skills, game modes, providers) may only depend on the core and the UI kit, never on each other or the app.',
+        'Modules (skills, game modes, providers) may only depend on the core, the UI kit and contract packages, never on each other or the app.',
       severity: 'error',
       from: { path: '^packages/(?!core/|app/)([^/]+)/' },
-      to: { path: '^packages/(?!core/|ui/)(?!$1/)' },
+      to: { path: '^packages/(?!core/|ui/|contract-)(?!$1/)' },
+    },
+    {
+      name: 'contracts-only-use-core-and-contracts',
+      comment:
+        'Contracts are pure interfaces: they may depend on the core and on parent contracts in other contract packages, nothing else.',
+      severity: 'error',
+      from: { path: '^packages/contract-' },
+      to: { path: '^packages/(?!core/|contract-)' },
     },
     {
       name: 'ui-kit-only-uses-core',
