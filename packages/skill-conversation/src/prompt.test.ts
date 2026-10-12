@@ -39,8 +39,22 @@ describe('buildPrompt', () => {
 describe('length setting', () => {
   it('tells the model how much to write', () => {
     const bard = actor('bard', 'Lyra');
-    const [system] = buildPrompt(bard, [bard], [], conversationSettings.parse({ length: 'short' }));
+    const settings = conversationSettings.parse({ length: 'short' });
+    const [system] = buildPrompt(bard, [bard], [], { settings });
     expect(system?.content).toContain('one to three sentences');
     expect(buildPrompt(bard, [bard], [])[0]?.content).toContain('about one paragraph');
+  });
+});
+
+describe('memory', () => {
+  it('adds background knowledge and keeps only the newest lines that fit', () => {
+    const bard = actor('bard', 'Lyra');
+    const long = Array.from({ length: 50 }, (_, i) => msg('vex', `Line ${i} ${'x'.repeat(400)}`));
+    const settings = conversationSettings.parse({ memory: 1000 });
+    const prompt = buildPrompt(bard, [bard], long, { settings, context: '## Who is here\n- Vex' });
+    expect(prompt[0]?.content).toContain('What you know:');
+    expect(prompt[0]?.content).toContain('- Vex');
+    expect(prompt.length).toBeLessThan(long.length);
+    expect(prompt.at(-1)?.content).toContain('Line 49');
   });
 });

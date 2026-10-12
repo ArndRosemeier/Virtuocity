@@ -1,5 +1,7 @@
 import type { Actor } from './actor';
 import type { AssetStore } from './assets';
+import type { ContextContributor } from './context-assembly';
+import { assembleContext } from './context-assembly';
 import type { Contract } from './contract';
 import type { EventBus } from './events';
 import type { JobQueue } from './jobs';
@@ -33,16 +35,28 @@ export function createSkillContext(
   source: ContextSource,
   actor: Actor,
   skill: Skill,
-  extras: { readonly complete: Complete; readonly skills: readonly Skill[] },
+  extras: {
+    readonly complete: Complete;
+    readonly skills: readonly Skill[];
+    readonly contributors: readonly ContextContributor[];
+  },
 ): SkillContext {
   const call = (contract: Contract, action: string, input: unknown) =>
     source.invoke(actor.id, contract, action, input as never);
+  const transcript = source.transcript(actor.id);
+  const state = source.workspace.view(actor.id);
+  const context = (budget: number) => {
+    const request = { actor, actors: source.actors, state, transcript };
+    const pieces = extras.contributors.flatMap((c) => c.contribute(request));
+    return assembleContext(pieces, budget);
+  };
   return {
     actor,
+    context,
     settings: actor.settings?.[skill.id],
     bus: source.bus,
-    transcript: source.transcript(actor.id),
-    state: source.workspace.view(actor.id),
+    transcript,
+    state,
     actors: source.actors,
     assets: source.assets,
     post: (parts, stats) => source.post(actor.id, parts, stats),
