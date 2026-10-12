@@ -11,6 +11,16 @@ export interface Release {
 
 export const RELEASES: readonly Release[] = [
   {
+    build: 15,
+    date: '2026-10-12',
+    changes: [
+      'A new left sidebar gives some actors their own space on screen. Actors whose skills offer a space show it there; the rest get none. The Illustrator shows its latest picture in its space.',
+      'A new Canvas skill gives any actor a blank space you can write in. Add it to an actor in the Edit dialog.',
+      'Every space has a maximize button to show it full screen for a while (Escape or the button brings it back). Pictures and other content stretch to fill whatever room the space gets.',
+      'The story now uses all the room between the two sidebars.',
+    ],
+  },
+  {
     build: 14,
     date: '2026-10-12',
     changes: [

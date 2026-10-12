@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { defineDocType } from './doc-type';
 import type { OutputPart } from './output';
+import { outputPartSchema } from './output';
 import type { Identified } from './registry';
 import type { StateView } from './workspace';
 
@@ -45,7 +46,7 @@ export const channelsDoc = defineDocType<ChannelsState, ChannelOp>({
     z.object({
       type: z.literal('show'),
       channelId: z.string(),
-      part: z.object({ kind: z.string(), data: z.unknown() }),
+      part: outputPartSchema,
     }),
     z.object({ type: z.literal('clear'), channelId: z.string() }),
   ]),

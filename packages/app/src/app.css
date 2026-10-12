@@ -2,10 +2,13 @@
 .layout {
   display: grid;
   grid-template:
-    'header header' var(--header-height)
-    'feed side' 1fr
-    'composer side' auto / minmax(0, 1fr) var(--side-width);
+    'header header header' var(--header-height)
+    'left feed side' 1fr
+    'left composer side' auto / var(--left-width, 0) minmax(0, 1fr) var(--side-width);
   height: 100dvh;
+}
+.layout--left {
+  --left-width: var(--side-width);
 }
 
 /* ---------- Header ---------- */
@@ -138,8 +141,6 @@
 .feed__inner {
   display: grid;
   gap: var(--space-5);
-  max-width: var(--story-width);
-  margin: 0 auto;
   padding: var(--space-6) var(--space-5);
 }
 .message {
@@ -230,8 +231,6 @@
 .composer__inner {
   display: grid;
   gap: var(--space-2);
-  max-width: var(--story-width);
-  margin: 0 auto;
 }
 .composer__box {
   display: flex;
@@ -319,12 +318,70 @@
   cursor: not-allowed;
 }
 
-/* ---------- Side slot and panels ---------- */
+/* ---------- Side slots and panels ---------- */
 .slot--side {
   grid-area: side;
   overflow-y: auto;
   border-left: 1px solid var(--border);
   background: var(--surface);
+}
+.slot--left {
+  grid-area: left;
+  overflow-y: auto;
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+}
+.spaces {
+  display: grid;
+  gap: var(--space-5);
+}
+.space {
+  display: grid;
+  gap: var(--space-2);
+}
+.space__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.space__header strong {
+  flex: 1;
+}
+.space__content {
+  display: grid;
+  gap: var(--space-2);
+  min-height: 0;
+}
+.space .media-image img {
+  width: 100%;
+  max-height: none;
+}
+/* A maximized space fills the screen; its content stretches to the room it gets. */
+.space[data-maximized='true'] {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  padding: var(--space-4) var(--space-5);
+  background: var(--surface);
+}
+.space[data-maximized='true'] .space__content {
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}
+.space[data-maximized='true'] .space__content > div {
+  flex: 1;
+  min-height: 0;
+}
+.space[data-maximized='true'] .media-image {
+  height: 100%;
+  margin: 0;
+}
+.space[data-maximized='true'] .media-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 .panel {
   display: grid;
@@ -399,12 +456,15 @@
       'header' var(--header-height)
       'feed' 1fr
       'composer' auto
+      'left' auto
       'side' auto / minmax(0, 1fr);
     height: auto;
     min-height: 100dvh;
   }
-  .slot--side {
+  .slot--side,
+  .slot--left {
     border-left: 0;
+    border-right: 0;
     border-top: 1px solid var(--border);
   }
   .composer__hint {

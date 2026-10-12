@@ -5,16 +5,18 @@ import type { AppHost, PanelProps } from './types';
 type Contribution = ReturnType<AppHost['panels']['list']>[number];
 
 /** What a slot shows: what the session's blueprint lays out there, or everything. */
-function contributions({ host, session }: PanelProps, slot: string): Contribution[] {
+export function contributions({ host, session }: PanelProps, slot: string): Contribution[] {
   const layout = currentBlueprint(session, host.blueprints)?.layout;
   return arrangeSlot(host.panels.list(), slot, layout);
 }
 
-/** Side panels, stacked with their titles. */
+/** Side panels, stacked with their titles; nothing at all when the slot is empty. */
 export function Slot({ name, host, session }: PanelProps & { name: string }) {
+  const items = contributions({ host, session }, name);
+  if (items.length === 0) return null;
   return (
     <aside className={`slot slot--${name}`}>
-      {contributions({ host, session }, name).map(({ id, title, component: Panel }) => (
+      {items.map(({ id, title, component: Panel }) => (
         <section key={id} className="panel">
           <h2 className="panel__title">{title}</h2>
           <Panel session={session} host={host} />
