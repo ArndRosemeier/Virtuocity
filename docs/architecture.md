@@ -290,6 +290,18 @@ kind, so a premise may be text, a picture or sound. `skill-premise` listens for
 result as the story's opening. Two implementations ship: a fixed text written
 in the actor's settings, and one a model writes from a prompt.
 
+## Spaces
+
+Some actors get their own space on screen, in the app's left slot.
+`contract-space` defines `space@1.0`: `fill` returns what the space shows now
+as output parts of any kind (it must be quick), and the optional `edit` takes
+what a person changed. The app's Spaces panel shows one space per actor whose
+skills implement the contract, asks for it again whenever the session's state
+moves, offers editing for spaces that provide `edit` and hold text, and can
+maximize any space to full screen, where its content stretches to fit. The
+Illustrator shows its latest picture; `skill-canvas` is a blank canvas kept in
+its own `canvas` document.
+
 ## Library
 
 `Library` keeps actors and setups apart from any session, in an injected

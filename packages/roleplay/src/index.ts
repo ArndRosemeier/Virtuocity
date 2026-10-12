@@ -55,9 +55,10 @@ export const roleplayBlueprint = defineBlueprint({
     },
   ],
   layout: {
+    left: ['spaces'],
     main: ['story'],
     input: ['composer'],
-    side: ['channels', 'cast', 'memory', 'tasks', 'jobs'],
+    side: ['cast', 'memory', 'tasks', 'jobs'],
   },
 });
 

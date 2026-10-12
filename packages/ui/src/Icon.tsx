@@ -20,6 +20,8 @@ const PATHS = {
   upload: 'M12 15V4m0 0L8 8m4-4 4 4M5 19h14',
   restart: 'M4 12a8 8 0 1 0 2.3-5.7M4 4v4h4',
   copy: 'M9 9h11v11H9V9Zm-4 6H4V4h11v1',
+  maximize: 'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5',
+  minimize: 'M9 4v5H4m11-5v5h5M9 20v-5H4m11 5v-5h5',
   bookmark: 'M6 4h12v17l-6-4-6 4V4Z',
   trash: 'M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3',
   key: 'M15 7a4 4 0 1 1-3.9 5H3v3h3v3h3v-3h2.1A4 4 0 0 1 15 7Zm1 3h.01',

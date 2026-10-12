@@ -28,6 +28,7 @@ export const bookRoomBlueprint = defineBlueprint({
   ],
   // The pipeline works in the manuscript, not in a chat, so there is no story or composer.
   layout: {
+    left: [],
     main: ['manuscript'],
     input: [],
     side: ['book', 'tasks', 'cast', 'jobs'],

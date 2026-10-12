@@ -1,8 +1,16 @@
 import type { Picture } from '@virtuocity/contract-visual';
+import { spaceContract } from '@virtuocity/contract-space';
 import { illustratorContract, sceneChanged, sceneChannel } from '@virtuocity/contract-visual';
-import type { CallStats, Skill, SkillContext, VirtuocityModule } from '@virtuocity/core';
+import type {
+  CallStats,
+  OutputPart,
+  Skill,
+  SkillContext,
+  VirtuocityModule,
+} from '@virtuocity/core';
 import {
   IMAGE_PART,
+  channelContents,
   implement,
   readSettings,
   showOnChannel,
@@ -39,6 +47,17 @@ async function illustrate(
   return { picture: { ...part.data, alt: part.data.alt ?? 'A picture' }, stats: result.stats };
 }
 
+/** The latest picture this illustrator painted: the scene it shows, or else its last one in the story. */
+function latestPicture(ctx: SkillContext): { parts: OutputPart[] } {
+  const scene = channelContents(ctx.state)[sceneChannel.id];
+  if (scene?.actorId === ctx.actor.id) return { parts: [scene.part] };
+  const painted = ctx.transcript
+    .filter((m) => m.actorId === ctx.actor.id)
+    .flatMap((m) => m.parts.filter((p) => p.kind === IMAGE_PART));
+  const last = painted.at(-1);
+  return { parts: last ? [last] : [] };
+}
+
 /** Paints in the background; the picture becomes the scene, and joins the story if asked. */
 function paint(ctx: SkillContext, description: string, inStory: boolean): void {
   ctx.startJob('Illustrating the scene', async ({ signal }) => {
@@ -50,9 +69,9 @@ function paint(ctx: SkillContext, description: string, inStory: boolean): void {
 }
 
 /**
- * Draws pictures with an image model. As an actor in a scene it illustrates
- * other actors' turns, and every new scene announced with `sceneChanged`, in
- * the background, so the story never waits for it.
+ * Draws pictures with an image model, and shows the latest in its space. As
+ * an actor in a scene it illustrates other actors' turns, and every new scene
+ * announced with `sceneChanged`, in the background, so the story never waits.
  */
 export const illustratorSkill: Skill = {
   id: 'illustrator',
@@ -63,6 +82,7 @@ export const illustratorSkill: Skill = {
     implement(illustratorContract, {
       illustrate: async (input, ctx) => (await illustrate(ctx, input)).picture,
     }),
+    implement(spaceContract, { fill: (_input, ctx) => Promise.resolve(latestPicture(ctx)) }),
   ],
   listensTo: [turnEnded.type, sceneChanged.type],
   onEvent: (event, ctx) => {
@@ -81,6 +101,7 @@ export const illustratorModule: VirtuocityModule = {
   id: 'skill-illustrator',
   register: (host) => {
     host.contracts.register(illustratorContract);
+    host.contracts.register(spaceContract);
     host.channels.register(sceneChannel);
     host.skills.register(illustratorSkill);
     host.profileFields.register(appearanceField);

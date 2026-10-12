@@ -1,9 +1,4 @@
-import { action, check, defineContract, z } from '@virtuocity/core';
-
-const part = z.object({
-  kind: z.string().min(1).describe('Output kind, e.g. text or image'),
-  data: z.unknown().describe('Whatever that kind of output holds'),
-});
+import { action, check, defineContract, outputPartSchema, z } from '@virtuocity/core';
 
 /**
  * Opens a new session with its premise. Deliberately content-neutral: a
@@ -18,7 +13,9 @@ export const premiseContract = defineContract({
     premise: action({
       description: 'The premise the session starts from.',
       input: z.object({}),
-      output: z.object({ parts: z.array(part).min(1).describe('The premise, as output parts') }),
+      output: z.object({
+        parts: z.array(outputPartSchema).min(1).describe('The premise, as output parts'),
+      }),
     }),
   },
   conformance: [

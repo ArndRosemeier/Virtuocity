@@ -1,3 +1,4 @@
+import { spaceContract } from '@virtuocity/contract-space';
 import { illustratorContract, sceneChanged } from '@virtuocity/contract-visual';
 import type { Skill } from '@virtuocity/core';
 import {
@@ -25,6 +26,13 @@ describe('illustrator skill conforms to illustrator', () => {
     modelDefaults: { image: 'image-model' },
   });
   for (const testCase of conformanceSuite(illustratorContract)) {
+    it(`${testCase.contractId}: ${testCase.name}`, () => testCase.run(target));
+  }
+});
+
+describe('illustrator skill conforms to space', () => {
+  const target = conformanceTarget(spaceContract, { skills: [illustratorSkill] });
+  for (const testCase of conformanceSuite(spaceContract)) {
     it(`${testCase.contractId}: ${testCase.name}`, () => testCase.run(target));
   }
 });
@@ -80,6 +88,8 @@ describe('illustrating a scene', () => {
     expect(runtime.calls.list()[0]?.request.messages[0]?.content).toContain('A lantern flickers');
     const scene = channelContents(runtime.workspace.view('user')).scene;
     expect(scene).toMatchObject({ actorId: 'ink', part: picture?.parts[0] });
+    const space = await runtime.invoke('ink', spaceContract, 'fill', {});
+    expect(space.parts).toEqual(picture?.parts);
   });
 
   it('shows the picture only as the scene when it should stay out of the story', async () => {

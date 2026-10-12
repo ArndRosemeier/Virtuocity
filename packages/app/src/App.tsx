@@ -5,7 +5,7 @@ import { LibraryContext } from './library';
 import { Dialogs, dialogActions } from './Dialogs';
 import type { OpenDialog } from './Dialogs';
 import { Header } from './Header';
-import { Area, Slot } from './Slot';
+import { Area, Slot, contributions } from './Slot';
 import { AssetsContext } from './media';
 import { createHost } from './host';
 import { indexedDbStore } from './storage';
@@ -27,13 +27,15 @@ export function App() {
   }, [host, session]);
 
   const actions = useMemo(() => dialogActions(setDialog), []);
+  const left = contributions({ host, session }, 'left').length > 0;
 
   return (
     <AppActionsContext.Provider value={actions}>
       <AssetsContext.Provider value={assets}>
         <LibraryContext.Provider value={library}>
-          <div className="layout">
+          <div className={left ? 'layout layout--left' : 'layout'}>
             <Header session={session} assets={assets} />
+            <Slot name="left" host={host} session={session} />
             <Area name="main" host={host} session={session} />
             <Slot name="side" host={host} session={session} />
             <Area name="input" host={host} session={session} />

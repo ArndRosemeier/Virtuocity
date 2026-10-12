@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import type { Identified } from './registry';
 import { Registry } from './registry';
 
@@ -7,6 +8,12 @@ export interface OutputPart<D = unknown> {
   readonly kind: string;
   readonly data: D;
 }
+
+/** Validates an output part of any kind, e.g. in a contract that is not tied to one kind of content. */
+export const outputPartSchema = z.object({
+  kind: z.string().min(1).describe('Output kind, e.g. text or image'),
+  data: z.unknown().describe('Whatever that kind of output holds'),
+});
 
 /**
  * Turns an output part into something the UI can show. `R` is the UI's

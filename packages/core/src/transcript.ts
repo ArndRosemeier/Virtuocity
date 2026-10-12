@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { defineDocType } from './doc-type';
 import type { OutputPart } from './output';
+import { outputPartSchema } from './output';
 import type { OpLog, Operation } from './oplog';
 import type { CallStats } from './stats';
 import { callStatsSchema } from './stats';
@@ -22,8 +23,6 @@ export interface Transcript {
   readonly messages: readonly Message[];
 }
 
-const part = z.object({ kind: z.string(), data: z.unknown() });
-
 /**
  * The conversation as a shared document. Branching, rewinding and editing all
  * happen in the operation log, so the transcript moves together with every
@@ -39,12 +38,12 @@ export const transcriptDoc = defineDocType<Transcript, TranscriptOp>({
       message: z.object({
         id: z.string(),
         actorId: z.string(),
-        parts: z.array(part),
+        parts: z.array(outputPartSchema),
         stats: z.array(callStatsSchema).optional(),
         createdAt: z.number(),
       }),
     }),
-    z.object({ type: z.literal('edit'), messageId: z.string(), parts: z.array(part) }),
+    z.object({ type: z.literal('edit'), messageId: z.string(), parts: z.array(outputPartSchema) }),
   ]),
   initial: () => ({ messages: [] }),
   apply: (state, op) => {
