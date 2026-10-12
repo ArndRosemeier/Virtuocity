@@ -1,12 +1,5 @@
-import type { Actor, ChatMessage, Message, ToolRun } from '@virtuocity/core';
-import {
-  TOOL_USE,
-  defineSettings,
-  describeToolRun,
-  estimateTokens,
-  fitNewest,
-  z,
-} from '@virtuocity/core';
+import type { Actor, ChatMessage, Message } from '@virtuocity/core';
+import { defineSettings, estimateTokens, fitNewest, z } from '@virtuocity/core';
 
 export const conversationSettings = defineSettings({
   length: z
@@ -32,17 +25,6 @@ const LENGTH: Record<ConversationSettings['length'], string> = {
   medium: 'Keep each contribution to about one paragraph.',
   long: 'Contributions may run to a few paragraphs.',
 };
-
-/** Plain text of a message, with tool calls as one line each; other parts are left out. */
-export function messageText(message: Message): string {
-  return message.parts
-    .flatMap((p) => {
-      if (p.kind === 'text') return [String(p.data)];
-      if (p.kind === TOOL_USE) return [describeToolRun(p.data as ToolRun)];
-      return [];
-    })
-    .join('\n');
-}
 
 export function systemPrompt(
   actor: Actor,
@@ -85,13 +67,12 @@ export function buildPrompt(
   const others = actors.filter((a) => a.id !== actor.id);
   const system = systemPrompt(actor, others, settings, options.context);
   const turns = history
-    .map((m): ChatMessage => {
-      const text = messageText(m);
-      return m.actorId === actor.id
-        ? { role: 'assistant', content: text }
-        : { role: 'user', content: `${nameOf(m.actorId)}: ${text}` };
-    })
-    .filter((m) => m.content.trim() !== '');
+    .filter((m) => m.text.trim() !== '')
+    .map((m): ChatMessage =>
+      m.actorId === actor.id
+        ? { role: 'assistant', content: m.text }
+        : { role: 'user', content: `${nameOf(m.actorId)}: ${m.text}` },
+    );
   const room = settings.memory - estimateTokens(system);
   const kept = fitNewest(turns, room, (m) => estimateTokens(m.content));
   return [{ role: 'system', content: system }, ...kept];

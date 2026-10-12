@@ -70,9 +70,13 @@ app ──► any module ──► ui ──────────► core
   model for. `coreModule` registers text, image and audio; modules add more.
 - **Workspace** (`workspace.ts`, `oplog.ts`, `doc-type.ts`): all shared state.
   See [State](#state) below.
-- **Transcript** (`transcript.ts`): the conversation as one document type.
-  Messages carry optional `CallStats`; `runtime.allStats()` counts every AI call,
-  including ones on discarded branches.
+- **Transcript** (`transcript.ts`): the story as one document type: a
+  collection of messages. A message can hold anything (`kind` and `data`, like
+  an output part) but always has a string form in `text`, which prompts,
+  summaries and exports read (`Content`, `contentSchema`, `textContent` in
+  `output.ts`). Messages carry optional `CallStats`; `runtime.allStats()` counts
+  every AI call, including ones on discarded branches. Version 1 messages held
+  several parts and are migrated on load (`transcript-migrate.ts`).
 - **Renderers** (`output.ts`): every output kind has one active renderer,
   mostly plain code; skills can `replace` it.
 - **Director** (`turns.ts`): picks the next speaker when the human passes.
@@ -288,7 +292,7 @@ forgets summaries (a forgotten one is rebuilt after the next turn).
 
 `sessionStarted` (core) fires once when a session is started from a blueprint
 or saved setup and its cast has joined, never when a saved session loads.
-`contract-premise` defines `premise@1.0`, which returns output parts of any
+`contract-premise` defines `premise@2.0`, which returns messages of any
 kind, so a premise may be text, a picture or sound. `skill-premise` listens for
 `sessionStarted`, invokes the premise contract on its own actor and posts the
 result as the story's opening. Two implementations ship: a fixed text written
@@ -305,6 +309,18 @@ moves, offers editing for spaces that provide `edit` and hold text, and can
 maximize any space to full screen, where its content stretches to fit. The
 Illustrator shows its latest picture; `skill-canvas` is a blank canvas kept in
 its own `canvas` document.
+
+## Story view
+
+How the story looks is a contract too. `contract-render` defines `render@1.0`:
+`render` takes the story's messages and returns the view as output parts,
+which the app draws with its renderers, so a view can be a chat, a page of
+prose or a storyboard. Every story has exactly one story view: an AI actor with
+the fixed id `story-view` whose one skill implements the contract. The app adds
+it when a story starts or loads (the default comes from Settings › Appearance)
+and the Cast panel swaps its skill for this story; it is not listed as a cast
+member. `skill-chat-view` is the standard view: a `chat-view` part listing every
+message under its speaker's name, drawn by the app as the familiar chat.
 
 ## Library
 

@@ -1,3 +1,4 @@
+import { textContent } from './output';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import type { Actor } from './actor';
@@ -103,7 +104,7 @@ const talker: Skill = {
       { modality: 'text', messages },
       ctx.tools,
     );
-    await ctx.post([{ kind: 'text', data: result.text }], [result.stats]);
+    await ctx.post(textContent(result.text), [result.stats]);
   },
 };
 
@@ -132,7 +133,7 @@ describe('model calls in a session', () => {
     };
     await session.join(bard);
     await session.runTurn('bard');
-    expect(session.transcript().at(-1)?.parts).toEqual([{ kind: 'text', data: 'A 20!' }]);
+    expect(session.transcript().at(-1)).toMatchObject(textContent('A 20!'));
     expect(session.calls.list().map((t) => [t.actorId, t.skillId, t.status])).toEqual([
       ['bard', 'talker', 'done'],
       ['bard', 'talker', 'done'],

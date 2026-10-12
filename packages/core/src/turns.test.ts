@@ -14,7 +14,9 @@ describe('leastRecentDirector', () => {
     const transcript = ['bard', 'rogue', 'user'].map((actorId, i) => ({
       id: `m${i}`,
       actorId,
-      parts: [],
+      kind: 'text',
+      data: '',
+      text: '',
       createdAt: i,
     }));
     const next = await leastRecentDirector.pickNext({

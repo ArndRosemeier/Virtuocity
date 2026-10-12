@@ -4,7 +4,7 @@ import type { AssembledContext } from './context-assembly';
 import type { ActionInput, ActionOutput, Contract } from './contract';
 import type { EventBus } from './events';
 import type { JobControl } from './jobs';
-import type { OutputPart } from './output';
+import type { Content } from './output';
 import type { Complete } from './provider';
 import type { Message } from './transcript';
 import type { CallStats } from './stats';
@@ -31,8 +31,8 @@ export interface SkillContext {
   readonly state: StateView;
   /** Everyone currently in the session. */
   readonly actors: readonly Actor[];
-  /** Adds a message from this actor to the story. */
-  post(parts: readonly OutputPart[], stats?: readonly CallStats[]): Promise<Message>;
+  /** Adds a message from this actor to the story: any content, with its text form. */
+  post(content: Content, stats?: readonly CallStats[]): Promise<Message>;
   /** Runs a model call. The model is already resolved for this skill and actor. */
   readonly complete: Complete;
   /**

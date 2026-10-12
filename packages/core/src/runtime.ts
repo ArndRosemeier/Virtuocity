@@ -16,7 +16,7 @@ import { ContractError, invokeAction } from './implementation';
 import type { ModelOverrides } from './models';
 import { resolveModel } from './models';
 import type { ModuleHost } from './module';
-import type { OutputPart } from './output';
+import type { Content } from './output';
 import type { CompletionResult, ModelRequest } from './provider';
 import type { Skill, SkillContext } from './skill';
 import type { InvokeAction } from './skill-context';
@@ -118,14 +118,16 @@ export class SessionRuntime {
 
   async post(
     actorId: string,
-    parts: readonly OutputPart[],
+    content: Content,
     stats?: readonly CallStats[],
     options: ChangeOptions = {},
   ): Promise<Message> {
     const message: Message = {
       id: this.#newId(),
       actorId,
-      parts,
+      kind: content.kind,
+      data: content.data,
+      text: content.text,
       ...(stats ? { stats } : {}),
       createdAt: this.#now(),
     };
@@ -135,12 +137,8 @@ export class SessionRuntime {
     return message;
   }
 
-  async editMessage(
-    actorId: string,
-    messageId: string,
-    parts: readonly OutputPart[],
-  ): Promise<void> {
-    const payload = { type: 'edit', messageId, parts } as const;
+  async editMessage(actorId: string, messageId: string, content: Content): Promise<void> {
+    const payload = { type: 'edit', messageId, content } as const;
     await this.workspace.change({ actorId, ...TRANSCRIPT, payload });
   }
 

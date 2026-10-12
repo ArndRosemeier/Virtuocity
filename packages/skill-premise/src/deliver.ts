@@ -9,7 +9,7 @@ import type { SkillContext } from '@virtuocity/core';
 export function deliverPremise(ctx: SkillContext): void {
   if (ctx.transcript.length > 0) return;
   ctx.startJob('Setting the premise', async () => {
-    const { parts } = await ctx.invoke(ctx.actor.id, premiseContract, 'premise', {});
-    await ctx.post(parts);
+    const { messages } = await ctx.invoke(ctx.actor.id, premiseContract, 'premise', {});
+    for (const message of messages) await ctx.post(message);
   });
 }

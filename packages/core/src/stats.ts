@@ -6,7 +6,7 @@ export interface CallStats {
   readonly promptTokens: number;
   readonly completionTokens: number;
   /** Cost in USD as reported by the provider, if known. */
-  readonly costUsd?: number;
+  readonly costUsd?: number | undefined;
 }
 
 export interface StatsTotal {

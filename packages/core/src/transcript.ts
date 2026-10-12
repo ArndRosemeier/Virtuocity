@@ -1,15 +1,19 @@
 import { z } from 'zod';
 import { defineDocType } from './doc-type';
-import type { OutputPart } from './output';
-import { outputPartSchema } from './output';
+import type { Content } from './output';
+import { contentSchema } from './output';
 import type { OpLog, Operation } from './oplog';
 import type { CallStats } from './stats';
 import { callStatsSchema } from './stats';
+import { migrateTranscriptOp } from './transcript-migrate';
 
-export interface Message {
+/**
+ * One message of the story. It can hold anything (text, a picture, a tool
+ * call, a dice roll) but always has a string representation in `text`.
+ */
+export interface Message extends Content {
   readonly id: string;
   readonly actorId: string;
-  readonly parts: readonly OutputPart[];
   /** Present when producing the message involved AI calls. */
   readonly stats?: readonly CallStats[];
   readonly createdAt: number;
@@ -17,33 +21,32 @@ export interface Message {
 
 export type TranscriptOp =
   | { readonly type: 'append'; readonly message: Message }
-  | { readonly type: 'edit'; readonly messageId: string; readonly parts: readonly OutputPart[] };
+  | { readonly type: 'edit'; readonly messageId: string; readonly content: Content };
 
 export interface Transcript {
   readonly messages: readonly Message[];
 }
 
+/** Validates a message, e.g. when a contract takes the story as input. */
+export const messageSchema = contentSchema.extend({
+  id: z.string(),
+  actorId: z.string(),
+  stats: z.array(callStatsSchema).readonly().optional(),
+  createdAt: z.number(),
+});
+
 /**
- * The conversation as a shared document. Branching, rewinding and editing all
- * happen in the operation log, so the transcript moves together with every
- * other document of the session.
+ * The conversation as a shared document: a collection of messages. Branching,
+ * rewinding and editing all happen in the operation log, so the transcript
+ * moves together with every other document of the session.
  */
 export const transcriptDoc = defineDocType<Transcript, TranscriptOp>({
   id: 'transcript',
-  version: 1,
+  version: 2,
   description: 'Messages in the order they were posted.',
   op: z.discriminatedUnion('type', [
-    z.object({
-      type: z.literal('append'),
-      message: z.object({
-        id: z.string(),
-        actorId: z.string(),
-        parts: z.array(outputPartSchema),
-        stats: z.array(callStatsSchema).optional(),
-        createdAt: z.number(),
-      }),
-    }),
-    z.object({ type: z.literal('edit'), messageId: z.string(), parts: z.array(outputPartSchema) }),
+    z.object({ type: z.literal('append'), message: messageSchema }),
+    z.object({ type: z.literal('edit'), messageId: z.string(), content: contentSchema }),
   ]),
   initial: () => ({ messages: [] }),
   apply: (state, op) => {
@@ -52,10 +55,12 @@ export const transcriptDoc = defineDocType<Transcript, TranscriptOp>({
       return { messages: [...state.messages, op.message] };
     }
     if (!state.messages.some((m) => m.id === op.messageId)) return state;
+    const { kind, data, text } = op.content;
     return {
-      messages: state.messages.map((m) => (m.id === op.messageId ? { ...m, parts: op.parts } : m)),
+      messages: state.messages.map((m) => (m.id === op.messageId ? { ...m, kind, data, text } : m)),
     };
   },
+  migrate: migrateTranscriptOp,
 });
 
 /** The document id of a session's main transcript. */
@@ -71,13 +76,4 @@ export function postingOperation(log: OpLog, messageId: string): Operation {
   const op = log.path().find((o) => isAppendOf(o, messageId));
   if (!op) throw new Error(`Message "${messageId}" is not on the current path`);
   return op;
-}
-
-/** The text parts of a message, joined and trimmed; pictures, sound and tool calls are left out. */
-export function textOf(message: Message): string {
-  return message.parts
-    .filter((p) => p.kind === 'text')
-    .map((p) => String(p.data))
-    .join('\n')
-    .trim();
 }

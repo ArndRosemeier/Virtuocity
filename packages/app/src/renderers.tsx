@@ -1,5 +1,8 @@
 import type { MediaPartData, ToolRun } from '@virtuocity/core';
 import { AUDIO_PART, IMAGE_PART, TOOL_USE } from '@virtuocity/core';
+import type { ChatView } from '@virtuocity/skill-chat-view';
+import { CHAT_VIEW } from '@virtuocity/skill-chat-view';
+import { ChatViewPart } from './ChatView';
 import { AudioPart, ImagePart } from './media';
 import type { AppModule } from './types';
 
@@ -39,6 +42,10 @@ export const defaultRenderersModule: AppModule = {
     host.renderers.register({
       id: AUDIO_PART,
       render: (part) => <AudioPart data={part.data as MediaPartData} />,
+    });
+    host.renderers.register({
+      id: CHAT_VIEW,
+      render: (part) => <ChatViewPart host={host} view={part.data as ChatView} />,
     });
   },
 };

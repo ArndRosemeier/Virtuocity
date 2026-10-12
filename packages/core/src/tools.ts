@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { OutputPart } from './output';
+import type { Content } from './output';
 import type {
   ChatMessage,
   Complete,
@@ -112,8 +112,9 @@ export async function completeWithTools(
 /** Output kind for a tool call shown in a message. Its data is a `ToolRun`. */
 export const TOOL_USE = 'tool-use';
 
-export function toolUseParts(runs: readonly ToolRun[]): OutputPart<ToolRun>[] {
-  return runs.map((run) => ({ kind: TOOL_USE, data: run }));
+/** A tool call as content for the story, reading as one line of text. */
+export function toolUseContent(run: ToolRun): Content<ToolRun> {
+  return { kind: TOOL_USE, data: run, text: describeToolRun(run) };
 }
 
 /** One line describing a tool call, for prompts and plain-text views. */

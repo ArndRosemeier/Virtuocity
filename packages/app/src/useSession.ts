@@ -3,6 +3,7 @@ import type { Actor, AssetStore, KeyValueStore } from '@virtuocity/core';
 import { SessionRuntime, headMoved, stateChanged } from '@virtuocity/core';
 import type { AppHost } from './types';
 import { readModelDefaults } from './settings';
+import { ensureStoryView } from './storyView';
 
 export const USER_ID = 'user';
 /** The autosaved session; the app keeps one session for now. */
@@ -16,9 +17,10 @@ const user: Actor = {
   skillIds: [],
 };
 
-/** Makes sure the human is in the cast, e.g. after loading or starting fresh. */
-export async function ensureUser(session: SessionRuntime): Promise<void> {
+/** Makes sure the human and a story view are in the cast, e.g. after loading or starting fresh. */
+export async function ensureCast(session: SessionRuntime): Promise<void> {
   if (!session.actors.some((a) => a.id === USER_ID)) await session.join(user);
+  await ensureStoryView(session);
 }
 
 async function restore(session: SessionRuntime, store: KeyValueStore<unknown>): Promise<void> {
@@ -30,7 +32,7 @@ async function restore(session: SessionRuntime, store: KeyValueStore<unknown>): 
       console.error('Could not restore the saved session; starting fresh.', error);
     }
   }
-  await ensureUser(session);
+  await ensureCast(session);
 }
 
 /** Saves the session shortly after every change to its state. */

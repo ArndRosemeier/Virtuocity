@@ -1,6 +1,6 @@
 import { premiseContract } from '@virtuocity/contract-premise';
 import type { Implementation, Skill, SkillContext, VirtuocityModule } from '@virtuocity/core';
-import { implement, readSettings, sessionStarted } from '@virtuocity/core';
+import { implement, readSettings, sessionStarted, textContent } from '@virtuocity/core';
 import { deliverPremise } from './deliver';
 import { premisePrompt } from './prompt';
 import { fixedPremiseSettings, promptedPremiseSettings } from './settings';
@@ -20,7 +20,7 @@ function premiseSkill(skill: Omit<Skill, 'listensTo' | 'onEvent'>): Skill {
   };
 }
 
-const text = (data: string) => ({ parts: [{ kind: 'text', data }] });
+const text = (premise: string) => ({ messages: [textContent(premise)] });
 
 function fixedPremise(ctx: SkillContext) {
   const { premise } = readSettings(fixedPremiseSettings, ctx.settings);
@@ -37,7 +37,7 @@ async function promptedPremise(ctx: SkillContext) {
 }
 
 const implementing = (
-  run: (ctx: SkillContext) => Promise<{ parts: { kind: string; data: string }[] }>,
+  run: (ctx: SkillContext) => Promise<ReturnType<typeof text>>,
 ): Implementation[] => [implement(premiseContract, { premise: (_input, ctx) => run(ctx) })];
 
 /** Opens every session with the same premise, written by you. */

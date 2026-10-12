@@ -11,6 +11,16 @@ export interface Release {
 
 export const RELEASES: readonly Release[] = [
   {
+    build: 17,
+    date: '2026-10-12',
+    changes: [
+      'A story is now a collection of messages, and a message can be anything (text, a picture, a tool call) as long as it also reads as text. Prompts and summaries read that text, so a picture counts with its caption.',
+      'How the story looks is now up to a story view. The standard Chat view looks exactly as before; future views (prose, storyboard) can draw the same messages differently.',
+      'Pick the view for new stories in Settings › Appearance, and change it for the current story at the bottom of the Cast panel.',
+      'A turn with tool calls now posts each call as its own message before the reply. Older stories are converted when they load.',
+    ],
+  },
+  {
     build: 16,
     date: '2026-10-12',
     changes: [

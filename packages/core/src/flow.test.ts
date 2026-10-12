@@ -1,3 +1,4 @@
+import { textContent } from './output';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import type { Actor } from './actor';
@@ -50,7 +51,7 @@ const talker: Skill = {
   backing: 'llm',
   takeTurn: async (ctx) => {
     const r = await ctx.complete({ modality: 'text', messages: [] });
-    await ctx.post([{ kind: 'text', data: r.text }]);
+    await ctx.post(textContent(r.text));
   },
 };
 

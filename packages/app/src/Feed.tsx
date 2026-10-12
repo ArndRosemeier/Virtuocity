@@ -1,11 +1,13 @@
 import { useEffect, useRef } from 'react';
-import type { Message } from '@virtuocity/core';
+import { renderContract } from '@virtuocity/contract-render';
 import { Avatar, Button, EmptyState } from '@virtuocity/ui';
 import { useAppActions } from './actions';
+import { MessageView } from './ChatView';
 import { USER_ID } from './useSession';
 import { API_KEY, useSetting } from './settings';
-import { StatsBadge } from './StatsBadge';
+import { STORY_VIEW, currentRenderer, ensureStoryView } from './storyView';
 import type { AppModule, PanelProps } from './types';
+import { useParts } from './useParts';
 
 function Welcome({ session }: Pick<PanelProps, 'session'>) {
   const { openSettings, openNewActor, openNewSession } = useAppActions();
@@ -52,37 +54,6 @@ function Welcome({ session }: Pick<PanelProps, 'session'>) {
   );
 }
 
-function MessageView({
-  message,
-  name,
-  host,
-  live = false,
-}: {
-  message: Message;
-  name: string;
-  host: PanelProps['host'];
-  live?: boolean;
-}) {
-  return (
-    <article
-      className={live ? 'message message--live' : 'message'}
-      data-human={message.actorId === USER_ID}
-      {...(live ? { 'aria-live': 'polite' } : {})}
-    >
-      <Avatar name={name} size="lg" />
-      <div className="message__body">
-        <header className="message__header">
-          <h3 className="message__name">{name}</h3>
-          {message.stats && <StatsBadge stats={message.stats} />}
-        </header>
-        {message.parts.map((part, i) => (
-          <div key={i}>{host.renderers.render(part)}</div>
-        ))}
-      </div>
-    </article>
-  );
-}
-
 /** What the speaking actor is writing right now, as it streams in. */
 function Live({ host, session, actorId, name }: PanelProps & { actorId: string; name: string }) {
   const call = session.calls.running(actorId).at(-1);
@@ -100,16 +71,44 @@ function Live({ host, session, actorId, name }: PanelProps & { actorId: string; 
       </div>
     );
   }
-  const draft: Message = {
-    id: call.id,
-    actorId,
-    parts: [{ kind: 'text', data: text }],
-    createdAt: call.startedAt,
-  };
-  return <MessageView message={draft} name={name} host={host} live />;
+  return <MessageView host={host} name={name} part={{ kind: 'text', data: text }} live />;
 }
 
-/** The story: the active path of the message tree, drawn through the renderer registry. */
+/** A story without a story view (e.g. rewound to before it had one) gets the default back. */
+function NoStoryView({ session }: Pick<PanelProps, 'session'>) {
+  return (
+    <EmptyState
+      icon="eye"
+      title="Nothing draws this story"
+      action={
+        <Button variant="primary" onClick={() => void ensureStoryView(session)}>
+          Use the default view
+        </Button>
+      }
+    >
+      Every story needs a view to be seen through.
+    </EmptyState>
+  );
+}
+
+/** The story as its story view draws it: output parts, drawn through the renderer registry. */
+function StoryView({ host, session }: PanelProps) {
+  const renderer = currentRenderer(session) ?? '';
+  const shown = useParts(
+    session,
+    () =>
+      session.invoke(STORY_VIEW, renderContract, 'render', {
+        messages: [...session.transcript(USER_ID)],
+      }),
+    renderer,
+  );
+  if (!renderer) return <NoStoryView session={session} />;
+  if (!shown) return null;
+  if ('error' in shown) return <p className="job__error">{shown.error}</p>;
+  return shown.parts.map((part, i) => <div key={i}>{host.renderers.render(part)}</div>);
+}
+
+/** The story, drawn by the story's renderer, plus whoever is writing right now. */
 export function Feed({ host, session }: PanelProps) {
   const end = useRef<HTMLDivElement>(null);
   const messages = session.transcript(USER_ID);
@@ -127,9 +126,7 @@ export function Feed({ host, session }: PanelProps) {
     <main className="feed">
       <div className="feed__inner">
         {messages.length === 0 && !speaking && <Welcome session={session} />}
-        {messages.map((m) => (
-          <MessageView key={m.id} message={m} name={nameOf(m.actorId)} host={host} />
-        ))}
+        {messages.length > 0 && <StoryView host={host} session={session} />}
         {speaking && (
           <Live host={host} session={session} actorId={speaking} name={nameOf(speaking)} />
         )}

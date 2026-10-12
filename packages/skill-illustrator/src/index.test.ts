@@ -1,3 +1,4 @@
+import { textContent } from '@virtuocity/core';
 import { spaceContract } from '@virtuocity/contract-space';
 import { illustratorContract, sceneChanged } from '@virtuocity/contract-visual';
 import type { Skill } from '@virtuocity/core';
@@ -42,7 +43,7 @@ const narrator: Skill = {
   name: 'Narrator',
   backing: 'code',
   takeTurn: async (ctx) => {
-    await ctx.post([{ kind: 'text', data: 'A lantern flickers in the rain.' }]);
+    await ctx.post(textContent('A lantern flickers in the rain.'));
   },
 };
 
@@ -84,12 +85,14 @@ describe('illustrating a scene', () => {
     await expect(ended).resolves.toBe('done');
     const picture = runtime.transcript().at(-1);
     expect(picture?.actorId).toBe('ink');
-    expect(picture?.parts[0]?.kind).toBe(IMAGE_PART);
+    expect(picture?.kind).toBe(IMAGE_PART);
+    expect(picture?.text).toContain('A lantern flickers');
     expect(runtime.calls.list()[0]?.request.messages[0]?.content).toContain('A lantern flickers');
     const scene = channelContents(runtime.workspace.view('user')).scene;
-    expect(scene).toMatchObject({ actorId: 'ink', part: picture?.parts[0] });
+    const part = { kind: picture?.kind, data: picture?.data };
+    expect(scene).toMatchObject({ actorId: 'ink', part });
     const space = await runtime.invoke('ink', spaceContract, 'fill', {});
-    expect(space.parts).toEqual(picture?.parts);
+    expect(space.parts).toEqual([part]);
   });
 
   it('shows the picture only as the scene when it should stay out of the story', async () => {

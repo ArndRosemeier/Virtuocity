@@ -3,7 +3,7 @@ import { exportBundle, importBundle } from '@virtuocity/core';
 import { IconButton } from '@virtuocity/ui';
 import { useAppActions } from './actions';
 import { openTextFile, saveTextFile } from './files';
-import { ensureUser } from './useSession';
+import { ensureCast } from './useSession';
 
 interface SessionMenuProps {
   readonly session: SessionRuntime;
@@ -26,7 +26,7 @@ export function SessionMenu({ session, assets }: SessionMenuProps) {
       const text = await openTextFile();
       if (text === undefined) return;
       await session.load(await importBundle(text, assets));
-      await ensureUser(session);
+      await ensureCast(session);
     });
 
   return (

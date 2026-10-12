@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Actor, Message } from '@virtuocity/core';
+import { textContent } from '@virtuocity/core';
 import { buildPrompt, conversationSettings } from './prompt';
 
 const actor = (id: string, name: string): Actor => ({
@@ -12,7 +13,7 @@ const msg = (actorId: string, text: string): Message => ({
   id: text,
   actorId,
   createdAt: 0,
-  parts: [{ kind: 'text', data: text }],
+  ...textContent(text),
 });
 
 describe('buildPrompt', () => {
@@ -32,6 +33,30 @@ describe('buildPrompt', () => {
       { role: 'user', content: 'Vex: Psst.' },
       { role: 'assistant', content: 'What?' },
       { role: 'user', content: 'user: Hi' },
+    ]);
+  });
+});
+
+describe('reading the story', () => {
+  it('reads every kind of message through its text form', () => {
+    const bard = actor('bard', 'Lyra');
+    const picture: Message = {
+      id: 'p',
+      actorId: 'ink',
+      createdAt: 0,
+      kind: 'image',
+      data: { assetId: 'x' },
+      text: 'A gate in fog',
+    };
+    const prompt = buildPrompt(
+      bard,
+      [bard],
+      [msg('bard', '[dice_roll → 4]'), msg('bard', 'A four.'), picture, msg('ink', '')],
+    );
+    expect(prompt.slice(1)).toEqual([
+      { role: 'assistant', content: '[dice_roll → 4]' },
+      { role: 'assistant', content: 'A four.' },
+      { role: 'user', content: 'ink: A gate in fog' },
     ]);
   });
 });
