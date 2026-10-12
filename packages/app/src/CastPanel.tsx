@@ -1,10 +1,22 @@
+import { useState } from 'react';
+import type { Actor } from '@virtuocity/core';
 import { Avatar, Button, IconButton, Pill } from '@virtuocity/ui';
 import { useAppActions } from './actions';
+import { useLibrary } from './library';
 import type { AppModule, PanelProps } from './types';
+
+const SAVED_NOTE_MS = 2000;
 
 /** Who is in the scene; actors can join and leave at any time. */
 function CastPanel({ session }: PanelProps) {
   const { openNewActor, openEditActor } = useAppActions();
+  const library = useLibrary();
+  const [saved, setSaved] = useState<string | null>(null);
+  const save = (actor: Actor) =>
+    void library.saveActor(actor).then(() => {
+      setSaved(actor.id);
+      setTimeout(() => setSaved(null), SAVED_NOTE_MS);
+    });
   const cast = session.actors.filter((a) => a.controller === 'ai');
   return (
     <div className="cast">
@@ -24,8 +36,15 @@ function CastPanel({ session }: PanelProps) {
                   </Pill>
                 ))}
                 {session.speaking === a.id && <Pill tone="accent">writing…</Pill>}
+                {saved === a.id && <Pill tone="accent">saved to library</Pill>}
               </span>
             </div>
+            <IconButton
+              size="sm"
+              icon="bookmark"
+              label={`Save ${a.personality.name} to the library`}
+              onClick={() => save(a)}
+            />
             <IconButton
               size="sm"
               icon="edit"

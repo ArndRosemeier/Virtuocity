@@ -1,13 +1,22 @@
 import { useState } from 'react';
-import type { Blueprint, BlueprintRole, CastChoices, RoleChoice, Skill } from '@virtuocity/core';
+import type {
+  Blueprint,
+  BlueprintRole,
+  CastChoices,
+  RoleChoice,
+  SavedSetup,
+  Skill,
+} from '@virtuocity/core';
 import {
   blueprintProblems,
   castBlueprint,
   defaultChoices,
   roleNeeds,
   startBlueprint,
+  startSavedSetup,
 } from '@virtuocity/core';
 import { Avatar, Button, Modal, Pill } from '@virtuocity/ui';
+import { useLibraryItems } from './library';
 import type { PanelProps } from './types';
 import { ensureUser } from './useSession';
 
@@ -129,12 +138,17 @@ function Roles({
   );
 }
 
-/** Every installed blueprint, plus starting empty. */
+/** Every installed blueprint, the setups saved in the library, and starting empty. */
 function Blueprints({
   host,
+  setups,
   selected,
   onSelect,
-}: Pick<PanelProps, 'host'> & { selected: string; onSelect: (id: string) => void }) {
+}: Pick<PanelProps, 'host'> & {
+  setups: readonly SavedSetup[];
+  selected: string;
+  onSelect: (id: string) => void;
+}) {
   const skills = host.skills.list();
   return (
     <div className="blueprints" role="radiogroup" aria-label="Setup">
@@ -146,6 +160,16 @@ function Blueprints({
           description={b.description}
           problems={blueprintProblems(b, skills)}
           selected={selected === b.id}
+          onSelect={onSelect}
+        />
+      ))}
+      {setups.map((s) => (
+        <Choice
+          key={s.id}
+          id={s.id}
+          name={s.name}
+          description={`Saved setup: ${s.description}`}
+          selected={selected === s.id}
           onSelect={onSelect}
         />
       ))}
@@ -172,6 +196,8 @@ export function BlueprintDialog({
   const usable = blueprints.find((b) => blueprintProblems(b, skills).length === 0);
   const [selected, setSelected] = useState(usable?.id ?? EMPTY);
   const blueprint = host.blueprints.find(selected);
+  const { setups } = useLibraryItems();
+  const saved = setups.find((s) => s.id === selected);
   const [choices, setChoices] = useState(() =>
     blueprint ? defaultChoices(blueprint, skills) : {},
   );
@@ -186,6 +212,7 @@ export function BlueprintDialog({
     await session.workspace.load([], null);
     await ensureUser(session);
     if (blueprint) await startBlueprint(session, blueprint, castBlueprint(blueprint, choices));
+    else if (saved) await startSavedSetup(session, saved, host.blueprints);
     onClose();
   };
 
@@ -206,7 +233,7 @@ export function BlueprintDialog({
         <p className="muted">
           This replaces the current session. Save it to a file first if you want to keep it.
         </p>
-        <Blueprints host={host} selected={selected} onSelect={select} />
+        <Blueprints host={host} setups={setups} selected={selected} onSelect={select} />
         {blueprint && (
           <Roles blueprint={blueprint} skills={skills} choices={choices} onChange={setChoices} />
         )}

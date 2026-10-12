@@ -18,6 +18,7 @@ export * from './flow';
 export * from './flow-runner';
 export * from './human-tasks';
 export * from './jobs';
+export * from './library';
 export * from './implementation';
 export * from './media';
 export * from './models';

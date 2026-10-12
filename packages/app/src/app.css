@@ -666,3 +666,20 @@
 .role input {
   accent-color: var(--accent);
 }
+
+.library__save {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: start;
+  margin-top: var(--space-2);
+}
+
+.library__save .v-field {
+  justify-self: stretch;
+}
+
+.library__detail {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

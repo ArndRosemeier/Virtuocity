@@ -1,16 +1,21 @@
 import type { KeyValueStore } from '@virtuocity/core';
 
 const DB_NAME = 'virtuocity';
-const STORES = ['sessions', 'assets'] as const;
+const STORES = ['sessions', 'assets', 'library'] as const;
+/** Bump when a store is added; upgrading creates the stores that are missing. */
+const DB_VERSION = 2;
 export type StoreName = (typeof STORES)[number];
 
 let db: Promise<IDBDatabase> | undefined;
 
 function open(): Promise<IDBDatabase> {
   db ??= new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, 1);
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
     request.onupgradeneeded = () => {
-      for (const name of STORES) request.result.createObjectStore(name);
+      const database = request.result;
+      for (const name of STORES) {
+        if (!database.objectStoreNames.contains(name)) database.createObjectStore(name);
+      }
     };
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error ?? new Error('Could not open storage'));

@@ -13,7 +13,8 @@ export interface Cast {
   readonly actors: readonly Actor[];
 }
 
-const actor = z.object({
+/** Validates a stored or imported actor. */
+export const actorSchema = z.object({
   id: z.string(),
   controller: z.enum(['human', 'ai']),
   personality: z.object({ name: z.string(), description: z.string() }),
@@ -32,7 +33,7 @@ export const castDoc = defineDocType<Cast, CastOp>({
   version: 1,
   description: 'The actors in the session. Joining again updates an actor.',
   op: z.discriminatedUnion('type', [
-    z.object({ type: z.literal('join'), actor }),
+    z.object({ type: z.literal('join'), actor: actorSchema }),
     z.object({ type: z.literal('leave'), actorId: z.string() }),
   ]),
   initial: () => ({ actors: [] }),
