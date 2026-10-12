@@ -166,14 +166,42 @@ describe('models without tool support', () => {
 describe('generated images', () => {
   const image = { image_url: { url: 'data:image/png;base64,AAEC' } };
 
-  it('asks for image output and reads pictures from a plain response', async () => {
+  /** A provider whose catalog lists `m` with the given outputs, answering every chat with a picture. */
+  function drawing(outputs: string[]) {
     const reply = { model: 'm', choices: [{ message: { content: '', images: [image] } }] };
-    const fetchMock = vi.fn(() => Promise.resolve(new Response(JSON.stringify(reply))));
-    const provider = createOpenRouterProvider({ apiKey: () => 'k', fetch: fetchMock });
+    const catalog = {
+      data: [{ id: 'm', name: 'M', architecture: { output_modalities: outputs } }],
+    };
+    const fetchMock = vi.fn((url: string) =>
+      Promise.resolve(new Response(JSON.stringify(url.includes('/models') ? catalog : reply))),
+    );
+    const fetch = fetchMock as unknown as typeof globalThis.fetch;
+    const sent = () => {
+      const call = fetchMock.mock.calls.find(([url]) => url.includes('/chat/'));
+      const init = (call as unknown as [string, RequestInit] | undefined)?.[1];
+      return JSON.parse(String(init?.body)) as Record<string, unknown>;
+    };
+    return { provider: createOpenRouterProvider({ apiKey: () => 'k', fetch }), sent };
+  }
+
+  it('asks for pictures and text from a model that writes too, and reads the pictures', async () => {
+    const { provider, sent } = drawing(['image', 'text']);
     const result = await provider.complete({ modality: 'image', model: 'm', messages: [] });
     expect(result.media).toEqual([{ mime: 'image/png', bytes: new Uint8Array([0, 1, 2]) }]);
-    const sent = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
-    expect(JSON.parse(String(sent[1].body))).toMatchObject({ modalities: ['image', 'text'] });
+    expect(sent()).toMatchObject({ modalities: ['image', 'text'] });
+  });
+
+  it('asks a model that only draws for pictures only', async () => {
+    const { provider, sent } = drawing(['image']);
+    await provider.complete({ modality: 'image', model: 'm', messages: [] });
+    expect(sent()).toMatchObject({ modalities: ['image'] });
+  });
+
+  it('refuses a model that is not in the model list', async () => {
+    const { provider } = drawing(['image']);
+    await expect(
+      provider.complete({ modality: 'image', model: 'gone', messages: [] }),
+    ).rejects.toThrow('Model "gone" is not in OpenRouter\'s model list.');
   });
 
   it('reads pictures from a stream', async () => {
