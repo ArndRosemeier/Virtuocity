@@ -310,10 +310,10 @@ after turns once enough story lies beyond the newest `keepRecent` tokens. It get
 the summary by invoking the summarizer contract on its own actor, so any
 implementation can stand in. Two ship: the differential chronicler folds new
 lines into the last summary, the full chronicler rereads everything. Both run
-the contract's conformance suite. After each update the chronicler posts a
-short note ("Updated the story so far (N words).") hidden from every non-human
-actor, so people see it in the chat while prompts never do; it leaves its own
-notes out of what it summarizes. Summaries have no length setting: the
+the contract's conformance suite. A chronicler also places a "Summarized"
+marker (`marker@1.0`) after the last message its summary covers, and has an
+on-demand space showing the summary, which opens when the marker is clicked.
+Summaries have no length setting: the
 summarizer writes as much as it needs to keep every detail that may matter. The app's Memory panel shows, edits and
 forgets summaries (a forgotten one is rebuilt after the next turn).
 
@@ -342,7 +342,10 @@ skills implement the contract, asks for it again whenever the session's state
 moves, offers editing for spaces that provide `edit` and hold text, and can
 maximize any space to full screen, where its content stretches to fit. The
 Illustrator shows its latest picture; `skill-canvas` is a blank canvas kept in
-its own `canvas` document.
+its own `canvas` document. Each space is a third of the sidebar's height and
+scrolls inside. A `fill` answering `onDemand: true` stays hidden until opened
+(clicking the actor's story marker) and gets a close button; which spaces are
+open is screen state only (`openSpaces.ts`), never in the session.
 
 ## Instructions
 
@@ -359,7 +362,12 @@ How the story looks is a contract too. `contract-render` defines `render@1.0`:
 `render` takes the story's messages and returns the view as output parts,
 which the app draws with its renderers, so a view can be a chat, a page of
 prose or a storyboard. It also holds the shared `chat-view` output kind
-(`chatView`, with an optional per-message `partOf`). Every story has exactly
+(`chatView`, with an optional per-message `partOf`). `render` also receives
+markers: small labeled lines that actors implementing `marker@1.0` (same
+package) place after a message, e.g. a chronicler's "Summarized". They are not
+messages, so no prompt sees them; `chatView` attaches them to the entry they
+follow, and the app draws each as a clickable line that opens the placing
+actor's space. Every story has exactly
 one story view: a copy, under the fixed id `story-view`, of a ready-made
 renderer actor (`host.actors`) whose skills include a render skill, so a view
 can bring other skills such as a system prompt. The app adds the default one

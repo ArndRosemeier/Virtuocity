@@ -9,8 +9,10 @@ export const chatViewSkill: Skill = {
   backing: 'code',
   implements: [
     implement(renderContract, {
-      render: ({ messages }, ctx) =>
-        Promise.resolve({ parts: [{ kind: CHAT_VIEW, data: chatView(messages, ctx.actors) }] }),
+      render: ({ messages, markers }, ctx) =>
+        Promise.resolve({
+          parts: [{ kind: CHAT_VIEW, data: chatView(messages, ctx.actors, undefined, markers) }],
+        }),
     }),
   ],
 };

@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import type { ModalityInfo, Modality, ModelOverrides } from '@virtuocity/core';
+import { listenerSet } from './listeners';
 
 /** Settings live in this browser only; the OpenRouter key never leaves it except to OpenRouter. */
 export interface Setting {
@@ -19,7 +20,7 @@ export function modelSetting(modality: Modality): Setting {
 }
 
 const memory = new Map<string, string>();
-const listeners = new Set<() => void>();
+const changes = listenerSet();
 
 export function readSetting(setting: Setting): string {
   try {
@@ -36,17 +37,12 @@ export function writeSetting(setting: Setting, value: string): void {
     // Storage can be unavailable (private mode); the value then lasts for this page only.
     memory.set(setting.key, value);
   }
-  for (const listener of listeners) listener();
-}
-
-function subscribe(listener: () => void): () => void {
-  listeners.add(listener);
-  return () => listeners.delete(listener);
+  changes.notify();
 }
 
 /** A setting as React state that stays in sync across components. */
 export function useSetting(setting: Setting): [string, (value: string) => void] {
-  const value = useSyncExternalStore(subscribe, () => readSetting(setting));
+  const value = useSyncExternalStore(changes.subscribe, () => readSetting(setting));
   return [value, (next) => writeSetting(setting, next)];
 }
 
@@ -69,7 +65,7 @@ export function writeModelDefaults(
 
 /** Re-renders when any setting changes and returns the current default layer. */
 export function useModelDefaults(modalities: readonly ModalityInfo[]): ModelOverrides {
-  useSyncExternalStore(subscribe, () =>
+  useSyncExternalStore(changes.subscribe, () =>
     modalities.map((m) => readSetting(modelSetting(m.id))).join('|'),
   );
   return readModelDefaults(modalities);

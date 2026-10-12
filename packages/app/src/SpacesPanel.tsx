@@ -3,6 +3,7 @@ import { spaceContract } from '@virtuocity/contract-space';
 import type { Actor, OutputPart, SessionRuntime } from '@virtuocity/core';
 import { provides } from '@virtuocity/core';
 import { Avatar, Button, IconButton, TextArea } from '@virtuocity/ui';
+import { closeSpace, spaceElementId, useOpenSpaces } from './openSpaces';
 import type { AppModule, PanelProps } from './types';
 import type { Shown } from './useParts';
 import { useParts } from './useParts';
@@ -78,8 +79,37 @@ function Content({ host, shown }: Pick<PanelProps, 'host'> & { shown: Shown | un
   );
 }
 
+/** A space's name, with buttons to maximize it and, for on-demand spaces, to close it. */
+function SpaceHeader({
+  name,
+  maximized,
+  onToggle,
+  onClose,
+}: {
+  name: string;
+  maximized: boolean;
+  onToggle: () => void;
+  onClose: (() => void) | undefined;
+}) {
+  return (
+    <header className="space__header">
+      <Avatar name={name} />
+      <strong>{name}</strong>
+      <IconButton
+        size="sm"
+        icon={maximized ? 'minimize' : 'maximize'}
+        label={maximized ? `Restore ${name}'s space` : `Maximize ${name}'s space`}
+        onClick={onToggle}
+      />
+      {onClose && (
+        <IconButton size="sm" icon="close" label={`Close ${name}'s space`} onClick={onClose} />
+      )}
+    </header>
+  );
+}
+
 /** One actor's space: whatever its skill shows there. It can be maximized to full screen. */
-function Space({ actor, host, session }: PanelProps & { actor: Actor }) {
+function Space({ actor, host, session, open }: PanelProps & { actor: Actor; open: boolean }) {
   const shown = useParts(
     session,
     () => session.invoke(actor.id, spaceContract, 'fill', {}),
@@ -93,18 +123,16 @@ function Space({ actor, host, session }: PanelProps & { actor: Actor }) {
   const editable = implementation !== undefined && provides(implementation, 'edit');
   const edit = (parts: OutputPart[]) =>
     void session.invoke(actor.id, spaceContract, 'edit', { parts });
+  const onDemand = shown !== undefined && 'parts' in shown && shown.onDemand === true;
+  if (onDemand && !open) return null;
   return (
-    <section className="space" data-maximized={maximized}>
-      <header className="space__header">
-        <Avatar name={name} />
-        <strong>{name}</strong>
-        <IconButton
-          size="sm"
-          icon={maximized ? 'minimize' : 'maximize'}
-          label={maximized ? `Restore ${name}'s space` : `Maximize ${name}'s space`}
-          onClick={() => setMaximized(!maximized)}
-        />
-      </header>
+    <section className="space" id={spaceElementId(actor.id)} data-maximized={maximized}>
+      <SpaceHeader
+        name={name}
+        maximized={maximized}
+        onToggle={() => setMaximized(!maximized)}
+        onClose={onDemand ? () => closeSpace(actor.id) : undefined}
+      />
       <Content host={host} shown={shown} />
       {editable && shown && 'parts' in shown && textOnly(shown.parts) && (
         <Editor name={name} parts={shown.parts} onSave={edit} />
@@ -121,6 +149,7 @@ export function actorsWithSpaces(session: SessionRuntime): Actor[] {
 /** The spaces of every actor that has one; actors without the space contract get none. */
 function SpacesPanel({ host, session }: PanelProps) {
   const actors = actorsWithSpaces(session);
+  const open = useOpenSpaces();
   if (actors.length === 0) {
     return (
       <p className="muted">
@@ -132,7 +161,13 @@ function SpacesPanel({ host, session }: PanelProps) {
   return (
     <div className="spaces">
       {actors.map((actor) => (
-        <Space key={actor.id} actor={actor} host={host} session={session} />
+        <Space
+          key={actor.id}
+          actor={actor}
+          host={host}
+          session={session}
+          open={open.has(actor.id)}
+        />
       ))}
     </div>
   );

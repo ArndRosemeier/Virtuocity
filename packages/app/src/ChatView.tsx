@@ -1,8 +1,9 @@
 import type { CallStats, OutputPart } from '@virtuocity/core';
 import type { ChatView } from '@virtuocity/contract-render';
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { Avatar, IconButton } from '@virtuocity/ui';
 import { MessageEditor } from './MessageEdit';
+import { openSpace } from './openSpaces';
 import { useMessageActions } from './messageActions';
 import { StatsBadge } from './StatsBadge';
 import type { AppHost } from './types';
@@ -85,6 +86,15 @@ export function MessageView({
   );
 }
 
+/** A small labeled line between messages; clicking it opens the placing actor's space. */
+function StoryMarkerLine({ label, actorId }: { label: string; actorId: string }) {
+  return (
+    <button type="button" className="story-marker" onClick={() => openSpace(actorId)}>
+      {label}
+    </button>
+  );
+}
+
 /** The chat view's output: the story as a column of messages. */
 export function ChatViewPart({ host, view }: { host: AppHost; view: ChatView }) {
   const actions = useMessageActions();
@@ -98,16 +108,20 @@ export function ChatViewPart({ host, view }: { host: AppHost; view: ChatView }) 
   return (
     <>
       {view.entries.map((entry) => (
-        <MessageView
-          key={entry.id}
-          host={host}
-          name={entry.name}
-          part={entry.part}
-          human={entry.human}
-          stats={entry.stats}
-          retry={retryOf(entry.id)}
-          edit={editOf(entry.id)}
-        />
+        <Fragment key={entry.id}>
+          <MessageView
+            host={host}
+            name={entry.name}
+            part={entry.part}
+            human={entry.human}
+            stats={entry.stats}
+            retry={retryOf(entry.id)}
+            edit={editOf(entry.id)}
+          />
+          {entry.markers?.map((marker) => (
+            <StoryMarkerLine key={marker.actorId} label={marker.label} actorId={marker.actorId} />
+          ))}
+        </Fragment>
       ))}
     </>
   );

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef } from 'react';
 import type { SessionRuntime } from '@virtuocity/core';
 import { retryMessage, retryable, textContent } from '@virtuocity/core';
-import { renderContract } from '@virtuocity/contract-render';
+import type { StoryMarker } from '@virtuocity/contract-render';
+import { markerContract, renderContract } from '@virtuocity/contract-render';
 import { Avatar, Button, EmptyState } from '@virtuocity/ui';
 import { useAppActions } from './actions';
 import { MessageView } from './ChatView';
@@ -113,15 +114,28 @@ function NoStoryView({ host, session }: PanelProps) {
   );
 }
 
+/** Every marker the session's actors place in the story, e.g. a chronicler's "Summarized". */
+async function storyMarkers(session: SessionRuntime): Promise<StoryMarker[]> {
+  const placing = session.actors.filter((a) => session.implementationFor(a.id, markerContract));
+  const placed = await Promise.all(
+    placing.map(async (actor) => {
+      const { markers } = await session.invoke(actor.id, markerContract, 'markers', {});
+      return markers.map((m) => ({ ...m, actorId: actor.id }));
+    }),
+  );
+  return placed.flat();
+}
+
 /** The story as its story view draws it: output parts, drawn through the renderer registry. */
 function StoryView({ host, session }: PanelProps) {
   const view = storyView(session);
   const renderer = view ? view.skillIds.join() : '';
   const shown = useParts(
     session,
-    () =>
+    async () =>
       session.invoke(STORY_VIEW, renderContract, 'render', {
         messages: [...session.transcript(USER_ID)],
+        markers: await storyMarkers(session),
       }),
     renderer,
   );

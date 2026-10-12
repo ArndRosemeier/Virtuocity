@@ -17,11 +17,15 @@ export const roleplayViewSkill: Skill = {
   backing: 'code',
   implements: [
     implement(renderContract, {
-      render: ({ messages }, ctx) => {
-        const view = chatView(messages, ctx.actors, (m) =>
-          m.kind === 'text'
-            ? { kind: RICH_TEXT, data: richText(m.text) }
-            : { kind: m.kind, data: m.data },
+      render: ({ messages, markers }, ctx) => {
+        const view = chatView(
+          messages,
+          ctx.actors,
+          (m) =>
+            m.kind === 'text'
+              ? { kind: RICH_TEXT, data: richText(m.text) }
+              : { kind: m.kind, data: m.data },
+          markers,
         );
         return Promise.resolve({ parts: [{ kind: CHAT_VIEW, data: view }] });
       },
