@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { Actor, SavedActor } from '@virtuocity/core';
 import { Avatar, Button, IconButton, Pill } from '@virtuocity/ui';
 import { ActorDialog } from './ActorDialog';
+import { useActorTips } from './actorTips';
 import { CopyActorDialog } from './LibraryActorDialogs';
 import { saveEverywhere, useLibrary } from './library';
 import { SessionGoesDialog } from './SessionGoesDialog';
@@ -14,14 +15,17 @@ export const runSafely = (action: () => Promise<unknown>) =>
 export function Row({
   name,
   detail,
+  title,
   children,
 }: {
   name: string;
   detail: string;
+  /** Hover text for the whole row. */
+  title?: string | undefined;
   children: React.ReactNode;
 }) {
   return (
-    <li className="cast__item">
+    <li className="cast__item" title={title}>
       <Avatar name={name} />
       <div className="cast__info">
         <strong>{name}</strong>
@@ -29,6 +33,16 @@ export function Row({
       </div>
       {children}
     </li>
+  );
+}
+
+/** A library actor's row; hovering it says what the actor is. */
+function ActorRow({ actor, children }: { actor: Actor; children: React.ReactNode }) {
+  const tip = useActorTips()(actor);
+  return (
+    <Row name={actor.personality.name} detail={actor.personality.description} title={tip}>
+      {children}
+    </Row>
   );
 }
 
@@ -204,14 +218,14 @@ export function LibraryActors({
       </Button>
       <ul className="cast__list">
         {actors.map(({ id, actor }) => (
-          <Row key={id} name={actor.personality.name} detail={actor.personality.description}>
+          <ActorRow key={id} actor={actor}>
             <ActorButtons
               actor={actor}
               inSession={inSession(id)}
               onAdd={() => add(actor)}
               onOpen={onOpen}
             />
-          </Row>
+          </ActorRow>
         ))}
       </ul>
       {actors.length === 0 && <p className="muted">{emptyNote(names.length === 0)}</p>}

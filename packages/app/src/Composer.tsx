@@ -3,6 +3,7 @@ import type { KeyboardEvent } from 'react';
 import type { Actor, SessionRuntime, TurnTakingInput } from '@virtuocity/core';
 import { textContent } from '@virtuocity/core';
 import { Avatar, Button, Icon } from '@virtuocity/ui';
+import { useActorTips } from './actorTips';
 import type { AppModule } from './types';
 import { USER_ID } from './useSession';
 
@@ -41,8 +42,9 @@ function ActorChip({
   disabled: boolean;
   onPick: () => void;
 }) {
+  const tip = useActorTips()(actor);
   return (
-    <button type="button" className="speaker-chip" disabled={disabled} onClick={onPick}>
+    <button type="button" className="speaker-chip" disabled={disabled} title={tip} onClick={onPick}>
       <Avatar name={actor.personality.name} />
       {actor.personality.name}
     </button>

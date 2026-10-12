@@ -9,6 +9,13 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 41,
+    date: '2026-10-12',
+    changes: [
+      'Hover over an actor to see what it is: whether a person plays it, its skills, and the start of its description. This works in the Library, the Cast panel, the "let speak" and "ask" buttons, and on the names and pictures above messages.',
+    ],
+  },
+  {
     build: 40,
     date: '2026-10-12',
     changes: [

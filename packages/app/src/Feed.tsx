@@ -5,6 +5,7 @@ import type { StoryMarker } from '@virtuocity/contract-render';
 import { markerContract, renderContract } from '@virtuocity/contract-render';
 import { Avatar, Button, EmptyState } from '@virtuocity/ui';
 import { useAppActions } from './actions';
+import { useActorTips } from './actorTips';
 import { MessageView } from './ChatView';
 import { runSafely } from './LibraryActors';
 import type { MessageActions } from './messageActions';
@@ -71,13 +72,14 @@ function StopButton({ session }: Pick<PanelProps, 'session'>) {
 
 /** What the speaking actor is writing right now, as it streams in, with a way to stop it. */
 function Live({ host, session, actorId, name }: PanelProps & { actorId: string; name: string }) {
+  const tip = useActorTips()(actorId);
   const call = session.calls.running(actorId).at(-1);
   const text = call?.text.trim() ?? '';
   if (!call || !text) {
     return (
       <div className="typing">
-        <Avatar name={name} />
-        <span>{name} is writing</span>
+        <Avatar name={name} title={tip} />
+        <span title={tip}>{name} is writing</span>
         <span className="typing__dots" aria-hidden>
           <i />
           <i />
@@ -89,7 +91,7 @@ function Live({ host, session, actorId, name }: PanelProps & { actorId: string; 
   }
   return (
     <>
-      <MessageView host={host} name={name} part={{ kind: 'text', data: text }} live />
+      <MessageView host={host} name={name} tip={tip} part={{ kind: 'text', data: text }} live />
       <div className="typing__stop">
         <StopButton session={session} />
       </div>

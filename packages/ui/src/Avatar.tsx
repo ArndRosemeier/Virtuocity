@@ -22,10 +22,24 @@ export function initials(name: string): string {
   );
 }
 
-export function Avatar({ name, size = 'md' }: { name: string; size?: 'md' | 'lg' }) {
+export function Avatar({
+  name,
+  size = 'md',
+  title,
+}: {
+  name: string;
+  size?: 'md' | 'lg';
+  /** Hover text, e.g. what the actor is. */
+  title?: string | undefined;
+}) {
   const style = { '--avatar-hue': `var(--hue-${hueIndex(name)})` } as CSSProperties;
   return (
-    <span className={cx('v-avatar', size === 'lg' && 'v-avatar--lg')} style={style} aria-hidden>
+    <span
+      className={cx('v-avatar', size === 'lg' && 'v-avatar--lg')}
+      style={style}
+      title={title}
+      aria-hidden
+    >
       {initials(name)}
     </span>
   );
