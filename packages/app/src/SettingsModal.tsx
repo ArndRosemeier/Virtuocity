@@ -3,7 +3,7 @@ import { Button, Field, Modal, ModelLayerEditor, SecretInput, Section, Tabs } fr
 import type { TabDef } from '@virtuocity/ui';
 import { API_KEY, THEME, useModelDefaults, useSetting, writeModelDefaults } from './settings';
 import { RendererSelect } from './RendererSelect';
-import { RENDERER } from './storyView';
+import { RENDERER, rendererActors } from './storyView';
 import type { ThemeChoice } from './theme';
 import type { AppHost } from './types';
 import { useModels } from './useModels';
@@ -68,6 +68,7 @@ const THEMES: readonly { id: ThemeChoice; label: string }[] = [
 function AppearanceTab({ host }: { host: AppHost }) {
   const [theme, setTheme] = useSetting(THEME);
   const [renderer, setRenderer] = useSetting(RENDERER);
+  const known = rendererActors(host).some((a) => a.id === renderer);
   return (
     <>
       <Section title="Theme">
@@ -90,7 +91,7 @@ function AppearanceTab({ host }: { host: AppHost }) {
           host={host}
           label="New stories are drawn as"
           hint="Each story can change its own view in the cast panel."
-          value={renderer}
+          value={known ? renderer : ''}
           onChange={setRenderer}
         />
       </Section>

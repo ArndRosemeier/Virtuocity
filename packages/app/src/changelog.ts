@@ -11,13 +11,21 @@ export interface Release {
 
 export const RELEASES: readonly Release[] = [
   {
-    build: 20,
+    build: 21,
     date: '2026-10-12',
     changes: [
       'The Library is wider, with actors and setups side by side.',
       'Filter the Library by skill: tags at the top list the skills your actors and setups use. Pick one or more to see only the items that have all of them. Your pick is remembered for the next time you open the Library.',
       'Add actor now opens the Library to pick from: Add puts the actor in the scene and closes it. New actor is there too.',
       'The Library has a New actor button: in the Library it saves the new actor for reuse; from Add actor it also adds it to the scene.',
+    ],
+  },
+  {
+    build: 20,
+    date: '2026-10-12',
+    changes: [
+      'The story view is now an actor you pick, so a view can bring its own skills. Pick it in Settings › Appearance (for new stories) or at the bottom of the Cast panel (for this story); the pencil next to it edits it, e.g. its system prompt.',
+      'New Roleplay renderer: it tells every text model it may keep <hidden> notes and use markdown, and draws the story with markdown, direct speech highlighted, and every XML section foldable. Hidden notes start folded.',
     ],
   },
   {

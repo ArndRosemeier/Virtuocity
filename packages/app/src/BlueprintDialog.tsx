@@ -210,7 +210,7 @@ export function BlueprintDialog({
 
   const start = async () => {
     await session.workspace.load([], null);
-    await ensureCast(session);
+    await ensureCast(host, session);
     if (blueprint) await startBlueprint(session, blueprint, castBlueprint(blueprint, choices));
     else if (saved) await startSavedSetup(session, saved, host.blueprints);
     onClose();
