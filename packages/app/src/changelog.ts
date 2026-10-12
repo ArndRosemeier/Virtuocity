@@ -11,6 +11,15 @@ export interface Release {
 
 export const RELEASES: readonly Release[] = [
   {
+    build: 4,
+    date: '2026-10-12',
+    changes: [
+      'Edit actors: the pencil next to an actor changes their name, personality, skills, settings and models.',
+      "Skill settings: how long Conversation replies are, how many words the Writer aims for, how strict the Reviewer is, and the Illustrator's style and how often it paints.",
+      'Appearance: describe how an actor looks, and the Illustrator draws them that way whenever they are named in a scene.',
+    ],
+  },
+  {
     build: 3,
     date: '2026-10-12',
     changes: [

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Actor, Message } from '@virtuocity/core';
-import { buildPrompt } from './prompt';
+import { buildPrompt, conversationSettings } from './prompt';
 
 const actor = (id: string, name: string): Actor => ({
   id,
@@ -33,5 +33,14 @@ describe('buildPrompt', () => {
       { role: 'assistant', content: 'What?' },
       { role: 'user', content: 'user: Hi' },
     ]);
+  });
+});
+
+describe('length setting', () => {
+  it('tells the model how much to write', () => {
+    const bard = actor('bard', 'Lyra');
+    const [system] = buildPrompt(bard, [bard], [], conversationSettings.parse({ length: 'short' }));
+    expect(system?.content).toContain('one to three sentences');
+    expect(buildPrompt(bard, [bard], [])[0]?.content).toContain('about one paragraph');
   });
 });

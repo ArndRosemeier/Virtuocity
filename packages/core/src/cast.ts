@@ -16,6 +16,8 @@ const actor = z.object({
   personality: z.object({ name: z.string(), description: z.string() }),
   skillIds: z.array(z.string()),
   models: z.record(z.string(), z.string()).optional(),
+  settings: z.record(z.string(), z.unknown()).optional(),
+  profile: z.record(z.string(), z.unknown()).optional(),
 });
 
 /**

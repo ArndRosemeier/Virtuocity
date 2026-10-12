@@ -8,6 +8,7 @@ import type { Identified } from './registry';
 import { Registry } from './registry';
 import { RendererRegistry } from './output';
 import type { ModelProvider } from './provider';
+import type { ProfileField } from './settings';
 import type { Skill } from './skill';
 import type { Director } from './turns';
 import type { WritePolicy } from './workspace';
@@ -42,6 +43,7 @@ export class ModuleHost<R = unknown, C = unknown> {
   readonly flows = new Registry<Flow>('flow');
   readonly renderers = new RendererRegistry<R>();
   readonly panels = new Registry<PanelContribution<C>>('panel');
+  readonly profileFields = new Registry<ProfileField>('profile field');
 }
 
 /** The unit of extension. Each package exports one or more of these. */

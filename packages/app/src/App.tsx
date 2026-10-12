@@ -22,7 +22,8 @@ export function App() {
   const assets = useMemo(() => createAssetStore(indexedDbStore('assets')), []);
   const session = useSession(host, sessions, assets);
   const [settingsTab, setSettingsTab] = useState<SettingsTab | null>(null);
-  const [newActor, setNewActor] = useState(false);
+  // `null`: closed; `''`: a new actor; otherwise the id of the actor being edited.
+  const [editing, setEditing] = useState<string | null>(null);
   useTheme();
   useEffect(() => {
     // Dev builds expose the session for debugging in the browser console.
@@ -32,7 +33,8 @@ export function App() {
   const actions = useMemo<AppActions>(
     () => ({
       openSettings: (tab = 'connection') => setSettingsTab(tab),
-      openNewActor: () => setNewActor(true),
+      openNewActor: () => setEditing(''),
+      openEditActor: (actorId) => setEditing(actorId),
     }),
     [],
   );
@@ -54,10 +56,12 @@ export function App() {
           onClose={() => setSettingsTab(null)}
         />
         <ActorDialog
+          key={`actor:${editing ?? 'closed'}`}
           host={host}
           session={session}
-          open={newActor}
-          onClose={() => setNewActor(false)}
+          actor={session.actors.find((a) => a.id === editing)}
+          open={editing !== null}
+          onClose={() => setEditing(null)}
         />
       </AssetsContext.Provider>
     </AppActionsContext.Provider>

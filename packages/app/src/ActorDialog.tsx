@@ -1,143 +1,74 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import type { ModelOverrides, SessionRuntime } from '@virtuocity/core';
-import {
-  Button,
-  Field,
-  Modal,
-  ModelLayerEditor,
-  Pill,
-  Section,
-  TextArea,
-  TextInput,
-} from '@virtuocity/ui';
+import type { Actor, SessionRuntime } from '@virtuocity/core';
+import { Button, Modal } from '@virtuocity/ui';
+import type { Draft } from './ActorFields';
+import { ActorFields } from './ActorFields';
 import type { AppHost } from './types';
-import { useModels } from './useModels';
 
-interface Draft {
-  readonly name: string;
-  readonly description: string;
-  readonly models: ModelOverrides;
-  readonly skillIds: readonly string[];
+const EMPTY: Draft = {
+  name: '',
+  description: '',
+  models: {},
+  skillIds: ['conversation'],
+  settings: {},
+  profile: {},
+};
+
+function draftOf(actor: Actor | undefined): Draft {
+  if (!actor) return EMPTY;
+  return {
+    name: actor.personality.name,
+    description: actor.personality.description,
+    models: actor.models ?? {},
+    skillIds: actor.skillIds,
+    settings: actor.settings ?? {},
+    profile: actor.profile ?? {},
+  };
 }
 
-const EMPTY: Draft = { name: '', description: '', models: {}, skillIds: ['conversation'] };
+const filled = (value: unknown) => value !== undefined && value !== '' && value !== null;
 
-/** Which skills the actor has; contracts show what each one can stand in for. */
-function SkillPicker({
-  host,
-  value,
-  onChange,
-}: {
-  host: AppHost;
-  value: readonly string[];
-  onChange: (ids: readonly string[]) => void;
-}) {
-  const toggle = (id: string, on: boolean) =>
-    onChange(on ? [...value, id] : value.filter((v) => v !== id));
-  return (
-    <ul className="skill-picker">
-      {host.skills.list().map((skill) => (
-        <li key={skill.id}>
-          <label>
-            <input
-              type="checkbox"
-              checked={value.includes(skill.id)}
-              onChange={(e) => toggle(skill.id, e.target.checked)}
-            />
-            <span>{skill.name}</span>
-            {(skill.implements ?? []).map((i) => (
-              <Pill key={i.contract.id}>{i.contract.id}</Pill>
-            ))}
-          </label>
-        </li>
-      ))}
-    </ul>
+/** The actor a draft describes; settings of skills it no longer has are dropped. */
+export function actorFromDraft(id: string, draft: Draft): Actor {
+  const settings = Object.entries(draft.settings).filter(([skill]) =>
+    draft.skillIds.includes(skill),
   );
+  const profile = Object.entries(draft.profile).filter(([, value]) => filled(value));
+  return {
+    id,
+    controller: 'ai',
+    personality: { name: draft.name.trim(), description: draft.description.trim() },
+    skillIds: [...draft.skillIds],
+    ...(Object.keys(draft.models).length > 0 ? { models: draft.models } : {}),
+    ...(settings.length > 0 ? { settings: Object.fromEntries(settings) } : {}),
+    ...(profile.length > 0 ? { profile: Object.fromEntries(profile) } : {}),
+  };
 }
 
-function ActorFields({
-  host,
-  draft,
-  onChange,
-}: {
-  host: AppHost;
-  draft: Draft;
-  onChange: (d: Draft) => void;
-}) {
-  const catalog = useModels(host);
-  return (
-    <>
-      <Field label="Name">
-        {(id) => (
-          <TextInput
-            id={id}
-            autoFocus
-            value={draft.name}
-            placeholder="Lyra Moonwhisper"
-            onChange={(e) => onChange({ ...draft, name: e.target.value })}
-          />
-        )}
-      </Field>
-      <Field
-        label="Personality"
-        hint="Voice, role, backstory, quirks. This is what the model plays."
-      >
-        {(id) => (
-          <TextArea
-            id={id}
-            rows={5}
-            value={draft.description}
-            placeholder="A sharp-tongued half-elf bard who hides a soft heart and a stolen map…"
-            onChange={(e) => onChange({ ...draft, description: e.target.value })}
-          />
-        )}
-      </Field>
-      <Section title="Skills">
-        <SkillPicker
-          host={host}
-          value={draft.skillIds}
-          onChange={(skillIds) => onChange({ ...draft, skillIds })}
-        />
-      </Section>
-      <Section title="Models">
-        <ModelLayerEditor
-          modalities={host.modalities.list()}
-          catalog={catalog}
-          value={draft.models}
-          onChange={(models) => onChange({ ...draft, models })}
-          inheritLabel="Use the default"
-        />
-      </Section>
-    </>
-  );
-}
-
-/** Creates an AI actor. Its models are optional overrides of the defaults, per modality. */
+/**
+ * Creates an AI actor, or edits one when `actor` is given. Models are optional
+ * overrides of the defaults, per modality.
+ */
 export function ActorDialog({
   host,
   session,
+  actor,
   open,
   onClose,
 }: {
   host: AppHost;
   session: SessionRuntime;
+  actor?: Actor | undefined;
   open: boolean;
   onClose: () => void;
 }) {
-  const [draft, setDraft] = useState<Draft>(EMPTY);
+  const [draft, setDraft] = useState<Draft>(() => draftOf(actor));
 
   const submit = (e?: FormEvent) => {
     e?.preventDefault();
     if (!draft.name.trim()) return;
-    void session.join({
-      id: crypto.randomUUID(),
-      controller: 'ai',
-      personality: { name: draft.name.trim(), description: draft.description.trim() },
-      skillIds: [...draft.skillIds],
-      ...(Object.keys(draft.models).length > 0 ? { models: draft.models } : {}),
-    });
-    setDraft(EMPTY);
+    void session.join(actorFromDraft(actor?.id ?? crypto.randomUUID(), draft));
     onClose();
   };
 
@@ -146,14 +77,25 @@ export function ActorDialog({
       <Button variant="ghost" onClick={onClose}>
         Cancel
       </Button>
-      <Button variant="primary" icon="plus" disabled={!draft.name.trim()} onClick={() => submit()}>
-        Add to scene
+      <Button
+        variant="primary"
+        {...(actor ? {} : { icon: 'plus' as const })}
+        disabled={!draft.name.trim()}
+        onClick={() => submit()}
+      >
+        {actor ? 'Save' : 'Add to scene'}
       </Button>
     </>
   );
 
   return (
-    <Modal open={open} size="sm" title="New actor" onClose={onClose} footer={footer}>
+    <Modal
+      open={open}
+      size="sm"
+      title={actor ? `Edit ${actor.personality.name}` : 'New actor'}
+      onClose={onClose}
+      footer={footer}
+    >
       <form className="stack" onSubmit={submit}>
         <ActorFields host={host} draft={draft} onChange={setDraft} />
       </form>

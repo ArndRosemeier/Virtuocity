@@ -16,6 +16,10 @@ export interface Actor extends Identified {
   readonly personality: Personality;
   readonly skillIds: readonly string[];
   readonly models?: ModelOverrides;
+  /** Per-skill settings, keyed by skill id; read them with `readSettings`. */
+  readonly settings?: Readonly<Record<string, unknown>>;
+  /** Profile fields contributed by modules, keyed by field id. */
+  readonly profile?: Readonly<Record<string, unknown>>;
 }
 
 /** A role in the session (GM, player, support...). Any actor can take any seat. */

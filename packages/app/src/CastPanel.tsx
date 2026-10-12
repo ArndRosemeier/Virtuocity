@@ -4,7 +4,7 @@ import type { AppModule, PanelProps } from './types';
 
 /** Who is in the scene; actors can join and leave at any time. */
 function CastPanel({ session }: PanelProps) {
-  const { openNewActor } = useAppActions();
+  const { openNewActor, openEditActor } = useAppActions();
   const cast = session.actors.filter((a) => a.controller === 'ai');
   return (
     <div className="cast">
@@ -26,6 +26,12 @@ function CastPanel({ session }: PanelProps) {
                 {session.speaking === a.id && <Pill tone="accent">writing…</Pill>}
               </span>
             </div>
+            <IconButton
+              size="sm"
+              icon="edit"
+              label={`Edit ${a.personality.name}`}
+              onClick={() => openEditActor(a.id)}
+            />
             <IconButton
               size="sm"
               icon="trash"

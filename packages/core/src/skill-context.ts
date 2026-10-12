@@ -21,6 +21,8 @@ export type InvokeAction = <A, K extends keyof A & string>(
 /** What a skill is allowed to touch while it runs. */
 export interface SkillContext {
   readonly actor: Actor;
+  /** This skill's stored settings for this actor; read them with `readSettings(schema, ctx.settings)`. */
+  readonly settings: unknown;
   readonly bus: EventBus;
   /** The main transcript as this actor may see it. */
   readonly transcript: readonly Message[];

@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react';
 import type { JsonSchema } from '@virtuocity/core';
 import { Button, IconButton } from './Button';
 import { Field, TextArea, TextInput } from './Field';
@@ -6,6 +5,8 @@ import { defaultValue, itemSchema, kindOf, labelFor, propertiesOf } from './sche
 
 interface FieldProps {
   readonly schema: JsonSchema;
+  /** Given to the control, so a surrounding label can point at it. */
+  readonly id?: string | undefined;
   readonly value: unknown;
   readonly onChange: (value: unknown) => void;
 }
@@ -20,13 +21,16 @@ function ObjectFields({ schema, value, onChange }: FieldProps) {
   return (
     <div className="v-schema-object">
       {propertiesOf(schema).map(([key, sub]) => (
-        <Labelled key={key} label={sub.title ?? labelFor(key)} hint={sub.description}>
-          <SchemaField
-            schema={sub}
-            value={record[key]}
-            onChange={(next) => onChange({ ...record, [key]: next })}
-          />
-        </Labelled>
+        <Field key={key} label={sub.title ?? labelFor(key)} hint={sub.description}>
+          {(id) => (
+            <SchemaField
+              id={id}
+              schema={sub}
+              value={record[key]}
+              onChange={(next) => onChange({ ...record, [key]: next })}
+            />
+          )}
+        </Field>
       ))}
     </div>
   );
@@ -57,24 +61,8 @@ function ArrayFields({ schema, value, onChange }: FieldProps) {
   );
 }
 
-function Labelled({
-  label,
-  hint,
-  children,
-}: {
-  label: string;
-  hint?: string | undefined;
-  children: ReactNode;
-}) {
-  return (
-    <Field label={label} hint={hint}>
-      {() => children}
-    </Field>
-  );
-}
-
 /** One control for any JSON Schema, nesting for objects and lists. */
-export function SchemaField({ schema, value, onChange }: FieldProps) {
+export function SchemaField({ schema, id, value, onChange }: FieldProps) {
   switch (kindOf(schema)) {
     case 'object':
       return <ObjectFields schema={schema} value={value} onChange={onChange} />;
@@ -83,6 +71,7 @@ export function SchemaField({ schema, value, onChange }: FieldProps) {
     case 'boolean':
       return (
         <input
+          id={id}
           type="checkbox"
           checked={value === true}
           onChange={(e) => onChange(e.target.checked)}
@@ -91,6 +80,7 @@ export function SchemaField({ schema, value, onChange }: FieldProps) {
     case 'number':
       return (
         <TextInput
+          id={id}
           type="number"
           value={typeof value === 'number' ? value : ''}
           onChange={(e) => onChange(e.target.value === '' ? undefined : Number(e.target.value))}
@@ -99,6 +89,7 @@ export function SchemaField({ schema, value, onChange }: FieldProps) {
     case 'enum':
       return (
         <select
+          id={id}
           className="v-input"
           value={String(value ?? '')}
           onChange={(e) => onChange(e.target.value)}
@@ -113,6 +104,7 @@ export function SchemaField({ schema, value, onChange }: FieldProps) {
     case 'string':
       return (
         <TextArea
+          id={id}
           rows={2}
           value={typeof value === 'string' ? value : ''}
           onChange={(e) => onChange(e.target.value)}
