@@ -2,6 +2,7 @@ import { z } from 'zod';
 import type { Actor } from './actor';
 import type { ContextContributor } from './context-assembly';
 import { defineDocType } from './doc-type';
+import type { Operation } from './oplog';
 import type { ProfileField } from './settings';
 import { profileValue } from './settings';
 
@@ -47,6 +48,14 @@ export const castDoc = defineDocType<Cast, CastOp>({
 
 /** The document id of a session's cast. */
 export const CAST = 'cast';
+
+/**
+ * Whether an actor did anything in a session beyond joining and leaving, on
+ * any branch. Only an actor that did nothing can leave without a trace.
+ */
+export function hasActed(ops: readonly Operation[], actorId: string): boolean {
+  return ops.some((op) => op.actorId === actorId && op.docId !== CAST);
+}
 
 /**
  * Who is in the cast and what anyone could see of them: names and profile

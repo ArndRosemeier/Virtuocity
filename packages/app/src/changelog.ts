@@ -11,6 +11,13 @@ export interface Release {
 
 export const RELEASES: readonly Release[] = [
   {
+    build: 24,
+    date: '2026-10-12',
+    changes: [
+      'Removing an actor from the Cast panel only takes it out quietly if it has not done anything in the session yet. Once it has, removing it warns you and deletes the session, so no message is ever left without its author. The actor stays in your Library.',
+    ],
+  },
+  {
     build: 23,
     date: '2026-10-12',
     changes: [
