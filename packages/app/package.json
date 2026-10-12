@@ -15,6 +15,7 @@
     "@virtuocity/core": "*",
     "@virtuocity/openrouter": "*",
     "@virtuocity/roleplay": "*",
+    "@virtuocity/skill-chronicler": "*",
     "@virtuocity/skill-conversation": "*",
     "@virtuocity/skill-dice": "*",
     "@virtuocity/skill-illustrator": "*",

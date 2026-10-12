@@ -3,6 +3,7 @@ import { ModuleHost, coreModule, loadModules } from '@virtuocity/core';
 import { openRouterModule } from '@virtuocity/openrouter';
 import { conversationModule } from '@virtuocity/skill-conversation';
 import { diceModule } from '@virtuocity/skill-dice';
+import { chroniclerModule } from '@virtuocity/skill-chronicler';
 import { illustratorModule } from '@virtuocity/skill-illustrator';
 import { roleplayModule } from '@virtuocity/roleplay';
 import { reviewerModule } from '@virtuocity/skill-reviewer';
@@ -13,6 +14,7 @@ import { channelsPanelModule } from './ChannelsPanel';
 import { composerModule } from './Composer';
 import { feedModule } from './Feed';
 import { jobsPanelModule } from './JobsPanel';
+import { memoryPanelModule } from './MemoryPanel';
 import { taskPanelModule } from './TaskPanel';
 import { defaultRenderersModule } from './renderers';
 import { API_KEY, readSetting } from './settings';
@@ -28,6 +30,7 @@ export function createHost(): AppHost {
     composerModule,
     channelsPanelModule,
     castPanelModule,
+    memoryPanelModule,
     taskPanelModule,
     jobsPanelModule,
     openRouterModule({ apiKey: () => readSetting(API_KEY) }) as AppModule,
@@ -36,6 +39,7 @@ export function createHost(): AppHost {
     reviewerModule as AppModule,
     writerModule as AppModule,
     illustratorModule as AppModule,
+    chroniclerModule as AppModule,
     roleplayModule as AppModule,
     bookRoomModule as AppModule,
     bookPanelModule,

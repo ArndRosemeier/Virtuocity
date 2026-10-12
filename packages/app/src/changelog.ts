@@ -11,6 +11,15 @@ export interface Release {
 
 export const RELEASES: readonly Release[] = [
   {
+    build: 12,
+    date: '2026-10-12',
+    changes: [
+      'Roleplay gets a Chronicler who remembers the story. Once the story grows longer than the actors can read, it writes a summary of the older part, and every actor reads that summary before the recent messages. The story itself is never shortened.',
+      'Two chroniclers to choose from, interchangeable because both fill the same summarizer contract: a differential one that folds new events into the last summary, and a full one that rereads the whole story each time.',
+      'A new Memory panel shows each summary. Edit it to correct what the actors remember, or rebuild it from scratch after the next turn.',
+    ],
+  },
+  {
     build: 11,
     date: '2026-10-12',
     changes: [

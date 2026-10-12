@@ -731,6 +731,15 @@
   font-family: var(--font-story);
 }
 
+.memory__entry {
+  display: grid;
+  gap: var(--space-1);
+}
+.memory__summary {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
 .channel {
   display: grid;
   gap: var(--space-1);

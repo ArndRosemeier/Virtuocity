@@ -1,5 +1,5 @@
 import type { Actor, ChatMessage, Message } from '@virtuocity/core';
-import { defineProfileField, defineSettings, profileValue, z } from '@virtuocity/core';
+import { defineProfileField, defineSettings, profileValue, textOf, z } from '@virtuocity/core';
 
 export const illustratorSettings = defineSettings({
   style: z
@@ -64,13 +64,6 @@ export function illustratePrompt(
   ];
   return [{ role: 'user', content: content.filter(Boolean).join('\n\n') }];
 }
-
-const textOf = (message: Message) =>
-  message.parts
-    .filter((p) => p.kind === 'text')
-    .map((p) => String(p.data))
-    .join('\n')
-    .trim();
 
 /**
  * The scene to paint after `actorId`'s turn, or `undefined` when it is not
