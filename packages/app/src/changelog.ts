@@ -11,6 +11,15 @@ export interface Release {
 
 export const RELEASES: readonly Release[] = [
   {
+    build: 8,
+    date: '2026-10-12',
+    changes: [
+      'Book room opens on the Manuscript: every chapter with its brief, status and latest draft, laid out to read like a book.',
+      'Each setup decides its main view and controls: the book room drops the chat box it never used, and roleplay stays a story with a composer.',
+      'Sessions without a setup show tabs to switch between the Story and the Manuscript.',
+    ],
+  },
+  {
     build: 7,
     date: '2026-10-12',
     changes: [

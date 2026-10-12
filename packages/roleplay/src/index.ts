@@ -33,7 +33,7 @@ export const roleplayBlueprint = defineBlueprint({
       optional: true,
     },
   ],
-  layout: { panels: ['cast', 'tasks', 'jobs'] },
+  layout: { main: ['story'], input: ['composer'], side: ['cast', 'tasks', 'jobs'] },
 });
 
 export const roleplayModule: VirtuocityModule = {

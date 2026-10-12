@@ -105,3 +105,12 @@ export const MANUSCRIPT = 'manuscript';
 export function currentReviews(chapter: Chapter): readonly ChapterReview[] {
   return chapter.reviews.filter((r) => r.round === chapter.round);
 }
+
+/** Where a chapter stands: planned, drafted, changes asked, or approved. */
+export function chapterStatus(chapter: Chapter): string {
+  if (chapter.approved) return 'approved';
+  if (!chapter.draft) return 'planned';
+  const reviews = currentReviews(chapter);
+  if (reviews.some((r) => !r.approved)) return `draft ${chapter.round}: changes asked`;
+  return `draft ${chapter.round}`;
+}

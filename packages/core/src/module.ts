@@ -14,10 +14,14 @@ import type { Skill } from './skill';
 import type { Director } from './turns';
 import type { WritePolicy } from './workspace';
 
-/** A UI area contributed by a module. `C` is the UI's component type. */
+/**
+ * A piece of UI contributed by a module. `C` is the UI's component type.
+ * Slots: `main` holds views (the story feed, a manuscript, a scene), `input`
+ * holds controls (the chat composer, action buttons), `side` holds panels.
+ */
 export interface PanelContribution<C = unknown> extends Identified {
   readonly title: string;
-  readonly slot: 'side' | 'bottom' | (string & {});
+  readonly slot: 'main' | 'input' | 'side' | (string & {});
   readonly component: C;
 }
 

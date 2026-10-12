@@ -9,6 +9,8 @@ import { reviewerModule } from '@virtuocity/skill-reviewer';
 import { writerModule } from '@virtuocity/skill-writer';
 import { bookPanelModule } from './BookPanel';
 import { castPanelModule } from './CastPanel';
+import { composerModule } from './Composer';
+import { feedModule } from './Feed';
 import { jobsPanelModule } from './JobsPanel';
 import { taskPanelModule } from './TaskPanel';
 import { defaultRenderersModule } from './renderers';
@@ -21,6 +23,8 @@ export function createHost(): AppHost {
   return loadModules(new ModuleHost<ReactNode, ComponentType<PanelProps>>(), [
     coreModule as AppModule,
     defaultRenderersModule,
+    feedModule,
+    composerModule,
     castPanelModule,
     taskPanelModule,
     jobsPanelModule,

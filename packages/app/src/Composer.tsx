@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import type { SessionRuntime, TurnTakingInput } from '@virtuocity/core';
 import { Avatar, Button, Icon } from '@virtuocity/ui';
+import type { AppModule } from './types';
 import { USER_ID } from './useSession';
 
 /** Runs one round of the turn-taking flow, surfacing a failed run as an error. */
@@ -132,3 +133,9 @@ export function Composer({ session }: { session: SessionRuntime }) {
     </footer>
   );
 }
+
+export const composerModule: AppModule = {
+  id: 'composer',
+  register: (host) =>
+    host.panels.register({ id: 'composer', title: 'Write', slot: 'input', component: Composer }),
+};

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import type { Blueprint } from './blueprint';
 import {
+  arrangeSlot,
   blueprintProblems,
   castBlueprint,
   defaultChoices,
@@ -40,7 +41,23 @@ const stage = defineBlueprint({
     { id: 'narrator', personality: person('Narrator'), speaks: true, settings: { talk: { a: 1 } } },
     { id: 'painter', personality: person('Painter'), needs: [painter], optional: true },
   ],
-  layout: { panels: ['cast'] },
+  layout: { side: ['cast'] },
+});
+
+describe('layouts', () => {
+  const items = [
+    { id: 'feed', slot: 'main' },
+    { id: 'book', slot: 'main' },
+    { id: 'cast', slot: 'side' },
+    { id: 'jobs', slot: 'side' },
+  ];
+
+  it('shows what the layout names, in its order, and everything in slots it leaves out', () => {
+    const layout = { main: ['book', 'feed', 'missing'] };
+    expect(arrangeSlot(items, 'main', layout).map((i) => i.id)).toEqual(['book', 'feed']);
+    expect(arrangeSlot(items, 'side', layout).map((i) => i.id)).toEqual(['cast', 'jobs']);
+    expect(arrangeSlot(items, 'side').map((i) => i.id)).toEqual(['cast', 'jobs']);
+  });
 });
 
 describe('blueprints', () => {

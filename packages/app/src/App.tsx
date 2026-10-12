@@ -2,12 +2,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { Library, createAssetStore } from '@virtuocity/core';
 import { AppActionsContext } from './actions';
 import { LibraryContext } from './library';
-import { Composer } from './Composer';
 import { Dialogs, dialogActions } from './Dialogs';
 import type { OpenDialog } from './Dialogs';
-import { Feed } from './Feed';
 import { Header } from './Header';
-import { Slot } from './Slot';
+import { Area, Slot } from './Slot';
 import { AssetsContext } from './media';
 import { createHost } from './host';
 import { indexedDbStore } from './storage';
@@ -36,9 +34,9 @@ export function App() {
         <LibraryContext.Provider value={library}>
           <div className="layout">
             <Header session={session} assets={assets} />
-            <Feed host={host} session={session} />
+            <Area name="main" host={host} session={session} />
             <Slot name="side" host={host} session={session} />
-            <Composer session={session} />
+            <Area name="input" host={host} session={session} />
           </div>
           <Dialogs host={host} session={session} dialog={dialog} onClose={() => setDialog(null)} />
         </LibraryContext.Provider>

@@ -1,20 +1,13 @@
 import { useState } from 'react';
 import type { Chapter } from '@virtuocity/book-room';
-import { MANUSCRIPT, currentReviews, manuscriptDoc } from '@virtuocity/book-room';
+import { MANUSCRIPT, chapterStatus, currentReviews, manuscriptDoc } from '@virtuocity/book-room';
 import { reviewerContract } from '@virtuocity/contract-critique';
 import { writerContract } from '@virtuocity/contract-writing';
 import type { Contract, SessionRuntime } from '@virtuocity/core';
 import { Button, Field, Pill, TextArea, TextInput } from '@virtuocity/ui';
+import { ManuscriptView } from './ManuscriptView';
 import type { AppModule, PanelProps } from './types';
 import { USER_ID } from './useSession';
-
-function status(chapter: Chapter): string {
-  if (chapter.approved) return 'approved';
-  if (!chapter.draft) return 'planned';
-  const reviews = currentReviews(chapter);
-  if (reviews.some((r) => !r.approved)) return `draft ${chapter.round}: changes asked`;
-  return `draft ${chapter.round}`;
-}
 
 function ChapterView({ chapter }: { chapter: Chapter }) {
   const last = currentReviews(chapter).at(-1);
@@ -22,7 +15,9 @@ function ChapterView({ chapter }: { chapter: Chapter }) {
     <details className="chapter">
       <summary>
         <strong>{chapter.title}</strong>{' '}
-        <Pill {...(chapter.approved ? { tone: 'accent' as const } : {})}>{status(chapter)}</Pill>
+        <Pill {...(chapter.approved ? { tone: 'accent' as const } : {})}>
+          {chapterStatus(chapter)}
+        </Pill>
       </summary>
       <p className="muted">{chapter.brief}</p>
       {chapter.draft && <p className="chapter__draft">{chapter.draft}</p>}
@@ -120,6 +115,13 @@ function BookPanel({ session }: PanelProps) {
 
 export const bookPanelModule: AppModule = {
   id: 'book-panel',
-  register: (host) =>
-    host.panels.register({ id: 'book', title: 'Book', slot: 'side', component: BookPanel }),
+  register: (host) => {
+    host.panels.register({ id: 'book', title: 'Book', slot: 'side', component: BookPanel });
+    host.panels.register({
+      id: 'manuscript',
+      title: 'Manuscript',
+      slot: 'main',
+      component: ManuscriptView,
+    });
+  },
 };

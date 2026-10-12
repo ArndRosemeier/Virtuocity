@@ -1,26 +1,53 @@
-import { currentBlueprint } from '@virtuocity/core';
+import { useState } from 'react';
+import { arrangeSlot, currentBlueprint } from '@virtuocity/core';
 import type { AppHost, PanelProps } from './types';
 
-type Panel = ReturnType<AppHost['panels']['list']>[number];
+type Contribution = ReturnType<AppHost['panels']['list']>[number];
 
-/** The panels of a slot, in the order the session's blueprint asks for, or all of them. */
-function panelsFor({ host, session }: PanelProps, slot: string): Panel[] {
-  const panels = host.panels.list().filter((p) => p.slot === slot);
-  const wanted = currentBlueprint(session, host.blueprints)?.layout?.panels;
-  if (!wanted) return panels;
-  return wanted.flatMap((id) => panels.filter((p) => p.id === id));
+/** What a slot shows: what the session's blueprint lays out there, or everything. */
+function contributions({ host, session }: PanelProps, slot: string): Contribution[] {
+  const layout = currentBlueprint(session, host.blueprints)?.layout;
+  return arrangeSlot(host.panels.list(), slot, layout);
 }
 
-/** A UI area that shows the panels modules contributed to it. */
+/** Side panels, stacked with their titles. */
 export function Slot({ name, host, session }: PanelProps & { name: string }) {
   return (
     <aside className={`slot slot--${name}`}>
-      {panelsFor({ host, session }, name).map(({ id, title, component: Panel }) => (
+      {contributions({ host, session }, name).map(({ id, title, component: Panel }) => (
         <section key={id} className="panel">
           <h2 className="panel__title">{title}</h2>
           <Panel session={session} host={host} />
         </section>
       ))}
     </aside>
+  );
+}
+
+/** Views or controls that fill an area; with several, tabs switch between them. */
+export function Area({ name, host, session }: PanelProps & { name: string }) {
+  const items = contributions({ host, session }, name);
+  const [picked, setPicked] = useState<string>();
+  const current = items.find((i) => i.id === picked) ?? items[0];
+  return (
+    <div className={`slot slot--${name}`}>
+      {items.length > 1 && (
+        <nav className="views" role="tablist" aria-label={`${name} views`}>
+          {items.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              role="tab"
+              className="views__tab"
+              aria-selected={item.id === current?.id}
+              onClick={() => setPicked(item.id)}
+            >
+              {item.title}
+            </button>
+          ))}
+        </nav>
+      )}
+      {current && <current.component session={session} host={host} />}
+    </div>
   );
 }
