@@ -121,3 +121,26 @@ export function castBlueprint(blueprint: Blueprint, choices: CastChoices): Actor
     ];
   });
 }
+
+/** An actor a blueprint brings, as it would be cast with the first skill for each need. */
+export interface BuiltInActor {
+  /** Unique across blueprints: `blueprint-id:role-id`. */
+  readonly id: string;
+  readonly blueprint: Blueprint;
+  readonly actor: Actor;
+}
+
+/** Every actor the installed blueprints bring, leaving out roles no installed skill can fill. */
+export function builtInActors(
+  blueprints: readonly Blueprint[],
+  skills: readonly Skill[],
+): BuiltInActor[] {
+  return blueprints.flatMap((blueprint) => {
+    const choices = defaultChoices(blueprint, skills);
+    return castBlueprint(blueprint, choices).map((actor) => ({
+      id: `${blueprint.id}:${actor.id}`,
+      blueprint,
+      actor,
+    }));
+  });
+}

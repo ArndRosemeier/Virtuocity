@@ -11,6 +11,13 @@ export interface Release {
 
 export const RELEASES: readonly Release[] = [
   {
+    build: 11,
+    date: '2026-10-12',
+    changes: [
+      'The Library now shows everything: the built-in setups (Roleplay, Book room) and their actors, marked built-in, next to the ones you saved. Add any of them to the scene.',
+    ],
+  },
+  {
     build: 10,
     date: '2026-10-12',
     changes: [
