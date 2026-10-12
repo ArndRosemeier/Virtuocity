@@ -261,7 +261,8 @@ instead of a message in the story. It names the part kinds it `accepts`.
 `showOnChannel(state, channel, part)` replaces what a channel shows; the
 contents live in the `channels` document, so they rewind, branch and save with
 the story. Channels shared by several modules belong in a contract package
-(`sceneChannel` is in `contract-visual`). The app's "Now showing" panel
+(`sceneChannel` is in `contract-visual`, with the `sceneChanged` event that
+asks visualizers to picture a new scene; flows can emit it with `ctx.emit`). The app's "Now showing" panel
 renders every channel through the renderer registry.
 
 ## Library

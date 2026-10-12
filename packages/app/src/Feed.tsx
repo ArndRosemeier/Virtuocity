@@ -117,10 +117,11 @@ export function Feed({ host, session }: PanelProps) {
   const speaking = session.speaking;
   const live = speaking ? (session.calls.running(speaking).at(-1)?.text.length ?? 0) : 0;
 
-  useEffect(
-    () => end.current?.scrollIntoView({ behavior: 'smooth', block: 'end' }),
-    [messages.length, speaking, live],
-  );
+  useEffect(() => {
+    // Braces matter: newer browsers return a promise from scrollIntoView, and
+    // React would call anything an effect returns as its cleanup.
+    end.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }, [messages.length, speaking, live]);
 
   return (
     <main className="feed">

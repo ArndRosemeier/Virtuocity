@@ -11,6 +11,14 @@ export interface Release {
 
 export const RELEASES: readonly Release[] = [
   {
+    build: 10,
+    date: '2026-10-12',
+    changes: [
+      'Fixed: switching to the Manuscript tab no longer crashes the app in newer browsers.',
+      'Virtuocity now has its lantern as the browser tab icon.',
+    ],
+  },
+  {
     build: 9,
     date: '2026-10-12',
     changes: [
