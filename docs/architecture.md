@@ -61,7 +61,9 @@ app ──► any module ──► ui ──────────► core
   come only from its skills; any actor can take any seat.
 - **Skill** (`skill.ts`): one interface, backed by `llm`, `code` or `hybrid`.
   `onEvent` for reacting (silent and support actors), `takeTurn` for actors that
-  speak. Conversation is just a skill with `takeTurn`. A skill that takes over
+  speak, `onRequest` for support actors a person can ask to act (`runtime.askable()`,
+  "or ask:" in the composer; `runTurn` runs it like a turn, the director never
+  picks it). Conversation is just a skill with `takeTurn`. A skill that takes over
   a removed one lists it in `replaces`; `upgradeActor` (`skill-upgrade.ts`)
   moves actors onto it, and the app's `Library` applies that to stored actors
   and to every actor it adopts, sessions' casts included.
@@ -225,7 +227,9 @@ request, schema)` asks for JSON matching a zod schema, then shows the model
   events should start a job for anything slow, because event delivery is awaited.
 - **Illustrator** (`contract-visual`, `skill-illustrator`): `illustrator@1`
   draws a picture from a description. As an actor, the illustrator draws each
-  other actor's turn in a background job and posts the picture.
+  other actor's turn in a background job and posts the picture. Asked by a
+  person (`onRequest`), it paints the newest message right away; with its
+  `automatic` setting off, that is the only time it paints.
 
 ## Settings and profiles
 

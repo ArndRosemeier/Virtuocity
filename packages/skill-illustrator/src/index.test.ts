@@ -125,4 +125,28 @@ describe('illustrating a scene', () => {
     expect(channelContents(runtime.workspace.view('user')).scene?.actorId).toBe('ink');
     expect(runtime.calls.list()[0]?.request.messages[0]?.content).toContain('misty harbour');
   });
+
+  it('paints only when picked once automatic is off, from the newest message', async () => {
+    const { runtime } = session(() => ({ media: [png] }));
+    await play(runtime, { illustrator: { automatic: false } });
+    expect(runtime.jobs.running()).toEqual([]);
+    expect(runtime.speakers().map((a) => a.id)).toEqual(['narrator']);
+    expect(runtime.askable().map((a) => a.id)).toEqual(['ink']);
+    expect(runtime.cast().map((a) => a.id)).toEqual(['narrator']);
+    await runtime.runTurn('ink');
+    const picture = runtime.transcript().at(-1);
+    expect(picture?.kind).toBe(IMAGE_PART);
+    expect(runtime.calls.list()[0]?.request.messages[0]?.content).toContain('A lantern flickers');
+  });
+
+  it('asks for something to paint when the story is empty', async () => {
+    const { runtime } = session(() => ({ media: [png] }));
+    await runtime.join({
+      id: 'ink',
+      controller: 'ai',
+      personality: { name: 'Ink', description: '' },
+      skillIds: ['illustrator'],
+    });
+    await expect(runtime.runTurn('ink')).rejects.toThrow(/Nothing to paint yet/);
+  });
 });

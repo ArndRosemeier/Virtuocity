@@ -40,10 +40,20 @@ const provider: ModelProvider = {
   ),
 };
 
+const sketcher: Skill = {
+  id: 'sketcher',
+  name: 'Sketcher',
+  backing: 'code',
+  onRequest: async (ctx) => {
+    await ctx.post(textContent('A sketch.'));
+  },
+};
+
 function setup() {
   const host = loadModules(new ModuleHost(), [coreModule]);
   host.skills.register(echo);
   host.skills.register(listener);
+  host.skills.register(sketcher);
   host.providers.register(provider);
   return new SessionRuntime({
     host,
@@ -79,6 +89,17 @@ describe('SessionRuntime', () => {
     counter.seen = 0;
     await session.post('user', textContent('hi'));
     expect(counter.seen).toBe(1);
+  });
+
+  it('lets a person ask an on-request actor to act, which the director never picks', async () => {
+    const session = setup();
+    await session.join(ai('pen', ['sketcher']));
+    expect(session.speakers()).toEqual([]);
+    expect(session.cast()).toEqual([]);
+    expect(session.askable().map((a) => a.id)).toEqual(['pen']);
+    expect(await session.pickNext()).toBeUndefined();
+    await session.flows.run('turn-taking', { kind: 'choose', actorId: 'pen' });
+    expect(session.transcript().map((m) => m.text)).toEqual(['A sketch.']);
   });
 
   it('announces turns and clears the speaker even when a turn fails', async () => {

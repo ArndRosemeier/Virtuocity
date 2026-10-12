@@ -1,10 +1,11 @@
 import type { SessionRuntime } from './runtime';
 
-/** The message's author, when it is an actor that takes turns and so can try again. */
+/** The message's author, when it is an actor that takes turns (or acts on request) and so can try again. */
 export function retryable(session: SessionRuntime, messageId: string): string | undefined {
   const message = session.transcript().find((m) => m.id === messageId);
   if (!message) return undefined;
-  return session.speakers().some((a) => a.id === message.actorId) ? message.actorId : undefined;
+  const actors = [...session.speakers(), ...session.askable()];
+  return actors.some((a) => a.id === message.actorId) ? message.actorId : undefined;
 }
 
 /**
