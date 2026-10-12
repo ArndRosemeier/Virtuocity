@@ -183,6 +183,10 @@
   display: grid;
   /* A blank line between paragraphs, as in the plain view. */
   gap: calc(var(--text-lg) * var(--leading-story));
+  /* Everything in it reads at story size, like the plain view. */
+  font-family: var(--font-story);
+  font-size: var(--text-lg);
+  line-height: var(--leading-story);
 }
 .rich p,
 .rich blockquote,
@@ -192,22 +196,31 @@
 }
 .rich blockquote {
   padding-left: var(--space-3);
-  border-left: 2px solid var(--border);
-  color: var(--text-muted);
+  border-left: 2px solid var(--md-quote);
+  color: var(--md-quote);
 }
 .rich ul,
 .rich ol {
   padding-left: var(--space-5);
-  font-family: var(--font-story);
-  font-size: var(--text-lg);
 }
 .rich__heading {
   margin: var(--space-2) 0 0;
-  font-family: var(--font-story);
+  font-size: var(--text-xl);
+  color: var(--md-heading);
+}
+.rich em {
+  color: var(--md-em);
+}
+.rich strong {
+  color: var(--md-strong);
+}
+.rich s {
+  color: var(--text-faint);
 }
 .rich code {
   font-family: var(--font-mono);
-  font-size: 0.85em;
+  font-size: 0.95em;
+  color: var(--md-code);
 }
 .speech {
   color: var(--accent);
