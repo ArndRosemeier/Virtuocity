@@ -83,9 +83,7 @@ function RunPipeline({ session }: { session: SessionRuntime }) {
   };
   if (!writer || !reviewer) {
     return (
-      <p className="muted">
-        Add a character with the Writer skill and one with the Reviewer skill.
-      </p>
+      <p className="muted">Add an actor with the Writer skill and one with the Reviewer skill.</p>
     );
   }
   return (

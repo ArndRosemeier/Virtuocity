@@ -3,6 +3,7 @@ import { IconButton, Icon } from '@virtuocity/ui';
 import { useAppActions } from './actions';
 import { SessionMenu } from './SessionMenu';
 import { StatsBadge } from './StatsBadge';
+import { WhatsNew } from './WhatsNew';
 
 export function Header({ session, assets }: { session: SessionRuntime; assets: AssetStore }) {
   const { openSettings } = useAppActions();
@@ -13,6 +14,7 @@ export function Header({ session, assets }: { session: SessionRuntime; assets: A
           <Icon name="lantern" />
         </span>
         <span className="brand__name">Virtuocity</span>
+        <WhatsNew />
       </div>
       <div className="app-header__end">
         <StatsBadge stats={session.allStats()} showModels={false} />

@@ -40,6 +40,59 @@
   font-weight: 600;
   letter-spacing: 0.01em;
 }
+.whats-new {
+  position: relative;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+.whats-new__label {
+  margin-left: var(--space-2);
+}
+.whats-new[data-fresh='true']::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  right: 2px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+.releases {
+  display: grid;
+  gap: var(--space-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.release {
+  padding-left: var(--space-3);
+  border-left: 2px solid var(--border);
+}
+.release[data-fresh='true'] {
+  border-left-color: var(--accent);
+}
+.release__title {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-md);
+}
+.release__title time {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: 400;
+}
+.release ul {
+  margin: 0;
+  padding-left: var(--space-5);
+  display: grid;
+  gap: var(--space-1);
+}
+
 .app-header__end {
   display: flex;
   align-items: center;

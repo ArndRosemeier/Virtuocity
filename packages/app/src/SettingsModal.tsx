@@ -43,8 +43,8 @@ function ModelsTab({ host }: { host: AppHost }) {
   return (
     <Section title="Default model per modality">
       <p className="settings-note">
-        Characters and skills can override these. A skill's choice beats the character's, which
-        beats the default.
+        Actors and skills can override these. A skill's choice beats the actor's, which beats the
+        default.
       </p>
       <ModelLayerEditor
         modalities={modalities}

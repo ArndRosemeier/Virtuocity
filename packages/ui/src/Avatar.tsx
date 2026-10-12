@@ -3,7 +3,7 @@ import { cx } from './cx';
 
 const HUES = 8;
 
-/** Stable hue index for a name, so a character keeps its color everywhere. */
+/** Stable hue index for a name, so an actor keeps its color everywhere. */
 export function hueIndex(name: string): number {
   let hash = 0;
   for (const char of name) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
