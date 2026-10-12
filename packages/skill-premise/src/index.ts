@@ -23,7 +23,9 @@ function premiseSkill(skill: Omit<Skill, 'listensTo' | 'onEvent'>): Skill {
     listensTo: [sessionStarted.type, actorJoined.type],
     onEvent: (event, ctx) => {
       const joined = actorJoined.is(event) && event.payload.actorId === ctx.actor.id;
-      if (sessionStarted.is(event) || (joined && !isStarting(ctx.bus))) deliverPremise(ctx);
+      if (sessionStarted.is(event) || (joined && !isStarting(ctx.bus))) {
+        deliverPremise(ctx, !readSettings(fixedPremiseSettings, ctx.settings).shown);
+      }
       return Promise.resolve();
     },
   };

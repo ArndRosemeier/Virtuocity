@@ -31,6 +31,8 @@ export interface WritePolicy extends Identified {
 export interface ChangeOptions {
   /** Actors who may see the change. Absent means everyone. */
   readonly audience?: readonly string[];
+  /** Actors who may not see the change. */
+  readonly hiddenFrom?: readonly string[];
 }
 
 export interface WorkspaceOptions {
@@ -69,7 +71,7 @@ export class Workspace {
 
   /** Appends a validated, permitted change and announces it. */
   async change<O>(change: Change<O>): Promise<Operation> {
-    const { actorId, docId, docType, payload, audience } = change;
+    const { actorId, docId, docType, payload, audience, hiddenFrom } = change;
     const existing = this.log.path().find((op) => op.docId === docId);
     if (existing && existing.docType !== docType.id) {
       throw new Error(`Document "${docId}" is a "${existing.docType}", not a "${docType.id}"`);
@@ -92,6 +94,7 @@ export class Workspace {
       actorId,
       payload,
       ...(audience ? { audience } : {}),
+      ...(hiddenFrom ? { hiddenFrom } : {}),
     });
     this.#redo = [];
     await this.options.bus.emit(stateChanged.create({ docId, opId: op.id }, actorId));
@@ -172,12 +175,12 @@ export class Workspace {
   }
 }
 
-/** Actors always see their own operations; others only when in the audience. */
+/**
+ * Actors always see their own operations; others only when in the audience
+ * (if there is one) and not hidden from.
+ */
 export function canSee(op: Operation, perspective: string | undefined): boolean {
-  return (
-    perspective === undefined ||
-    op.audience === undefined ||
-    op.actorId === perspective ||
-    op.audience.includes(perspective)
-  );
+  if (perspective === undefined || op.actorId === perspective) return true;
+  if (op.hiddenFrom?.includes(perspective)) return false;
+  return op.audience === undefined || op.audience.includes(perspective);
 }

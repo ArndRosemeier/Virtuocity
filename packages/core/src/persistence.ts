@@ -24,6 +24,7 @@ const operation = z.object({
   actorId: z.string(),
   payload: z.unknown(),
   audience: z.array(z.string()).optional(),
+  hiddenFrom: z.array(z.string()).optional(),
   at: z.number(),
 });
 

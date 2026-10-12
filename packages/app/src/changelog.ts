@@ -11,6 +11,13 @@ export interface Release {
 
 export const RELEASES: readonly Release[] = [
   {
+    build: 28,
+    date: '2026-10-12',
+    changes: [
+      'A Premise actor has a "Show the premise in the chat" setting. Turn it off and the premise stays hidden from you: only the AI actors see it, so the narrator knows the setup and you discover it as you play.',
+    ],
+  },
+  {
     build: 27,
     date: '2026-10-12',
     changes: [

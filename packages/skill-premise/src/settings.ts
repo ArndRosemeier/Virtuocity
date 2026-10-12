@@ -8,4 +8,8 @@ export const fixedPremiseSettings = defineSettings({
       'Rain drums on the roof of a roadside inn. Tonight every room is taken, the last coach has not arrived, and someone has left a sealed letter on your table.',
     )
     .describe('The premise every session starts with, word for word'),
+  shown: z
+    .boolean()
+    .default(true)
+    .describe('Show the premise in the chat. When off, only AI actors see it.'),
 });

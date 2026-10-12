@@ -69,6 +69,20 @@ describe('opening a session', () => {
     expect(runtime.calls.list()).toHaveLength(0);
   });
 
+  it('hides the premise from the people when it is not shown', async () => {
+    const { runtime, ended } = session();
+    const settings = { 'fixed-premise': { premise: 'The butler did it.', shown: false } };
+    const you: Actor = { ...actor('you', []), controller: 'human' };
+    await runtime.join(you);
+    await startBlueprint(runtime, stage, [
+      actor('premise', ['fixed-premise'], settings),
+      actor('wren', ['quiet']),
+    ]);
+    await ended;
+    expect(runtime.transcript('you')).toHaveLength(0);
+    expect(runtime.transcript('wren')[0]).toMatchObject(textContent('The butler did it.'));
+  });
+
   it('opens an empty story when it joins after the start', async () => {
     const { runtime, ended } = session();
     await startBlueprint(runtime, stage);

@@ -14,6 +14,8 @@ export interface Operation {
   readonly payload: unknown;
   /** Actors who may see this change. Absent means everyone. */
   readonly audience?: readonly string[];
+  /** Actors who may not see this change, e.g. the people, for something only AI actors know. */
+  readonly hiddenFrom?: readonly string[];
   readonly at: number;
 }
 

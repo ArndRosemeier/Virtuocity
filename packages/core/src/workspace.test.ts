@@ -76,6 +76,15 @@ describe('Workspace', () => {
     expect(ws.view('bard').read('log', notes)).toEqual(['the door creaks']);
   });
 
+  it('hides a change from the actors it names, but never from its author', async () => {
+    const { ws } = setup();
+    await ws.view('gm').change('log', notes, 'the heir is the thief', { hiddenFrom: ['player'] });
+    expect(ws.read('log', notes, 'player')).toEqual([]);
+    expect(ws.read('log', notes, 'bard')).toEqual(['the heir is the thief']);
+    expect(ws.read('log', notes, 'gm')).toEqual(['the heir is the thief']);
+    expect(ws.read('log', notes)).toEqual(['the heir is the thief']);
+  });
+
   it('validates operations and keeps one type per document', async () => {
     const { ws } = setup();
     await expect(ws.view('a').change('hp', counter, { add: 'x' } as never)).rejects.toThrow(
