@@ -11,6 +11,13 @@ export interface Release {
 
 export const RELEASES: readonly Release[] = [
   {
+    build: 30,
+    date: '2026-10-12',
+    changes: [
+      'Every AI response has a retry button. It takes that response and everything after it back, and the same actor answers again. On an older response, everything below it goes away.',
+    ],
+  },
+  {
     build: 29,
     date: '2026-10-12',
     changes: [

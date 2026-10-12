@@ -91,7 +91,8 @@ app ──► any module ──► ui ──────────► core
 - **SessionRuntime** (`runtime.ts`): a running session. Actors `join` and
   `leave` at any time (the app only lets an actor leave while `hasActed` in
   `cast.ts` is false; removing one that acted deletes the session); `post` adds a message; `pass` lets the director pick one
-  AI turn; `runTurn` lets a chosen actor speak. Each call runs at most one AI
+  AI turn; `runTurn` lets a chosen actor speak; `retryMessage` (`retry.ts`)
+  rewinds to before an actor's message and lets that actor speak again. Each call runs at most one AI
   turn, then the session pauses. `turn.started` / `turn.ended` events and
   `speaking` tell the UI who is writing. Every event is delivered to the `onEvent` of
   each skill whose `listensTo` names it.
