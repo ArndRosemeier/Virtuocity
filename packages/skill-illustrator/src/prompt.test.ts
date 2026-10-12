@@ -20,7 +20,6 @@ const message = (actorId: string, text: string): Message => ({
 describe('illustrator prompt', () => {
   const mira = actor('mira', 'Mira', 'Tall, silver braid, green cloak.');
   const vex = actor('vex', 'Vex', 'Short, scarred, grinning.');
-  const ink = { ...actor('ink', 'Ink'), personality: { name: 'Ink', description: 'Moody.' } };
 
   it('describes how the named actors look', () => {
     expect(appearances([mira, vex], 'Mira opens the gate.')).toEqual([
@@ -28,10 +27,10 @@ describe('illustrator prompt', () => {
     ]);
   });
 
-  it('combines style settings, the illustrator and the people in the scene', () => {
+  it('combines the style setting and the people in the scene', () => {
     const settings = illustratorSettings.parse({ style: 'Watercolour' });
-    const [prompt] = illustratePrompt(ink, [mira, vex], { description: 'Mira waves.' }, settings);
-    expect(prompt?.content).toContain('Style: Watercolour. Moody.');
+    const [prompt] = illustratePrompt([mira, vex], { description: 'Mira waves.' }, settings);
+    expect(prompt?.content).toContain('Style: Watercolour\n');
     expect(prompt?.content).toContain('Mira: Tall, silver braid');
     expect(prompt?.content).not.toContain('Vex');
   });

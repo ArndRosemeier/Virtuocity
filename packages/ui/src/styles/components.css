@@ -181,6 +181,10 @@
 .v-modal--sm {
   width: min(480px, calc(100vw - 2 * var(--space-4)));
 }
+.v-modal--lg {
+  width: min(1080px, calc(100vw - 2 * var(--space-4)));
+  max-height: min(92vh, 900px);
+}
 .v-modal[open] {
   display: flex;
   flex-direction: column;

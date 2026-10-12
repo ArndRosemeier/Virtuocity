@@ -52,6 +52,7 @@ function chronicler(
     id,
     name,
     backing: 'llm',
+    modalities: ['text'],
     settings: chroniclerSettings,
     implements: [
       implement(summarizerContract, {

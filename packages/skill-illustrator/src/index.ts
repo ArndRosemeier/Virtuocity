@@ -37,7 +37,7 @@ async function illustrate(
   const settings = readSettings(illustratorSettings, ctx.settings);
   const result = await ctx.complete({
     modality: 'image',
-    messages: illustratePrompt(ctx.actor, ctx.actors, request, settings),
+    messages: illustratePrompt(ctx.actors, request, settings),
     ...(signal ? { signal } : {}),
   });
   const [part] = await storeMedia(ctx.assets, result.media ?? [], altText(request.description));
@@ -77,6 +77,7 @@ export const illustratorSkill: Skill = {
   id: 'illustrator',
   name: 'Illustrator',
   backing: 'llm',
+  modalities: ['image'],
   settings: illustratorSettings,
   implements: [
     implement(illustratorContract, {

@@ -220,6 +220,10 @@ request, schema)` asks for JSON matching a zod schema, then shows the model
   (the illustrator adds `appearance`). Values live in `actor.profile[fieldId]`
   and any skill reads them with `profileValue(actor, field)`. Settings belong to
   one skill; profile fields describe the actor for everyone.
+- **What a skill uses of its actor**: a skill declares `persona` (it voices the
+  actor's personality), `character` (the actor is a character, so profile
+  fields apply) and `modalities` (which models it calls). `actorUse(skills)`
+  combines them; the actor dialog asks only for what the chosen skills use.
 
 ## Context assembly
 

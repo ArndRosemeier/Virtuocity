@@ -94,7 +94,7 @@ export function ActorDialog({
   return (
     <Modal
       open={open}
-      size="sm"
+      size="lg"
       title={actor ? `Edit ${actor.personality.name}` : 'New actor'}
       onClose={onClose}
       footer={footer}

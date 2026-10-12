@@ -12,6 +12,9 @@ export const conversationSkill: Skill = {
   id: 'conversation',
   name: 'Conversation',
   backing: 'llm',
+  modalities: ['text'],
+  persona: true,
+  character: true,
   settings: conversationSettings,
   async takeTurn(ctx) {
     const settings = readSettings(conversationSettings, ctx.settings);

@@ -45,16 +45,13 @@ export function appearances(actors: readonly Actor[], text: string): string[] {
   });
 }
 
-/** The image model's instructions; settings and the illustrator's description set the style. */
+/** The image model's instructions; the request and the illustrator's settings set the style. */
 export function illustratePrompt(
-  illustrator: Actor,
   actors: readonly Actor[],
   request: IllustrateRequest,
   settings: IllustratorSettings,
 ): ChatMessage[] {
-  const style = [request.style, settings.style, illustrator.personality.description]
-    .filter(Boolean)
-    .join('. ');
+  const style = [request.style, settings.style].filter(Boolean).join('. ');
   const people = appearances(actors, request.description);
   const content = [
     'Draw one picture of the following. No text or lettering in the picture.',

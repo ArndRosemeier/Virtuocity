@@ -4,7 +4,6 @@ import type { Actor, ChatMessage } from '@virtuocity/core';
 function system(chronicler: Actor, words: number): string {
   return [
     `You are ${chronicler.personality.name}, the chronicler of a collaborative story.`,
-    chronicler.personality.description,
     'Write a summary that lets the storytellers carry on without rereading the story: who is who, where they are, what has happened, what is still open, and any promises, secrets or debts.',
     `Write about ${words} words of plain prose in the past tense. No title, no preamble, no commentary.`,
   ]

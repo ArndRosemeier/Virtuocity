@@ -17,7 +17,7 @@ export const roleplayBlueprint = defineBlueprint({
   roles: [
     {
       id: 'premise',
-      personality: { name: 'Premise', description: 'Sets up where the story begins.' },
+      personality: { name: 'Premise', description: '' },
       needs: [premiseContract],
       optional: true,
     },
@@ -40,7 +40,8 @@ export const roleplayBlueprint = defineBlueprint({
     },
     {
       id: 'illustrator',
-      personality: { name: 'Ink', description: 'Paints in loose, warm watercolour.' },
+      personality: { name: 'Ink', description: '' },
+      settings: { illustrator: { style: 'Loose, warm watercolour' } },
       needs: [illustratorContract],
       optional: true,
     },
@@ -48,7 +49,7 @@ export const roleplayBlueprint = defineBlueprint({
       id: 'chronicler',
       personality: {
         name: 'Chronicler',
-        description: 'Keeps track of the story so far, so nobody forgets what happened long ago.',
+        description: '',
       },
       needs: [summarizerContract],
       optional: true,

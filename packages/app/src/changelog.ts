@@ -11,6 +11,15 @@ export interface Release {
 
 export const RELEASES: readonly Release[] = [
   {
+    build: 16,
+    date: '2026-10-12',
+    changes: [
+      'The actor dialog is wider, with two columns, so it rarely needs scrolling.',
+      'It only asks for what the chosen skills use: Personality for skills that voice a character (Conversation, Writer, Reviewer), Appearance for characters, and models only for the kinds of output the skills produce. A Canvas or Dice roller actor now needs just a name.',
+      'The Illustrator takes its look from its Style setting instead of its personality; the Roleplay illustrator Ink paints in loose, warm watercolour as before.',
+    ],
+  },
+  {
     build: 15,
     date: '2026-10-12',
     changes: [

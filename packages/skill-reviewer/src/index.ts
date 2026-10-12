@@ -32,6 +32,8 @@ export const reviewerSkill: Skill = {
   id: 'reviewer',
   name: 'Reviewer',
   backing: 'llm',
+  modalities: ['text'],
+  persona: true,
   settings: reviewerSettings,
   implements: [
     implement(reviewerContract, {
