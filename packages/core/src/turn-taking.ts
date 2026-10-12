@@ -5,13 +5,13 @@ export type TurnTakingInput =
   { readonly kind: 'pass' } | { readonly kind: 'choose'; readonly actorId: string };
 
 /**
- * The default flow: after the human acts or passes, one character speaks,
+ * The default flow: after the human acts or passes, one actor speaks,
  * picked by the director (or chosen by the human), then the session pauses.
  */
 export const turnTakingFlow = defineFlow<TurnTakingInput>({
   id: 'turn-taking',
   name: 'Turn taking',
-  description: 'One character answers, then the story pauses for you.',
+  description: 'One actor answers, then the story pauses for you.',
   input: z.discriminatedUnion('kind', [
     z.object({ kind: z.literal('pass') }),
     z.object({ kind: z.literal('choose'), actorId: z.string() }),

@@ -1,0 +1,42 @@
+/**
+ * One entry per build, newest first. Every change that ships to main adds an
+ * entry with the next build number; the version shown is build / 1000.
+ */
+export interface Release {
+  readonly build: number;
+  /** ISO date, e.g. `2026-10-12`. */
+  readonly date: string;
+  readonly changes: readonly string[];
+}
+
+export const RELEASES: readonly Release[] = [
+  {
+    build: 1,
+    date: '2026-10-12',
+    changes: [
+      'Version number and this "What\'s new" history.',
+      '"Characters" are now called actors: anyone or anything taking part, such as a writer, a reviewer or a story character.',
+      'Book room: add chapters, let a writer draft them and a reviewer give notes, then approve or send them back.',
+      'Choose which skills each actor has.',
+      'Your tasks: answer requests from the story, such as approving a chapter, in a form.',
+      'Sessions save automatically; save to or load from a file, or start a new session.',
+      'Stop a running turn at any time.',
+      'Roleplay chat with several characters, model choice per actor, and cost tracking.',
+    ],
+  },
+];
+
+export function formatVersion(build: number): string {
+  return (build / 1000).toFixed(3);
+}
+
+export function currentRelease(releases: readonly Release[] = RELEASES): Release {
+  const [latest] = releases;
+  if (!latest) throw new Error('The changelog is empty');
+  return latest;
+}
+
+/** Releases newer than the build the user last saw, newest first. */
+export function unseen(lastSeen: number, releases: readonly Release[] = RELEASES): Release[] {
+  return releases.filter((r) => r.build > lastSeen);
+}

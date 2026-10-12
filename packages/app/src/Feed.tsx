@@ -8,7 +8,7 @@ import { StatsBadge } from './StatsBadge';
 import type { PanelProps } from './types';
 
 function Welcome({ session }: Pick<PanelProps, 'session'>) {
-  const { openSettings, openNewCharacter } = useAppActions();
+  const { openSettings, openNewActor } = useAppActions();
   const [key] = useSetting(API_KEY);
   if (!key) {
     return (
@@ -21,7 +21,7 @@ function Welcome({ session }: Pick<PanelProps, 'session'>) {
           </Button>
         }
       >
-        Add your OpenRouter key to bring characters to life. It stays in this browser.
+        Add your OpenRouter key to bring actors to life. It stays in this browser.
       </EmptyState>
     );
   }
@@ -31,18 +31,18 @@ function Welcome({ session }: Pick<PanelProps, 'session'>) {
         icon="users"
         title="Set the scene"
         action={
-          <Button variant="primary" icon="plus" onClick={openNewCharacter}>
-            Add a character
+          <Button variant="primary" icon="plus" onClick={openNewActor}>
+            Add an actor
           </Button>
         }
       >
-        Create one or more characters, then write the opening line.
+        Create one or more actors, then write the opening line.
       </EmptyState>
     );
   }
   return (
     <EmptyState icon="lantern" title="Your story starts here">
-      Write the first line below, or pass and let a character begin.
+      Write the first line below, or pass and let an actor begin.
     </EmptyState>
   );
 }

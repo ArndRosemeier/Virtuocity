@@ -82,8 +82,8 @@ function TurnBar({
 }
 
 /**
- * The pause between turns. The human can act (and a director-picked character
- * answers once), pass (a character takes one turn), or pick who speaks next.
+ * The pause between turns. The human can act (and a director-picked actor
+ * answers once), pass (an actor takes one turn), or pick who speaks next.
  */
 export function Composer({ session }: { session: SessionRuntime }) {
   const [draft, setDraft] = useState('');

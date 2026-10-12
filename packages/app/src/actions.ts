@@ -4,7 +4,7 @@ import type { SettingsTab } from './SettingsModal';
 /** App-level dialogs any component or panel can open. */
 export interface AppActions {
   openSettings(tab?: SettingsTab): void;
-  openNewCharacter(): void;
+  openNewActor(): void;
 }
 
 export const AppActionsContext = createContext<AppActions | null>(null);

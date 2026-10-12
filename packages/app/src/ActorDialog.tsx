@@ -23,7 +23,7 @@ interface Draft {
 
 const EMPTY: Draft = { name: '', description: '', models: {}, skillIds: ['conversation'] };
 
-/** Which skills the character has; contracts show what each one can stand in for. */
+/** Which skills the actor has; contracts show what each one can stand in for. */
 function SkillPicker({
   host,
   value,
@@ -56,7 +56,7 @@ function SkillPicker({
   );
 }
 
-function CharacterFields({
+function ActorFields({
   host,
   draft,
   onChange,
@@ -113,8 +113,8 @@ function CharacterFields({
   );
 }
 
-/** Creates an AI character. Its models are optional overrides of the defaults, per modality. */
-export function CharacterDialog({
+/** Creates an AI actor. Its models are optional overrides of the defaults, per modality. */
+export function ActorDialog({
   host,
   session,
   open,
@@ -153,9 +153,9 @@ export function CharacterDialog({
   );
 
   return (
-    <Modal open={open} size="sm" title="New character" onClose={onClose} footer={footer}>
+    <Modal open={open} size="sm" title="New actor" onClose={onClose} footer={footer}>
       <form className="stack" onSubmit={submit}>
-        <CharacterFields host={host} draft={draft} onChange={setDraft} />
+        <ActorFields host={host} draft={draft} onChange={setDraft} />
       </form>
     </Modal>
   );

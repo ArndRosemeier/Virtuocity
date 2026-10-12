@@ -2,14 +2,14 @@ import { Avatar, Button, IconButton, Pill } from '@virtuocity/ui';
 import { useAppActions } from './actions';
 import type { AppModule, PanelProps } from './types';
 
-/** Who is in the scene; characters can join and leave at any time. */
+/** Who is in the scene; actors can join and leave at any time. */
 function CastPanel({ session }: PanelProps) {
-  const { openNewCharacter } = useAppActions();
+  const { openNewActor } = useAppActions();
   const cast = session.actors.filter((a) => a.controller === 'ai');
   return (
     <div className="cast">
       {cast.length === 0 && (
-        <p className="muted">Nobody here yet. Add a character to start the scene.</p>
+        <p className="muted">Nobody here yet. Add an actor to start the scene.</p>
       )}
       <ul className="cast__list">
         {cast.map((a) => (
@@ -35,8 +35,8 @@ function CastPanel({ session }: PanelProps) {
           </li>
         ))}
       </ul>
-      <Button icon="plus" onClick={openNewCharacter}>
-        Add character
+      <Button icon="plus" onClick={openNewActor}>
+        Add actor
       </Button>
     </div>
   );

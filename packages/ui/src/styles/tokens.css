@@ -63,7 +63,7 @@
   --shadow-1: 0 1px 2px rgb(0 0 0 / 40%);
   --shadow-2: 0 24px 64px rgb(0 0 0 / 55%), 0 2px 6px rgb(0 0 0 / 40%);
 
-  /* Character hues, picked per name */
+  /* Actor hues, picked per name */
   --hue-0: #e3a64a;
   --hue-1: #7cb7e8;
   --hue-2: #b48ee6;

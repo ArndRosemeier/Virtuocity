@@ -20,6 +20,8 @@ codebase modular and free of duplication; CI enforces most of them.
 - No `any`, no non-null assertions, no disabling lint rules or skipping tests to get green.
 - Keep files under 300 lines and functions under 60 lines; split rather than grow.
 - Every core change and every code-backed skill comes with tests (`*.test.ts` next to the source).
+- Every change merged to `main` is one build: add an entry with the next build number at the top of
+  `packages/app/src/changelog.ts`, describing what changed for the user (version = build / 1000).
 - Inject side effects (fetch, randomness, time, ids) so code stays testable.
 
 ## Commands

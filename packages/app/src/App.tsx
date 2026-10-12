@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { createAssetStore } from '@virtuocity/core';
 import { AppActionsContext } from './actions';
 import type { AppActions } from './actions';
-import { CharacterDialog } from './CharacterDialog';
+import { ActorDialog } from './ActorDialog';
 import { Composer } from './Composer';
 import { Feed } from './Feed';
 import { Header } from './Header';
@@ -21,7 +21,7 @@ export function App() {
   const assets = useMemo(() => createAssetStore(indexedDbStore('assets')), []);
   const session = useSession(host, sessions);
   const [settingsTab, setSettingsTab] = useState<SettingsTab | null>(null);
-  const [newCharacter, setNewCharacter] = useState(false);
+  const [newActor, setNewActor] = useState(false);
   useTheme();
   useEffect(() => {
     // Dev builds expose the session for debugging in the browser console.
@@ -31,7 +31,7 @@ export function App() {
   const actions = useMemo<AppActions>(
     () => ({
       openSettings: (tab = 'connection') => setSettingsTab(tab),
-      openNewCharacter: () => setNewCharacter(true),
+      openNewActor: () => setNewActor(true),
     }),
     [],
   );
@@ -51,11 +51,11 @@ export function App() {
         initialTab={settingsTab ?? 'connection'}
         onClose={() => setSettingsTab(null)}
       />
-      <CharacterDialog
+      <ActorDialog
         host={host}
         session={session}
-        open={newCharacter}
-        onClose={() => setNewCharacter(false)}
+        open={newActor}
+        onClose={() => setNewActor(false)}
       />
     </AppActionsContext.Provider>
   );
