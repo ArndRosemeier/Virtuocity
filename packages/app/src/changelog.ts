@@ -11,6 +11,14 @@ export interface Release {
 
 export const RELEASES: readonly Release[] = [
   {
+    build: 19,
+    date: '2026-10-12',
+    changes: [
+      'A new System prompt skill: write instructions once (a style, a format, house rules) and every actor that uses a text model follows them. Add it to a support actor in the Add actor dialog.',
+      'With several System prompt actors, their prompts are combined in the order the actors joined, ahead of each actor’s own instructions. Pictures and sound are not affected.',
+    ],
+  },
+  {
     build: 18,
     date: '2026-10-12',
     changes: [

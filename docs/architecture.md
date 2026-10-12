@@ -313,6 +313,15 @@ maximize any space to full screen, where its content stretches to fit. The
 Illustrator shows its latest picture; `skill-canvas` is a blank canvas kept in
 its own `canvas` document.
 
+## Instructions
+
+`host.instructions` holds `InstructionSource`s: standing instructions the
+runtime adds to every text-model call of every actor (`withInstructions`, ahead
+of the call's own system prompt), so no skill has to opt in. Image and audio
+calls are left alone. `skill-system-prompt` is the first source: a silent
+support skill whose `prompt` setting is added for everyone; several such actors
+are combined in the order they joined.
+
 ## Story view
 
 How the story looks is a contract too. `contract-render` defines `render@1.0`:

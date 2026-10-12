@@ -10,6 +10,7 @@ import { EventBus, defineEvent } from './events';
 import { FlowRunner } from './flow-runner';
 import type { VEvent } from './events';
 import { HumanTaskQueue } from './human-tasks';
+import { withInstructions } from './instructions';
 import { JobQueue } from './jobs';
 import type { Implementation } from './implementation';
 import { ContractError, invokeAction } from './implementation';
@@ -281,11 +282,23 @@ export class SessionRuntime {
     });
     const provider = this.config.host.providers.get(this.config.providerId);
     const signal = request.signal ?? this.flows.signal;
-    const full = { ...request, model, ...(signal ? { signal } : {}) };
+    const messages = this.#instructed(actor, request);
+    const full = { ...request, messages, model, ...(signal ? { signal } : {}) };
     const meta = { actorId: actor.id, skillId: skill.id };
     const result = await this.calls.track(meta, full, (r) => provider.complete(r));
     this.#spent.push(result.stats);
     return result;
+  }
+
+  /** A text call's messages with every standing instruction added; other modalities are left alone. */
+  #instructed(actor: Actor, request: ModelRequest): ModelRequest['messages'] {
+    if (request.modality !== 'text') return request.messages;
+    const who = { actor, actors: this.actors, cast: this.cast() };
+    const sources = this.config.host.instructions.list();
+    return withInstructions(
+      request.messages,
+      sources.flatMap((s) => s.instructions(who)),
+    );
   }
 
   /** Delivers events to every skill of every actor that listens for them. */
