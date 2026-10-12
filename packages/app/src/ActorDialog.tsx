@@ -13,7 +13,7 @@ const EMPTY: Draft = {
   name: '',
   description: '',
   models: {},
-  skillIds: ['conversation'],
+  skillIds: [],
   settings: {},
   profile: {},
 };

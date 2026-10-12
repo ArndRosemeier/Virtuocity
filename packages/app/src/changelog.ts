@@ -15,6 +15,7 @@ export const RELEASES: readonly Release[] = [
     date: '2026-10-12',
     changes: [
       'One premise skill, now just called "Premise": you write the opening yourself, and Transform by AI turns a few words into a full premise. "Premise (from a prompt)" is gone; actors that used it now use Premise, with what you had asked for as their premise text.',
+      'A new actor starts with no skills, so the editor asks only for what the skills you pick need. Before, every new actor had Conversation ticked, so a new Chronicler also talked and showed personality and appearance fields it does not use.',
     ],
   },
   {
