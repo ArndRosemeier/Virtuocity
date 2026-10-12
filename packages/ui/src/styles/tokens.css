@@ -73,6 +73,13 @@
   --hue-6: #68c5c0;
   --hue-7: #e58f62;
 
+  /* Markdown in story text: each kind of emphasis has its own color */
+  --md-em: #7cb7e8;
+  --md-strong: #e6849a;
+  --md-code: #68c5c0;
+  --md-heading: #b48ee6;
+  --md-quote: #6dbb8e;
+
   color-scheme: dark;
 }
 
@@ -98,5 +105,10 @@
   --scrim: rgb(40 32 20 / 45%);
   --shadow-1: 0 1px 2px rgb(60 45 20 / 12%);
   --shadow-2: 0 24px 64px rgb(60 45 20 / 22%), 0 2px 6px rgb(60 45 20 / 12%);
+  --md-em: #2f6fa8;
+  --md-strong: #b13f5c;
+  --md-code: #1f7f7a;
+  --md-heading: #7046b0;
+  --md-quote: #3f8a5f;
   color-scheme: light;
 }
