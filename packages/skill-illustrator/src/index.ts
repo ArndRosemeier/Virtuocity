@@ -1,7 +1,14 @@
 import type { Picture } from '@virtuocity/contract-visual';
-import { illustratorContract } from '@virtuocity/contract-visual';
+import { illustratorContract, sceneChannel } from '@virtuocity/contract-visual';
 import type { CallStats, Skill, SkillContext, VirtuocityModule } from '@virtuocity/core';
-import { IMAGE_PART, implement, readSettings, storeMedia, turnEnded } from '@virtuocity/core';
+import {
+  IMAGE_PART,
+  implement,
+  readSettings,
+  showOnChannel,
+  storeMedia,
+  turnEnded,
+} from '@virtuocity/core';
 import type { IllustrateRequest } from './prompt';
 import { appearanceField, illustratePrompt, illustratorSettings, sceneToPaint } from './prompt';
 
@@ -49,12 +56,14 @@ export const illustratorSkill: Skill = {
   listensTo: [turnEnded.type],
   onEvent: (event, ctx) => {
     if (!turnEnded.is(event) || event.payload.actorId === ctx.actor.id) return Promise.resolve();
-    const { every } = readSettings(illustratorSettings, ctx.settings);
+    const { every, inStory } = readSettings(illustratorSettings, ctx.settings);
     const scene = sceneToPaint(ctx.transcript, ctx.actor.id, event.payload.actorId, every);
     if (!scene) return Promise.resolve();
     ctx.startJob('Illustrating the scene', async ({ signal }) => {
       const { picture, stats } = await illustrate(ctx, { description: scene }, signal);
-      await ctx.post([{ kind: IMAGE_PART, data: picture }], [stats]);
+      const part = { kind: IMAGE_PART, data: picture };
+      await showOnChannel(ctx.state, sceneChannel, part);
+      if (inStory) await ctx.post([part], [stats]);
     });
     return Promise.resolve();
   },
@@ -64,6 +73,7 @@ export const illustratorModule: VirtuocityModule = {
   id: 'skill-illustrator',
   register: (host) => {
     host.contracts.register(illustratorContract);
+    host.channels.register(sceneChannel);
     host.skills.register(illustratorSkill);
     host.profileFields.register(appearanceField);
   },

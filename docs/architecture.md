@@ -253,6 +253,17 @@ as Roleplay or Book room: the roles it casts and the layout it asks for.
   several `main` views as tabs. Book room shows only the manuscript and no
   composer; Roleplay shows the story and the composer.
 
+## Channels
+
+A channel (`defineChannel`, `host.channels`) is a continuous output: something
+that stays showing or playing, such as the scene picture or background music,
+instead of a message in the story. It names the part kinds it `accepts`.
+`showOnChannel(state, channel, part)` replaces what a channel shows; the
+contents live in the `channels` document, so they rewind, branch and save with
+the story. Channels shared by several modules belong in a contract package
+(`sceneChannel` is in `contract-visual`). The app's "Now showing" panel
+renders every channel through the renderer registry.
+
 ## Library
 
 `Library` keeps actors and setups apart from any session, in an injected
@@ -274,6 +285,6 @@ actor), or press an actor's name to let exactly that one speak.
 See the roadmap in the project's design notes. The book room (draft, review,
 approve chapters with a writer, a reviewer and you as editor) is the first
 walking skeleton. Audio generation has the plumbing (parts, renderer) but no
-provider support yet. Blueprints, the library, and views and controls per slot exist; next up are
-continuous output channels and hardening the walking skeletons. The
+provider support yet. Blueprints, the library, views and controls per slot, and channels exist;
+next up is hardening the walking skeletons (milestone 7). The
 app autosaves one session.

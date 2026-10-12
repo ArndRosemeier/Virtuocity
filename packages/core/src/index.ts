@@ -6,6 +6,7 @@ export * from './blueprint';
 export * from './bundle';
 export * from './calls';
 export * from './cast';
+export * from './channels';
 export * from './conformance';
 export * from './context-assembly';
 export * from './contract';

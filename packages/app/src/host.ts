@@ -9,6 +9,7 @@ import { reviewerModule } from '@virtuocity/skill-reviewer';
 import { writerModule } from '@virtuocity/skill-writer';
 import { bookPanelModule } from './BookPanel';
 import { castPanelModule } from './CastPanel';
+import { channelsPanelModule } from './ChannelsPanel';
 import { composerModule } from './Composer';
 import { feedModule } from './Feed';
 import { jobsPanelModule } from './JobsPanel';
@@ -25,6 +26,7 @@ export function createHost(): AppHost {
     defaultRenderersModule,
     feedModule,
     composerModule,
+    channelsPanelModule,
     castPanelModule,
     taskPanelModule,
     jobsPanelModule,

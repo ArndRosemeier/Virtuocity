@@ -11,6 +11,14 @@ export interface Release {
 
 export const RELEASES: readonly Release[] = [
   {
+    build: 9,
+    date: '2026-10-12',
+    changes: [
+      'Now showing: the latest picture of the scene stays up beside the story and is replaced as the story moves on.',
+      'The Illustrator can paint only the scene and keep the story free of pictures: turn off "In story" in its settings.',
+    ],
+  },
+  {
     build: 8,
     date: '2026-10-12',
     changes: [
