@@ -19,7 +19,7 @@ export const chatViewSkill: Skill = {
 export const chatViewActor: Actor = {
   id: 'chat-view',
   controller: 'ai',
-  personality: { name: 'Chat view', description: 'Shows the story as a chat.' },
+  personality: { name: 'Chat view', description: 'Shows the session as a chat.' },
   skillIds: [chatViewSkill.id],
 };
 

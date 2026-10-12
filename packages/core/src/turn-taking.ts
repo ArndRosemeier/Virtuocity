@@ -11,7 +11,7 @@ export type TurnTakingInput =
 export const turnTakingFlow = defineFlow<TurnTakingInput>({
   id: 'turn-taking',
   name: 'Turn taking',
-  description: 'One actor answers, then the story pauses for you.',
+  description: 'One actor answers, then the session pauses for you.',
   input: z.discriminatedUnion('kind', [
     z.object({ kind: z.literal('pass') }),
     z.object({ kind: z.literal('choose'), actorId: z.string() }),

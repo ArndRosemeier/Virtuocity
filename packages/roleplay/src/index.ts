@@ -5,24 +5,28 @@ import type { VirtuocityModule } from '@virtuocity/core';
 import { defineBlueprint } from '@virtuocity/core';
 
 /**
- * A narrator and a companion tell a story with you. If skills for them are
- * installed, a premise opens it, an illustrator paints it and a chronicler
- * remembers it.
+ * A narrator tells a story with you. Options: AI players, a premise that opens
+ * it, an illustrator that paints it and a chronicler that remembers it. The
+ * personalities are the default actors offered in the library.
  */
 export const roleplayBlueprint = defineBlueprint({
   id: 'roleplay',
   name: 'Roleplay',
   description:
-    'A narrator sets the scene and a companion travels with you. Add an illustrator to see the story.',
+    'A narrator tells the story with you. Add AI players, a premise, pictures or a chronicler if you like.',
   roles: [
     {
       id: 'premise',
+      label: 'A premise',
+      hint: 'Opens an empty story with a starting situation.',
       personality: { name: 'Premise', description: '' },
       needs: [premiseContract],
       optional: true,
     },
     {
       id: 'narrator',
+      label: 'A narrator',
+      hint: 'Talks. Describes the world and what happens; the usual start.',
       personality: {
         name: 'Narrator',
         description:
@@ -32,14 +36,19 @@ export const roleplayBlueprint = defineBlueprint({
     },
     {
       id: 'companion',
+      label: 'AI players',
+      hint: 'Talk. Characters who play along with you; add one, several or none.',
       personality: {
         name: 'Wren',
         description: 'A quick-witted traveller with a soft spot for strays and a habit of humming.',
       },
       speaks: true,
+      optional: true,
     },
     {
       id: 'illustrator',
+      label: 'An illustrator',
+      hint: 'Paints pictures of the story as it goes.',
       personality: { name: 'Ink', description: '' },
       settings: { illustrator: { style: 'Loose, warm watercolour' } },
       needs: [illustratorContract],
@@ -47,6 +56,8 @@ export const roleplayBlueprint = defineBlueprint({
     },
     {
       id: 'chronicler',
+      label: 'A chronicler',
+      hint: 'Keeps a summary so long stories stay coherent.',
       personality: {
         name: 'Chronicler',
         description: '',

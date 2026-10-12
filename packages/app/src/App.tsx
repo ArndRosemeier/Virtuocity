@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Library, createAssetStore } from '@virtuocity/core';
 import { AppActionsContext } from './actions';
+import { ConflictsContext, useConflictDialog } from './conflicts';
 import { LibraryContext } from './library';
 import { Dialogs, dialogActions } from './Dialogs';
 import type { OpenDialog } from './Dialogs';
@@ -18,7 +19,9 @@ export function App() {
   const sessions = useMemo(() => indexedDbStore<unknown>('sessions'), []);
   const assets = useMemo(() => createAssetStore(indexedDbStore('assets')), []);
   const library = useMemo(() => new Library(indexedDbStore('library')), []);
-  const session = useSession(host, sessions, assets);
+  const [resolve, conflictDialog] = useConflictDialog();
+  const actors = useMemo(() => ({ library, resolve }), [library, resolve]);
+  const session = useSession(host, sessions, assets, actors);
   const [dialog, setDialog] = useState<OpenDialog | null>(null);
   useTheme();
   useEffect(() => {
@@ -33,14 +36,22 @@ export function App() {
     <AppActionsContext.Provider value={actions}>
       <AssetsContext.Provider value={assets}>
         <LibraryContext.Provider value={library}>
-          <div className={left ? 'layout layout--left' : 'layout'}>
-            <Header host={host} session={session} assets={assets} />
-            <Slot name="left" host={host} session={session} />
-            <Area name="main" host={host} session={session} />
-            <Slot name="side" host={host} session={session} />
-            <Area name="input" host={host} session={session} />
-          </div>
-          <Dialogs host={host} session={session} dialog={dialog} onClose={() => setDialog(null)} />
+          <ConflictsContext.Provider value={resolve}>
+            <div className={left ? 'layout layout--left' : 'layout'}>
+              <Header host={host} session={session} assets={assets} />
+              <Slot name="left" host={host} session={session} />
+              <Area name="main" host={host} session={session} />
+              <Slot name="side" host={host} session={session} />
+              <Area name="input" host={host} session={session} />
+            </div>
+            <Dialogs
+              host={host}
+              session={session}
+              dialog={dialog}
+              onClose={() => setDialog(null)}
+            />
+            {conflictDialog}
+          </ConflictsContext.Provider>
         </LibraryContext.Provider>
       </AssetsContext.Provider>
     </AppActionsContext.Provider>

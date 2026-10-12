@@ -2,6 +2,7 @@ import { z } from 'zod';
 import type { Actor } from './actor';
 import type { Blueprint } from './blueprint';
 import { defineDocType } from './doc-type';
+import type { EventBus } from './events';
 import { defineEvent } from './events';
 import type { SavedSetup } from './library';
 import type { Registry } from './registry';
@@ -10,21 +11,27 @@ import type { SessionRuntime } from './runtime';
 export interface Setup {
   /** The blueprint the session was started from, if any. */
   readonly blueprintId?: string;
+  /** The setup guide was closed for this session. */
+  readonly guideHidden?: boolean;
 }
 
-export interface SetupOp {
-  readonly type: 'use-blueprint';
-  readonly blueprintId: string;
-}
+export type SetupOp =
+  | { readonly type: 'use-blueprint'; readonly blueprintId: string }
+  | { readonly type: 'hide-guide' };
 
 /** How the session was set up. Kept in the log, so it saves and loads with the story. */
 export const setupDoc = defineDocType<Setup, SetupOp>({
   id: 'setup',
   version: 1,
-  description: 'How the session was set up, e.g. the blueprint it started from.',
-  op: z.object({ type: z.literal('use-blueprint'), blueprintId: z.string() }),
+  description:
+    'How the session was set up: the blueprint it started from, whether its guide shows.',
+  op: z.discriminatedUnion('type', [
+    z.object({ type: z.literal('use-blueprint'), blueprintId: z.string() }),
+    z.object({ type: z.literal('hide-guide') }),
+  ]),
   initial: () => ({}),
-  apply: (_state, op) => ({ blueprintId: op.blueprintId }),
+  apply: (state, op) =>
+    op.type === 'hide-guide' ? { ...state, guideHidden: true } : { blueprintId: op.blueprintId },
 });
 
 /** The document id of a session's setup. */
@@ -37,18 +44,33 @@ export const SETUP = 'setup';
  */
 export const sessionStarted = defineEvent<{ readonly blueprintId?: string }>('session.started');
 
+const starting = new WeakSet<EventBus>();
+
+/**
+ * Whether the session on this bus is starting: its first cast is joining and
+ * `sessionStarted` follows. Actors that react to joining can wait for the start.
+ */
+export function isStarting(bus: EventBus): boolean {
+  return starting.has(bus);
+}
+
 type Session = Pick<SessionRuntime, 'workspace' | 'join' | 'bus'>;
 
 async function castAndStart(session: Session, actors: readonly Actor[], blueprintId?: string) {
-  for (const actor of actors) await session.join(actor);
+  starting.add(session.bus);
+  try {
+    for (const actor of actors) await session.join(actor);
+  } finally {
+    starting.delete(session.bus);
+  }
   await session.bus.emit(sessionStarted.create(blueprintId === undefined ? {} : { blueprintId }));
 }
 
-/** Records the blueprint, casts its actors into the session and starts it. */
+/** Records the blueprint and starts the session with these actors (none by default). */
 export async function startBlueprint(
   session: Session,
   blueprint: Blueprint,
-  actors: readonly Actor[],
+  actors: readonly Actor[] = [],
 ): Promise<void> {
   await session.workspace.change({
     actorId: `blueprint:${blueprint.id}`,
@@ -68,14 +90,29 @@ export function currentBlueprint(
   return blueprintId === undefined ? undefined : blueprints.find(blueprintId);
 }
 
-/** Casts and starts a saved setup, using the layout of the blueprint it came from when installed. */
+/** Closes the setup guide for this session. */
+export function hideGuide(session: Pick<SessionRuntime, 'workspace'>): Promise<unknown> {
+  return session.workspace.change({
+    actorId: 'user',
+    docId: SETUP,
+    docType: setupDoc,
+    payload: { type: 'hide-guide' },
+  });
+}
+
+/**
+ * Starts a saved setup with its actors, as the library holds them, using the
+ * layout of the blueprint it came from when installed.
+ */
 export async function startSavedSetup(
   session: Session,
   setup: SavedSetup,
+  library: readonly Actor[],
   blueprints: Registry<Blueprint>,
 ): Promise<void> {
+  const actors = setup.actorIds.flatMap((id) => library.find((a) => a.id === id) ?? []);
   const blueprint =
     setup.blueprintId === undefined ? undefined : blueprints.find(setup.blueprintId);
-  if (blueprint) return startBlueprint(session, blueprint, setup.actors);
-  await castAndStart(session, setup.actors);
+  if (blueprint) return startBlueprint(session, blueprint, actors);
+  await castAndStart(session, actors);
 }

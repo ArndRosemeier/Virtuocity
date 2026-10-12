@@ -101,10 +101,14 @@ function NameSkillsPersonality({
   draft,
   onChange,
   persona,
-}: FieldsProps & { persona: boolean }) {
+  nameError,
+}: FieldsProps & { persona: boolean; nameError?: string | undefined }) {
   return (
     <>
-      <Field label="Name">
+      <Field
+        label="Name"
+        hint={nameError ? <span className="composer__error">{nameError}</span> : undefined}
+      >
         {(id) => (
           <TextInput
             id={id}
@@ -144,7 +148,12 @@ function NameSkillsPersonality({
  * for: personality for skills that voice it, profile fields such as
  * appearance for characters, models for the modalities in use.
  */
-export function ActorFields({ host, draft, onChange }: FieldsProps) {
+export function ActorFields({
+  host,
+  draft,
+  onChange,
+  nameError,
+}: FieldsProps & { nameError?: string | undefined }) {
   const catalog = useModels(host);
   const skills = draft.skillIds.flatMap((id) => host.skills.find(id) ?? []);
   const use = actorUse(skills);
@@ -158,6 +167,7 @@ export function ActorFields({ host, draft, onChange }: FieldsProps) {
           draft={draft}
           onChange={onChange}
           persona={use.persona}
+          nameError={nameError}
         />
       </div>
       <div className="stack">

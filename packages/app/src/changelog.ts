@@ -11,6 +11,20 @@ export interface Release {
 
 export const RELEASES: readonly Release[] = [
   {
+    build: 22,
+    date: '2026-10-12',
+    changes: [
+      'One actor, one identity: adding an actor puts that very actor in the session, not a copy. Editing it anywhere changes it everywhere; the edit dialog says so.',
+      'Names are unique. Copying an actor asks for a new name, and saving a name another actor has is refused.',
+      'No built-in characters any more. The Narrator, Wren and the others are ordinary actors added to your Library once, on the first start; edit or delete them freely.',
+      'Setups no longer add actors. Starting Roleplay opens an empty session with a guide in the Cast panel: a narrator is the usual start; AI players, a premise, an illustrator and a chronicler are options. It ticks off as you add actors. Hide it per session, or turn it off in Settings › Appearance.',
+      'Deleting an actor that is in the session asks whether to remove it from the session or start a new session.',
+      'Loading a session file adds its actors to your Library. If a name is already taken by a different actor, you choose: keep yours or use the loaded one.',
+      'A premise added to an empty session now opens it right away.',
+      'The main panel is now called Session instead of Story, since a session can be anything, not only a story.',
+    ],
+  },
+  {
     build: 21,
     date: '2026-10-12',
     changes: [

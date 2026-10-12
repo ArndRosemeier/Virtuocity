@@ -39,7 +39,7 @@ describe('roleplay blueprint', () => {
   const blueprint = host.blueprints.get('roleplay');
 
   it('needs a skill that takes turns', () => {
-    expect(blueprintProblems(blueprint, [paint])).toHaveLength(2);
+    expect(blueprintProblems(blueprint, [paint])).toHaveLength(1);
     expect(defaultChoices(blueprint, [talk]).premise?.included).toBe(false);
     expect(blueprintProblems(blueprint, [talk])).toEqual([]);
   });

@@ -16,8 +16,8 @@ export function StoryViewPicker({ host, session }: PanelProps) {
     <div className="story-view-picker">
       <RendererSelect
         host={host}
-        label="Story view"
-        hint="How this story is drawn. Edit it to change its settings."
+        label="Session view"
+        hint="How this session is drawn. Edit it to change its settings."
         value={rendererOf(host, session)?.id ?? ''}
         onChange={pick}
       />

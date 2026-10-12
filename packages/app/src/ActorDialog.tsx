@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import type { Actor, SessionRuntime } from '@virtuocity/core';
+import type { Actor } from '@virtuocity/core';
+import { sameName } from '@virtuocity/core';
 import { Button, Modal } from '@virtuocity/ui';
 import type { Draft } from './ActorFields';
 import { ActorFields } from './ActorFields';
@@ -46,46 +47,56 @@ export function actorFromDraft(id: string, draft: Draft): Actor {
   };
 }
 
+/** Why the draft's name cannot be saved: empty, or another actor's. */
+function nameProblem(name: string, takenNames: readonly string[]): string | undefined {
+  if (!name.trim()) return 'Every actor needs a name.';
+  const taken = takenNames.find((n) => sameName(n, name));
+  return taken && `There is already an actor called ${taken}. Names are unique.`;
+}
+
 /**
  * Creates an AI actor, or edits one when `actor` is given. Models are optional
- * overrides of the defaults, per modality. Saving joins the session, unless
- * `onSave` says where the actor goes instead (e.g. back into the library).
+ * overrides of the defaults, per modality. Names are unique: `takenNames` are
+ * the other actors' names. An actor is one actor wherever it is used, so
+ * editing changes it in the library and in the session alike.
  */
 export function ActorDialog({
   host,
-  session,
   actor,
   open,
   onClose,
-  onSave = (next) => void session.join(next),
-  saveLabel = actor ? 'Save' : 'Add to scene',
+  onSave,
+  takenNames,
+  saveLabel = actor ? 'Save' : 'Create',
 }: {
   host: AppHost;
-  session: SessionRuntime;
   actor?: Actor | undefined;
   open: boolean;
   onClose: () => void;
-  onSave?: (actor: Actor) => void;
+  onSave: (actor: Actor) => void;
+  takenNames: readonly string[];
   saveLabel?: string;
 }) {
   const [draft, setDraft] = useState<Draft>(() => draftOf(actor));
+  const problem = nameProblem(draft.name, takenNames);
 
   const submit = (e?: FormEvent) => {
     e?.preventDefault();
-    if (!draft.name.trim()) return;
+    if (problem) return;
     onSave(actorFromDraft(actor?.id ?? crypto.randomUUID(), draft));
     onClose();
   };
 
   const footer = (
     <>
+      {actor && <span className="muted actor-dialog__note">Changes this actor everywhere.</span>}
       <Button variant="ghost" onClick={onClose}>
         Cancel
       </Button>
       <Button
         variant="primary"
         {...(actor ? {} : { icon: 'plus' as const })}
-        disabled={!draft.name.trim()}
+        disabled={problem !== undefined}
         onClick={() => submit()}
       >
         {saveLabel}
@@ -102,7 +113,12 @@ export function ActorDialog({
       footer={footer}
     >
       <form className="stack" onSubmit={submit}>
-        <ActorFields host={host} draft={draft} onChange={setDraft} />
+        <ActorFields
+          host={host}
+          draft={draft}
+          onChange={setDraft}
+          nameError={draft.name.trim() ? problem : undefined}
+        />
       </form>
     </Modal>
   );

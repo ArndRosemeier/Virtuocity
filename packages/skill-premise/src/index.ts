@@ -1,6 +1,13 @@
 import { premiseContract } from '@virtuocity/contract-premise';
 import type { Implementation, Skill, SkillContext, VirtuocityModule } from '@virtuocity/core';
-import { implement, readSettings, sessionStarted, textContent } from '@virtuocity/core';
+import {
+  actorJoined,
+  implement,
+  readSettings,
+  sessionStarted,
+  isStarting,
+  textContent,
+} from '@virtuocity/core';
 import { deliverPremise } from './deliver';
 import { premisePrompt } from './prompt';
 import { fixedPremiseSettings, promptedPremiseSettings } from './settings';
@@ -8,13 +15,17 @@ import { fixedPremiseSettings, promptedPremiseSettings } from './settings';
 export * from './prompt';
 export * from './settings';
 
-/** A premise actor: silent, and active only when a session starts. */
+/**
+ * A premise actor: silent, and active only while the story is empty, when the
+ * session starts with it or when it joins later.
+ */
 function premiseSkill(skill: Omit<Skill, 'listensTo' | 'onEvent'>): Skill {
   return {
     ...skill,
-    listensTo: [sessionStarted.type],
-    onEvent: (_event, ctx) => {
-      deliverPremise(ctx);
+    listensTo: [sessionStarted.type, actorJoined.type],
+    onEvent: (event, ctx) => {
+      const joined = actorJoined.is(event) && event.payload.actorId === ctx.actor.id;
+      if (sessionStarted.is(event) || (joined && !isStarting(ctx.bus))) deliverPremise(ctx);
       return Promise.resolve();
     },
   };
