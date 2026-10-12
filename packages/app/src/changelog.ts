@@ -9,6 +9,15 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 44,
+    date: '2026-10-12',
+    changes: [
+      'More providers: besides OpenRouter you can now use OpenAI and Anthropic directly for text (and OpenAI for pictures), and WIRO for pictures. Settings > Connection has one key field per provider; every key stays in this browser.',
+      'Every model picker has two steps: first the provider, then its model. A provider shows up once its key is set.',
+      'Your existing model choices keep working as OpenRouter models, and your OpenRouter key is kept. Save all never includes any API key.',
+    ],
+  },
+  {
     build: 43,
     date: '2026-10-12',
     changes: [
