@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Actor } from './actor';
-import { Library } from './library';
+import { Library, copyOfActor } from './library';
 import { memoryStore } from './storage';
 
 const mira: Actor = {
@@ -16,6 +16,16 @@ function library(store = memoryStore<unknown>()) {
   let t = 100;
   return new Library(store, { newId: () => `item-${++n}`, now: () => t++ });
 }
+
+describe('copies', () => {
+  it('keep everything but the id and mark the name', () => {
+    expect(copyOfActor(mira, 'mira-2')).toEqual({
+      ...mira,
+      id: 'mira-2',
+      personality: { name: 'Mira (copy)', description: 'A wanderer.' },
+    });
+  });
+});
 
 describe('library', () => {
   it('keeps actors and setups, newest first', async () => {
@@ -38,6 +48,16 @@ describe('library', () => {
       actors: [mira],
     });
     expect(actor).toEqual({ kind: 'actor', id: 'item-1', savedAt: 100, actor: mira });
+  });
+
+  it('updates a saved actor in place', async () => {
+    const lib = library();
+    const saved = await lib.saveActor(mira);
+    const renamed = { ...mira, personality: { ...mira.personality, name: 'Mira the Bold' } };
+    await lib.updateActor(saved.id, renamed);
+    const items = await lib.list();
+    expect(items).toHaveLength(1);
+    expect(items[0]).toMatchObject({ id: saved.id, actor: renamed });
   });
 
   it('removes items and tells listeners about every change', async () => {

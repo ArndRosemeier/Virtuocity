@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Actor } from '@virtuocity/core';
+import { copyOfActor } from '@virtuocity/core';
 import { Avatar, Button, IconButton, Pill } from '@virtuocity/ui';
 import { useAppActions } from './actions';
 import { useLibrary } from './library';
@@ -7,11 +8,61 @@ import type { AppModule, PanelProps } from './types';
 
 const SAVED_NOTE_MS = 2000;
 
+interface CastRowProps {
+  readonly actor: Actor;
+  readonly speaking: boolean;
+  readonly saved: boolean;
+  readonly onSave: () => void;
+  readonly onCopy: () => void;
+  readonly onLeave: () => void;
+}
+
+/** One actor in the scene, with save, copy, edit and remove. */
+function CastRow({ actor: a, speaking, saved, onSave, onCopy, onLeave }: CastRowProps) {
+  const { openEditActor } = useAppActions();
+  return (
+    <li className="cast__item" data-speaking={speaking}>
+      <Avatar name={a.personality.name} />
+      <div className="cast__info">
+        <strong>{a.personality.name}</strong>
+        <span className="cast__meta">
+          {Object.entries(a.models ?? {}).map(([modality, model]) => (
+            <Pill key={modality} title={`${modality} model`}>
+              {model}
+            </Pill>
+          ))}
+          {speaking && <Pill tone="accent">writing…</Pill>}
+          {saved && <Pill tone="accent">saved to library</Pill>}
+        </span>
+      </div>
+      <IconButton
+        size="sm"
+        icon="bookmark"
+        label={`Save ${a.personality.name} to the library`}
+        onClick={onSave}
+      />
+      <IconButton size="sm" icon="copy" label={`Copy ${a.personality.name}`} onClick={onCopy} />
+      <IconButton
+        size="sm"
+        icon="edit"
+        label={`Edit ${a.personality.name}`}
+        onClick={() => openEditActor(a.id)}
+      />
+      <IconButton size="sm" icon="trash" label={`Remove ${a.personality.name}`} onClick={onLeave} />
+    </li>
+  );
+}
+
 /** Who is in the scene; actors can join and leave at any time. */
 function CastPanel({ session }: PanelProps) {
   const { openNewActor, openEditActor } = useAppActions();
   const library = useLibrary();
   const [saved, setSaved] = useState<string | null>(null);
+  /** Adds a copy to the scene and opens it, so a variation is one edit away. */
+  const copy = (actor: Actor) => {
+    const id = crypto.randomUUID();
+    void session.join(copyOfActor(actor, id)).then(() => openEditActor(id));
+  };
   const save = (actor: Actor) =>
     void library.saveActor(actor).then(() => {
       setSaved(actor.id);
@@ -25,39 +76,15 @@ function CastPanel({ session }: PanelProps) {
       )}
       <ul className="cast__list">
         {cast.map((a) => (
-          <li key={a.id} className="cast__item" data-speaking={session.speaking === a.id}>
-            <Avatar name={a.personality.name} />
-            <div className="cast__info">
-              <strong>{a.personality.name}</strong>
-              <span className="cast__meta">
-                {Object.entries(a.models ?? {}).map(([modality, model]) => (
-                  <Pill key={modality} title={`${modality} model`}>
-                    {model}
-                  </Pill>
-                ))}
-                {session.speaking === a.id && <Pill tone="accent">writing…</Pill>}
-                {saved === a.id && <Pill tone="accent">saved to library</Pill>}
-              </span>
-            </div>
-            <IconButton
-              size="sm"
-              icon="bookmark"
-              label={`Save ${a.personality.name} to the library`}
-              onClick={() => save(a)}
-            />
-            <IconButton
-              size="sm"
-              icon="edit"
-              label={`Edit ${a.personality.name}`}
-              onClick={() => openEditActor(a.id)}
-            />
-            <IconButton
-              size="sm"
-              icon="trash"
-              label={`Remove ${a.personality.name}`}
-              onClick={() => void session.leave(a.id)}
-            />
-          </li>
+          <CastRow
+            key={a.id}
+            actor={a}
+            speaking={session.speaking === a.id}
+            saved={saved === a.id}
+            onSave={() => save(a)}
+            onCopy={() => copy(a)}
+            onLeave={() => void session.leave(a.id)}
+          />
         ))}
       </ul>
       <Button icon="plus" onClick={openNewActor}>

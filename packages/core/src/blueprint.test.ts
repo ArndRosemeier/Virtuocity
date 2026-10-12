@@ -4,6 +4,7 @@ import type { Blueprint } from './blueprint';
 import {
   arrangeSlot,
   blueprintProblems,
+  builtInActors,
   castBlueprint,
   defaultChoices,
   defineBlueprint,
@@ -61,6 +62,15 @@ describe('layouts', () => {
 });
 
 describe('blueprints', () => {
+  it('lists the actors blueprints bring, skipping roles nothing can fill', () => {
+    const listed = builtInActors([stage], [talk]);
+    expect(listed.map((b) => [b.id, b.actor.skillIds])).toEqual([['stage:narrator', ['talk']]]);
+    expect(builtInActors([stage], [talk, paint]).map((b) => b.id)).toEqual([
+      'stage:narrator',
+      'stage:painter',
+    ]);
+  });
+
   it('rejects two roles with one id', () => {
     const role = { id: 'a', personality: person('A') };
     expect(() => defineBlueprint({ ...stage, roles: [role, role] })).toThrow('two roles');
