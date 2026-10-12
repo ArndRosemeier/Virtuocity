@@ -22,10 +22,23 @@ export interface BlueprintRole extends Identified {
   readonly models?: ModelOverrides;
 }
 
-/** How the app arranges a session of this blueprint. */
-export interface BlueprintLayout {
-  /** Panels to show, by id, in this order. Without it every panel shows. */
-  readonly panels?: readonly string[];
+/**
+ * How the app arranges a session of this blueprint: for each slot (`main`,
+ * `input`, `side`...), the contributions to show by id, in this order. A slot
+ * the layout does not name shows everything contributed to it.
+ */
+export type BlueprintLayout = Readonly<Partial<Record<string, readonly string[]>>>;
+
+/** The contributions a slot shows under a layout, in the layout's order. */
+export function arrangeSlot<T extends Identified & { readonly slot: string }>(
+  items: readonly T[],
+  slot: string,
+  layout?: BlueprintLayout,
+): T[] {
+  const inSlot = items.filter((i) => i.slot === slot);
+  const wanted = layout?.[slot];
+  if (!wanted) return inSlot;
+  return wanted.flatMap((id) => inSlot.filter((i) => i.id === id));
 }
 
 /** A ready-made setup ("Roleplay", "Book room"): who starts in it and how it looks. */

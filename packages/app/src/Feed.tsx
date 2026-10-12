@@ -5,7 +5,7 @@ import { useAppActions } from './actions';
 import { USER_ID } from './useSession';
 import { API_KEY, useSetting } from './settings';
 import { StatsBadge } from './StatsBadge';
-import type { PanelProps } from './types';
+import type { AppModule, PanelProps } from './types';
 
 function Welcome({ session }: Pick<PanelProps, 'session'>) {
   const { openSettings, openNewActor, openNewSession } = useAppActions();
@@ -137,3 +137,9 @@ export function Feed({ host, session }: PanelProps) {
     </main>
   );
 }
+
+export const feedModule: AppModule = {
+  id: 'feed',
+  register: (host) =>
+    host.panels.register({ id: 'story', title: 'Story', slot: 'main', component: Feed }),
+};

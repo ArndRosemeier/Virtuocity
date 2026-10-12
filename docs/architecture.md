@@ -52,10 +52,12 @@ app ──► any module ──► ui ──────────► core
   throw; `replace` swaps an entry on purpose.
 - **ModuleHost / VirtuocityModule** (`module.ts`): a module's `register(host)`
   adds things to the host's registries: `contracts`, `adapters`, `skills`,
-  `gameModes`, `providers`, `directors`, `renderers`, `panels`.
+  `blueprints`, `providers`, `directors`, `renderers`, `panels` and more.
+  A panel contribution names a slot: `main` (views such as the story feed or
+  the manuscript), `input` (controls such as the composer) or `side`.
 - **EventBus / defineEvent** (`events.ts`): everything that happens is an
   event. Modules declare their own typed events with `defineEvent`.
-- **Actor, Personality, Seat** (`actor.ts`): human or AI. An actor's abilities
+- **Actor, Personality** (`actor.ts`): human or AI. An actor's abilities
   come only from its skills; any actor can take any seat.
 - **Skill** (`skill.ts`): one interface, backed by `llm`, `code` or `hybrid`.
   `onEvent` for reacting (silent and support actors), `takeTurn` for actors that
@@ -246,8 +248,10 @@ as Roleplay or Book room: the roles it casts and the layout it asks for.
 - `castBlueprint` turns the choices into actors; `startBlueprint` records the
   blueprint in the `setup` document and casts them. `currentBlueprint` reads
   it back, so the layout survives saving and loading.
-- `layout.panels` picks the side panels and their order; without a layout
-  every panel shows.
+- `layout` names, per slot, the contributions to show and their order
+  (`arrangeSlot`); a slot it leaves out shows everything. The app shows
+  several `main` views as tabs. Book room shows only the manuscript and no
+  composer; Roleplay shows the story and the composer.
 
 ## Library
 
@@ -270,6 +274,6 @@ actor), or press an actor's name to let exactly that one speak.
 See the roadmap in the project's design notes. The book room (draft, review,
 approve chapters with a writer, a reviewer and you as editor) is the first
 walking skeleton. Audio generation has the plumbing (parts, renderer) but no
-provider support yet. Blueprints (Roleplay, Book room) and the library exist; next up are views and
-input controls beyond side panels, and continuous output channels. The
+provider support yet. Blueprints, the library, and views and controls per slot exist; next up are
+continuous output channels and hardening the walking skeletons. The
 app autosaves one session.

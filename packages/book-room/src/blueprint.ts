@@ -26,5 +26,10 @@ export const bookRoomBlueprint = defineBlueprint({
       needs: [reviewerContract],
     },
   ],
-  layout: { panels: ['book', 'tasks', 'cast', 'jobs'] },
+  // The pipeline works in the manuscript, not in a chat, so there is no story or composer.
+  layout: {
+    main: ['manuscript'],
+    input: [],
+    side: ['book', 'tasks', 'cast', 'jobs'],
+  },
 });
