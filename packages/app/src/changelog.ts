@@ -11,6 +11,15 @@ export interface Release {
 
 export const RELEASES: readonly Release[] = [
   {
+    build: 6,
+    date: '2026-10-12',
+    changes: [
+      'Ready-made setups: New session lets you start a Roleplay (a narrator, a companion and an illustrator) or a Book room (a writer and a reviewer), or start empty.',
+      'When more than one skill can fill a role, pick which one before you start. Optional roles, like the illustrator, can be left out.',
+      'Each setup shows the panels it needs: the Book panel appears only in the book room.',
+    ],
+  },
+  {
     build: 5,
     date: '2026-10-12',
     changes: [

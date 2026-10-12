@@ -1,5 +1,5 @@
-import type { Seat } from './actor';
 import type { ContractAdapter } from './adapter';
+import type { Blueprint } from './blueprint';
 import type { ContextContributor } from './context-assembly';
 import { ContractRegistry } from './contract-registry';
 import type { DocType } from './doc-type';
@@ -13,15 +13,6 @@ import type { ProfileField } from './settings';
 import type { Skill } from './skill';
 import type { Director } from './turns';
 import type { WritePolicy } from './workspace';
-
-/** A ruleset bundle (free form, D&D 5e, Pathfinder 2e...). */
-export interface GameMode extends Identified {
-  readonly name: string;
-  /** Skills this mode makes available to actors. */
-  readonly skillIds: readonly string[];
-  /** Seats a new session of this mode starts with. */
-  readonly defaultSeats: readonly Seat[];
-}
 
 /** A UI area contributed by a module. `C` is the UI's component type. */
 export interface PanelContribution<C = unknown> extends Identified {
@@ -38,7 +29,7 @@ export class ModuleHost<R = unknown, C = unknown> {
   readonly policies = new Registry<WritePolicy>('write policy');
   readonly skills = new Registry<Skill>('skill');
   readonly modalities = new Registry<ModalityInfo>('modality');
-  readonly gameModes = new Registry<GameMode>('game mode');
+  readonly blueprints = new Registry<Blueprint>('blueprint');
   readonly providers = new Registry<ModelProvider>('model provider');
   readonly directors = new Registry<Director>('director');
   readonly flows = new Registry<Flow>('flow');
