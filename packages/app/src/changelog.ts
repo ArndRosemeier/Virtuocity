@@ -9,6 +9,13 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 47,
+    date: '2026-10-12',
+    changes: [
+      'The story stays scrolled to its end when a reply finishes, also when the roleplay view folds away hidden parts. If you scrolled up to read, it leaves you there.',
+    ],
+  },
+  {
     build: 46,
     date: '2026-10-12',
     changes: [
