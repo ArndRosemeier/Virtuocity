@@ -730,3 +730,13 @@
   margin: 0;
   font-family: var(--font-story);
 }
+
+.channel {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+}
+.channel .media-image img {
+  width: 100%;
+  max-height: none;
+}

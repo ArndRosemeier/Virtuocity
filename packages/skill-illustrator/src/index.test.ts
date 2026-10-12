@@ -4,6 +4,7 @@ import {
   IMAGE_PART,
   ModuleHost,
   SessionRuntime,
+  channelContents,
   conformanceSuite,
   conformanceTarget,
   coreModule,
@@ -54,7 +55,7 @@ function session(reply: () => { media?: (typeof png)[] }) {
   return { runtime, ended };
 }
 
-async function play(runtime: SessionRuntime) {
+async function play(runtime: SessionRuntime, settings?: Record<string, unknown>) {
   const actor = (id: string, skillIds: string[]) => ({
     id,
     controller: 'ai' as const,
@@ -62,7 +63,7 @@ async function play(runtime: SessionRuntime) {
     skillIds,
   });
   await runtime.join(actor('narrator', ['narrator']));
-  await runtime.join(actor('ink', ['illustrator']));
+  await runtime.join({ ...actor('ink', ['illustrator']), ...(settings ? { settings } : {}) });
   await runtime.runTurn('narrator');
 }
 
@@ -77,6 +78,16 @@ describe('illustrating a scene', () => {
     expect(picture?.actorId).toBe('ink');
     expect(picture?.parts[0]?.kind).toBe(IMAGE_PART);
     expect(runtime.calls.list()[0]?.request.messages[0]?.content).toContain('A lantern flickers');
+    const scene = channelContents(runtime.workspace.view('user')).scene;
+    expect(scene).toMatchObject({ actorId: 'ink', part: picture?.parts[0] });
+  });
+
+  it('shows the picture only as the scene when it should stay out of the story', async () => {
+    const { runtime, ended } = session(() => ({ media: [png] }));
+    await play(runtime, { illustrator: { inStory: false } });
+    await expect(ended).resolves.toBe('done');
+    expect(runtime.transcript()).toHaveLength(1);
+    expect(channelContents(runtime.workspace.view('user')).scene?.part.kind).toBe(IMAGE_PART);
   });
 
   it('fails the job with a clear message when the model draws nothing', async () => {

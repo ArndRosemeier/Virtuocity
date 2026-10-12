@@ -1,4 +1,12 @@
-import { action, check, defineContract, z } from '@virtuocity/core';
+import { IMAGE_PART, action, check, defineChannel, defineContract, z } from '@virtuocity/core';
+
+/** A picture of where the story is now, replaced as the story moves on. */
+export const sceneChannel = defineChannel({
+  id: 'scene',
+  title: 'Scene',
+  description: 'A picture of where the story is now.',
+  accepts: [IMAGE_PART],
+});
 
 const picture = z.object({
   assetId: z

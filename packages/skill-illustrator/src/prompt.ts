@@ -14,6 +14,10 @@ export const illustratorSettings = defineSettings({
     .max(20)
     .default(1)
     .describe('Paint after every this many messages from others'),
+  inStory: z
+    .boolean()
+    .default(true)
+    .describe('Also post each picture into the story; it always shows as the scene'),
 });
 
 export type IllustratorSettings = z.output<typeof illustratorSettings>;

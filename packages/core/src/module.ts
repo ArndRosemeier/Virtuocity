@@ -1,5 +1,6 @@
 import type { ContractAdapter } from './adapter';
 import type { Blueprint } from './blueprint';
+import type { Channel } from './channels';
 import type { ContextContributor } from './context-assembly';
 import { ContractRegistry } from './contract-registry';
 import type { DocType } from './doc-type';
@@ -40,6 +41,7 @@ export class ModuleHost<R = unknown, C = unknown> {
   readonly renderers = new RendererRegistry<R>();
   readonly panels = new Registry<PanelContribution<C>>('panel');
   readonly profileFields = new Registry<ProfileField>('profile field');
+  readonly channels = new Registry<Channel>('channel');
   readonly contextContributors = new Registry<ContextContributor>('context contributor');
 }
 
