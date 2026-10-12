@@ -1,6 +1,7 @@
 import type { AssetStore, SessionRuntime } from '@virtuocity/core';
 import { IconButton, Icon } from '@virtuocity/ui';
 import { useAppActions } from './actions';
+import { Calls } from './Calls';
 import { SessionMenu } from './SessionMenu';
 import { StatsBadge } from './StatsBadge';
 import { WhatsNew } from './WhatsNew';
@@ -18,6 +19,7 @@ export function Header({ session, assets }: { session: SessionRuntime; assets: A
       </div>
       <div className="app-header__end">
         <StatsBadge stats={session.allStats()} showModels={false} />
+        <Calls session={session} />
         <SessionMenu session={session} assets={assets} />
         <IconButton icon="settings" label="Settings" onClick={() => openSettings()} />
       </div>

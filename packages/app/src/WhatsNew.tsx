@@ -25,16 +25,7 @@ export function WhatsNew() {
         v{formatVersion(latest.build)}
         <span className="whats-new__label">What's new</span>
       </Button>
-      <Modal
-        open={open}
-        title="What's new"
-        onClose={() => setOpen(false)}
-        footer={
-          <Button variant="primary" onClick={() => setOpen(false)}>
-            Done
-          </Button>
-        }
-      >
+      <Modal open={open} title="What's new" onClose={() => setOpen(false)} doneLabel="Done">
         <ol className="releases">
           {RELEASES.map((r) => (
             <li key={r.build} className="release" data-fresh={highlight.includes(r.build)}>

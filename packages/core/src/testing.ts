@@ -1,14 +1,14 @@
-import type { CompletionRequest, CompletionResult, ModelProvider } from './provider';
+import type { CompletionRequest, CompletionResult, ModelProvider, ToolCall } from './provider';
 
 /** Recorded model calls, keyed by the request that produced them. */
 export interface Recording {
   readonly calls: Record<string, CompletionResult>;
 }
 
-/** Stable key for a request: modality, model and messages. */
+/** Stable key for a request: everything but the signal and the streaming callback. */
 export function requestKey(request: CompletionRequest): string {
-  const { modality, model, messages } = request;
-  return JSON.stringify({ modality, model, messages });
+  const { modality, model, messages, tools, toolChoice, responseSchema } = request;
+  return JSON.stringify({ modality, model, messages, tools, toolChoice, responseSchema });
 }
 
 /** Wraps a real provider and records every result into `recording`. */
@@ -36,13 +36,20 @@ export function replayProvider(recording: Recording, id = 'replay'): ModelProvid
   };
 }
 
-/** Answers with fixed texts in order (or computed from the request), with zero-cost stats. */
+/** A scripted answer: plain text, or text with tool calls. */
+export type ScriptedReply =
+  string | { readonly text?: string; readonly toolCalls?: readonly ToolCall[] };
+
+/**
+ * Answers with fixed replies in order (or computed from the request), with
+ * zero-cost stats. Text is streamed word by word to `onText`.
+ */
 export function scriptedProvider(
-  replies: readonly string[] | ((request: CompletionRequest) => string),
+  replies: readonly ScriptedReply[] | ((request: CompletionRequest) => ScriptedReply),
   id = 'scripted',
 ): ModelProvider {
   let index = 0;
-  const next = (request: CompletionRequest): string => {
+  const next = (request: CompletionRequest): ScriptedReply => {
     if (typeof replies === 'function') return replies(request);
     const reply = replies[index++];
     if (reply === undefined) throw new Error(`Scripted provider ran out of replies`);
@@ -51,9 +58,15 @@ export function scriptedProvider(
   return {
     id,
     complete: (request) =>
-      Promise.resolve().then(() => ({
-        text: next(request),
-        stats: { model: request.model, promptTokens: 0, completionTokens: 0, costUsd: 0 },
-      })),
+      Promise.resolve().then(() => {
+        const reply = next(request);
+        const { text = '', toolCalls } = typeof reply === 'string' ? { text: reply } : reply;
+        for (const word of text.match(/\S+\s*/g) ?? []) request.onText?.(word);
+        return {
+          text,
+          ...(toolCalls ? { toolCalls } : {}),
+          stats: { model: request.model, promptTokens: 0, completionTokens: 0, costUsd: 0 },
+        };
+      }),
   };
 }

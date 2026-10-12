@@ -1,10 +1,14 @@
-import type { Actor, ChatMessage, Message } from '@virtuocity/core';
+import type { Actor, ChatMessage, Message, ToolRun } from '@virtuocity/core';
+import { TOOL_USE, describeToolRun } from '@virtuocity/core';
 
-/** Plain text of a message; non-text parts are left to other skills. */
+/** Plain text of a message, with tool calls as one line each; other parts are left out. */
 export function messageText(message: Message): string {
   return message.parts
-    .filter((p) => p.kind === 'text')
-    .map((p) => String(p.data))
+    .flatMap((p) => {
+      if (p.kind === 'text') return [String(p.data)];
+      if (p.kind === TOOL_USE) return [describeToolRun(p.data as ToolRun)];
+      return [];
+    })
     .join('\n');
 }
 

@@ -1,5 +1,6 @@
 import type { Actor } from './actor';
 import { resolveImplementation } from './adapter';
+import { CallLog } from './calls';
 import { CAST, castDoc } from './cast';
 import type { Contract } from './contract';
 import { EventBus, defineEvent } from './events';
@@ -12,12 +13,14 @@ import type { ModelOverrides } from './models';
 import { resolveModel } from './models';
 import type { ModuleHost } from './module';
 import type { OutputPart } from './output';
+import type { CompletionResult, ModelRequest } from './provider';
 import type { Skill, SkillContext } from './skill';
 import type { InvokeAction } from './skill-context';
 import type { RewindOptions } from './oplog';
 import type { SavedSession } from './persistence';
 import { migrateOperations, parseSavedSession } from './persistence';
 import type { CallStats } from './stats';
+import { skillTools } from './skill-tools';
 import type { Message } from './transcript';
 import { MAIN_TRANSCRIPT, postingOperation, transcriptDoc } from './transcript';
 import type { ChangeOptions } from './workspace';
@@ -54,6 +57,8 @@ export class SessionRuntime {
   readonly tasks: HumanTaskQueue;
   /** Runs flows (turn-taking, pipelines, game loops) one at a time. */
   readonly flows: FlowRunner;
+  /** Traces of recent model calls, including text still streaming in. */
+  readonly calls: CallLog;
   readonly #newId: () => string;
   readonly #now: () => number;
   readonly #spent: CallStats[] = [];
@@ -66,6 +71,7 @@ export class SessionRuntime {
     const ids = { newId: this.#newId, now: this.#now };
     this.workspace = new Workspace({ bus, policies: () => config.host.policies.list(), ...ids });
     this.tasks = new HumanTaskQueue({ bus, ...ids });
+    this.calls = new CallLog({ bus, ...ids });
     this.flows = new FlowRunner(this, (id) => config.host.flows.get(id));
     this.bus.on('*', (event) => this.#dispatch(event));
   }
@@ -218,11 +224,15 @@ export class SessionRuntime {
   }
 
   #implementation(actor: Actor, contract: Contract) {
-    const skills = actor.skillIds
+    const adapters = this.config.host.adapters.list();
+    const skills = this.#skills(actor);
+    return resolveImplementation(skills, (s) => s.implements ?? [], contract, adapters);
+  }
+
+  #skills(actor: Actor): Skill[] {
+    return actor.skillIds
       .map((id) => this.config.host.skills.find(id))
       .filter((s): s is Skill => s !== undefined);
-    const adapters = this.config.host.adapters.list();
-    return resolveImplementation(skills, (s) => s.implements ?? [], contract, adapters);
   }
 
   #actor(actorId: string): Actor {
@@ -232,10 +242,12 @@ export class SessionRuntime {
   }
 
   #turnSkill(actor: Actor): Skill | undefined {
-    return actor.skillIds.map((id) => this.config.host.skills.find(id)).find((s) => s?.takeTurn);
+    return this.#skills(actor).find((s) => s.takeTurn);
   }
 
   #context(actor: Actor, skill: Skill): SkillContext {
+    const call = (contract: Contract, action: string, input: unknown) =>
+      this.invoke(actor.id, contract, action, input as never);
     return {
       actor,
       bus: this.bus,
@@ -244,31 +256,32 @@ export class SessionRuntime {
       actors: this.actors,
       post: (parts, stats) => this.post(actor.id, parts, stats),
       invoke: this.invoke,
-      complete: async (request) => {
-        const model = resolveModel(request.modality, {
-          defaults: this.config.modelDefaults(),
-          actor: actor.models,
-          skill: skill.models,
-        });
-        const provider = this.config.host.providers.get(this.config.providerId);
-        const signal = request.signal ?? this.flows.signal;
-        const result = await provider.complete({
-          ...request,
-          model,
-          ...(signal ? { signal } : {}),
-        });
-        this.#spent.push(result.stats);
-        return result;
-      },
+      complete: (request) => this.#complete(actor, skill, request),
+      tools: skillTools(this.#skills(actor), skill, call),
     };
+  }
+
+  /** Runs one model call for a skill: picks the model, traces the call, records its cost. */
+  async #complete(actor: Actor, skill: Skill, request: ModelRequest): Promise<CompletionResult> {
+    const model = resolveModel(request.modality, {
+      defaults: this.config.modelDefaults(),
+      actor: actor.models,
+      skill: skill.models,
+    });
+    const provider = this.config.host.providers.get(this.config.providerId);
+    const signal = request.signal ?? this.flows.signal;
+    const full = { ...request, model, ...(signal ? { signal } : {}) };
+    const meta = { actorId: actor.id, skillId: skill.id };
+    const result = await this.calls.track(meta, full, (r) => provider.complete(r));
+    this.#spent.push(result.stats);
+    return result;
   }
 
   /** Delivers events to every skill of every actor that listens for them. */
   async #dispatch(event: VEvent): Promise<void> {
     const deliveries = this.actors.flatMap((actor) =>
-      actor.skillIds
-        .map((id) => this.config.host.skills.find(id))
-        .filter((s): s is Skill => !!s?.onEvent && !!s.listensTo?.includes(event.type))
+      this.#skills(actor)
+        .filter((s) => !!s.onEvent && !!s.listensTo?.includes(event.type))
         .map((skill) => skill.onEvent?.(event, this.#context(actor, skill))),
     );
     await Promise.all(deliveries);

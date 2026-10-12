@@ -2,22 +2,56 @@ import type { Identified } from './registry';
 import type { Modality } from './models';
 import type { CallStats } from './stats';
 
-export interface ChatMessage {
-  readonly role: 'system' | 'user' | 'assistant';
-  readonly content: string;
+/** A function the model may call, described by a JSON Schema for its arguments. */
+export interface ToolSpec {
+  readonly name: string;
+  readonly description: string;
+  readonly parameters: Readonly<Record<string, unknown>>;
 }
+
+/** A call the model asked for. `arguments` is the raw JSON text the model wrote. */
+export interface ToolCall {
+  readonly id: string;
+  readonly name: string;
+  readonly arguments: string;
+}
+
+export type ChatMessage =
+  | { readonly role: 'system' | 'user'; readonly content: string }
+  | {
+      readonly role: 'assistant';
+      readonly content: string;
+      readonly toolCalls?: readonly ToolCall[];
+    }
+  | { readonly role: 'tool'; readonly toolCallId: string; readonly content: string };
 
 export interface CompletionRequest {
   readonly modality: Modality;
   readonly model: string;
   readonly messages: readonly ChatMessage[];
   readonly signal?: AbortSignal;
+  /** Functions the model may call instead of (or before) answering. */
+  readonly tools?: readonly ToolSpec[];
+  /** `'none'` forbids tool calls even when tools are listed. */
+  readonly toolChoice?: 'auto' | 'required' | 'none';
+  /** Asks for a JSON answer matching this schema, where the model supports it. */
+  readonly responseSchema?: {
+    readonly name: string;
+    readonly schema: Readonly<Record<string, unknown>>;
+  };
+  /** Receives text as it is generated. Providers that cannot stream call it once at the end. */
+  readonly onText?: (delta: string) => void;
 }
 
 export interface CompletionResult {
   readonly text: string;
+  readonly toolCalls?: readonly ToolCall[];
   readonly stats: CallStats;
 }
+
+/** A model call as skills make it: the runtime picks the model. */
+export type ModelRequest = Omit<CompletionRequest, 'model'>;
+export type Complete = (request: ModelRequest) => Promise<CompletionResult>;
 
 /** What a provider tells us about one of its models, for pickers and cost display. */
 export interface ModelInfo {

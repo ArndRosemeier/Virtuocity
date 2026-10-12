@@ -51,13 +51,19 @@ function MessageView({
   message,
   name,
   host,
+  live = false,
 }: {
   message: Message;
   name: string;
   host: PanelProps['host'];
+  live?: boolean;
 }) {
   return (
-    <article className="message" data-human={message.actorId === 'user'}>
+    <article
+      className={live ? 'message message--live' : 'message'}
+      data-human={message.actorId === USER_ID}
+      {...(live ? { 'aria-live': 'polite' } : {})}
+    >
       <Avatar name={name} size="lg" />
       <div className="message__body">
         <header className="message__header">
@@ -72,16 +78,43 @@ function MessageView({
   );
 }
 
+/** What the speaking actor is writing right now, as it streams in. */
+function Live({ host, session, actorId, name }: PanelProps & { actorId: string; name: string }) {
+  const call = session.calls.running(actorId).at(-1);
+  const text = call?.text.trim() ?? '';
+  if (!call || !text) {
+    return (
+      <div className="typing">
+        <Avatar name={name} />
+        <span>{name} is writing</span>
+        <span className="typing__dots" aria-hidden>
+          <i />
+          <i />
+          <i />
+        </span>
+      </div>
+    );
+  }
+  const draft: Message = {
+    id: call.id,
+    actorId,
+    parts: [{ kind: 'text', data: text }],
+    createdAt: call.startedAt,
+  };
+  return <MessageView message={draft} name={name} host={host} live />;
+}
+
 /** The story: the active path of the message tree, drawn through the renderer registry. */
 export function Feed({ host, session }: PanelProps) {
   const end = useRef<HTMLDivElement>(null);
   const messages = session.transcript(USER_ID);
   const nameOf = (id: string) => session.actors.find((a) => a.id === id)?.personality.name ?? id;
   const speaking = session.speaking;
+  const live = speaking ? (session.calls.running(speaking).at(-1)?.text.length ?? 0) : 0;
 
   useEffect(
     () => end.current?.scrollIntoView({ behavior: 'smooth', block: 'end' }),
-    [messages.length, speaking],
+    [messages.length, speaking, live],
   );
 
   return (
@@ -92,15 +125,7 @@ export function Feed({ host, session }: PanelProps) {
           <MessageView key={m.id} message={m} name={nameOf(m.actorId)} host={host} />
         ))}
         {speaking && (
-          <div className="typing">
-            <Avatar name={nameOf(speaking)} />
-            <span>{nameOf(speaking)} is writing</span>
-            <span className="typing__dots" aria-hidden>
-              <i />
-              <i />
-              <i />
-            </span>
-          </div>
+          <Live host={host} session={session} actorId={speaking} name={nameOf(speaking)} />
         )}
         <div ref={end} />
       </div>

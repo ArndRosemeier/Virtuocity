@@ -1,7 +1,7 @@
 import { reviewerContract } from '@virtuocity/contract-critique';
 import { conformanceSuite, conformanceTarget, scriptedProvider } from '@virtuocity/core';
-import { describe, expect, it } from 'vitest';
-import { extractJson, reviewerSkill } from './index';
+import { describe, it } from 'vitest';
+import { reviewerSkill } from './index';
 
 const reply = (system: string) =>
   system.includes('Decide whether')
@@ -14,11 +14,4 @@ describe('reviewer skill conforms to reviewer and critic', () => {
   for (const testCase of conformanceSuite(reviewerContract)) {
     it(`${testCase.contractId}: ${testCase.name}`, () => testCase.run(target));
   }
-});
-
-describe('extractJson', () => {
-  it('finds JSON inside fences and text', () => {
-    expect(extractJson('Sure!\n```json\n{"a": [1]}\n```')).toEqual({ a: [1] });
-    expect(() => extractJson('no json here')).toThrow(/no JSON/);
-  });
 });

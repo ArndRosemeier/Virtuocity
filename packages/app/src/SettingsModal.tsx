@@ -104,16 +104,7 @@ export function SettingsModal({
     { id: 'appearance', label: 'Appearance', icon: 'palette', content: () => <AppearanceTab /> },
   ];
   return (
-    <Modal
-      open={open}
-      title="Settings"
-      onClose={onClose}
-      footer={
-        <Button variant="primary" onClick={onClose}>
-          Done
-        </Button>
-      }
-    >
+    <Modal open={open} title="Settings" onClose={onClose} doneLabel="Done">
       <Tabs tabs={tabs} active={tab} onChange={setTab} />
     </Modal>
   );
