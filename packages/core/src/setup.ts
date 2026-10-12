@@ -2,6 +2,7 @@ import { z } from 'zod';
 import type { Actor } from './actor';
 import type { Blueprint } from './blueprint';
 import { defineDocType } from './doc-type';
+import { defineEvent } from './events';
 import type { SavedSetup } from './library';
 import type { Registry } from './registry';
 import type { SessionRuntime } from './runtime';
@@ -29,9 +30,21 @@ export const setupDoc = defineDocType<Setup, SetupOp>({
 /** The document id of a session's setup. */
 export const SETUP = 'setup';
 
-type Session = Pick<SessionRuntime, 'workspace' | 'join'>;
+/**
+ * A new session has begun and its first cast has joined. Fired once, when a
+ * session is started (not when a saved one is loaded), so actors can open it:
+ * deliver a premise, set the scene, start the music.
+ */
+export const sessionStarted = defineEvent<{ readonly blueprintId?: string }>('session.started');
 
-/** Records the blueprint and casts its actors into the session. */
+type Session = Pick<SessionRuntime, 'workspace' | 'join' | 'bus'>;
+
+async function castAndStart(session: Session, actors: readonly Actor[], blueprintId?: string) {
+  for (const actor of actors) await session.join(actor);
+  await session.bus.emit(sessionStarted.create(blueprintId === undefined ? {} : { blueprintId }));
+}
+
+/** Records the blueprint, casts its actors into the session and starts it. */
 export async function startBlueprint(
   session: Session,
   blueprint: Blueprint,
@@ -43,7 +56,7 @@ export async function startBlueprint(
     docType: setupDoc,
     payload: { type: 'use-blueprint', blueprintId: blueprint.id },
   });
-  for (const actor of actors) await session.join(actor);
+  await castAndStart(session, actors, blueprint.id);
 }
 
 /** The blueprint the session was started from, if it is still installed. */
@@ -55,7 +68,7 @@ export function currentBlueprint(
   return blueprintId === undefined ? undefined : blueprints.find(blueprintId);
 }
 
-/** Casts a saved setup, using the layout of the blueprint it came from when installed. */
+/** Casts and starts a saved setup, using the layout of the blueprint it came from when installed. */
 export async function startSavedSetup(
   session: Session,
   setup: SavedSetup,
@@ -64,5 +77,5 @@ export async function startSavedSetup(
   const blueprint =
     setup.blueprintId === undefined ? undefined : blueprints.find(setup.blueprintId);
   if (blueprint) return startBlueprint(session, blueprint, setup.actors);
-  for (const actor of setup.actors) await session.join(actor);
+  await castAndStart(session, setup.actors);
 }

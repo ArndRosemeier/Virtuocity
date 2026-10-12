@@ -5,6 +5,7 @@ import { conversationModule } from '@virtuocity/skill-conversation';
 import { diceModule } from '@virtuocity/skill-dice';
 import { chroniclerModule } from '@virtuocity/skill-chronicler';
 import { illustratorModule } from '@virtuocity/skill-illustrator';
+import { premiseModule } from '@virtuocity/skill-premise';
 import { roleplayModule } from '@virtuocity/roleplay';
 import { reviewerModule } from '@virtuocity/skill-reviewer';
 import { writerModule } from '@virtuocity/skill-writer';
@@ -40,6 +41,7 @@ export function createHost(): AppHost {
     writerModule as AppModule,
     illustratorModule as AppModule,
     chroniclerModule as AppModule,
+    premiseModule as AppModule,
     roleplayModule as AppModule,
     bookRoomModule as AppModule,
     bookPanelModule,
