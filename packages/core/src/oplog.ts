@@ -94,6 +94,20 @@ export class OpLog {
     return [...this.#ops.values()];
   }
 
+  /** Replaces the whole log, e.g. with a loaded session. Every parent must be present. */
+  replace(ops: readonly Operation[], head: string | null): void {
+    const byId = new Map(ops.map((op) => [op.id, op]));
+    for (const op of ops) {
+      if (op.parentId !== null && !byId.has(op.parentId)) {
+        throw new Error(`Operation "${op.id}" follows unknown operation "${op.parentId}"`);
+      }
+    }
+    if (head !== null && !byId.has(head)) throw new Error(`Unknown head operation "${head}"`);
+    this.#ops.clear();
+    for (const [id, op] of byId) this.#ops.set(id, op);
+    this.#head = head;
+  }
+
   #remove(id: string): void {
     for (const child of this.children(id)) this.#remove(child.id);
     this.#ops.delete(id);

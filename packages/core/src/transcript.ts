@@ -3,6 +3,7 @@ import { defineDocType } from './doc-type';
 import type { OutputPart } from './output';
 import type { OpLog, Operation } from './oplog';
 import type { CallStats } from './stats';
+import { callStatsSchema } from './stats';
 
 export interface Message {
   readonly id: string;
@@ -22,12 +23,6 @@ export interface Transcript {
 }
 
 const part = z.object({ kind: z.string(), data: z.unknown() });
-const stats = z.object({
-  model: z.string(),
-  promptTokens: z.number(),
-  completionTokens: z.number(),
-  costUsd: z.number().optional(),
-});
 
 /**
  * The conversation as a shared document. Branching, rewinding and editing all
@@ -45,7 +40,7 @@ export const transcriptDoc = defineDocType<Transcript, TranscriptOp>({
         id: z.string(),
         actorId: z.string(),
         parts: z.array(part),
-        stats: z.array(stats).optional(),
+        stats: z.array(callStatsSchema).optional(),
         createdAt: z.number(),
       }),
     }),

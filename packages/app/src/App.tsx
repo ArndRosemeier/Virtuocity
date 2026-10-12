@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { createAssetStore } from '@virtuocity/core';
 import { AppActionsContext } from './actions';
 import type { AppActions } from './actions';
 import { CharacterDialog } from './CharacterDialog';
@@ -9,13 +10,16 @@ import { SettingsModal } from './SettingsModal';
 import type { SettingsTab } from './SettingsModal';
 import { Slot } from './Slot';
 import { createHost } from './host';
+import { indexedDbStore } from './storage';
 import { useSession } from './useSession';
 import { useTheme } from './theme';
 import './app.css';
 
 export function App() {
   const host = useMemo(createHost, []);
-  const session = useSession(host);
+  const sessions = useMemo(() => indexedDbStore<unknown>('sessions'), []);
+  const assets = useMemo(() => createAssetStore(indexedDbStore('assets')), []);
+  const session = useSession(host, sessions);
   const [settingsTab, setSettingsTab] = useState<SettingsTab | null>(null);
   const [newCharacter, setNewCharacter] = useState(false);
   useTheme();
@@ -31,7 +35,7 @@ export function App() {
   return (
     <AppActionsContext.Provider value={actions}>
       <div className="layout">
-        <Header session={session} />
+        <Header session={session} assets={assets} />
         <Feed host={host} session={session} />
         <Slot name="side" host={host} session={session} />
         <Composer session={session} />

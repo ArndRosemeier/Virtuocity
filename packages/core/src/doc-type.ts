@@ -28,6 +28,11 @@ export interface DocType<S = unknown, O = unknown> extends Identified {
    * hidden from the perspective being folded.
    */
   apply(state: S, op: O, meta: OpMeta): S;
+  /**
+   * Upgrades an operation payload saved by an older `version` to the current
+   * one. Needed as soon as `version` is bumped, so old sessions keep loading.
+   */
+  migrate?(payload: unknown, fromVersion: number): unknown;
 }
 
 export function defineDocType<S, O>(spec: DocType<S, O>): DocType<S, O> {
