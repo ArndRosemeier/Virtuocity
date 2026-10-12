@@ -8,6 +8,7 @@ export interface AppActions {
   openEditActor(actorId: string): void;
   /** Picks a blueprint and starts over. */
   openNewSession(): void;
+  openLibrary(): void;
 }
 
 export const AppActionsContext = createContext<AppActions | null>(null);

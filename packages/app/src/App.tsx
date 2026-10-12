@@ -1,14 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { createAssetStore } from '@virtuocity/core';
+import { Library, createAssetStore } from '@virtuocity/core';
 import { AppActionsContext } from './actions';
-import type { AppActions } from './actions';
-import { ActorDialog } from './ActorDialog';
-import { BlueprintDialog } from './BlueprintDialog';
+import { LibraryContext } from './library';
 import { Composer } from './Composer';
+import { Dialogs, dialogActions } from './Dialogs';
+import type { OpenDialog } from './Dialogs';
 import { Feed } from './Feed';
 import { Header } from './Header';
-import { SettingsModal } from './SettingsModal';
-import type { SettingsTab } from './SettingsModal';
 import { Slot } from './Slot';
 import { AssetsContext } from './media';
 import { createHost } from './host';
@@ -21,58 +19,29 @@ export function App() {
   const host = useMemo(createHost, []);
   const sessions = useMemo(() => indexedDbStore<unknown>('sessions'), []);
   const assets = useMemo(() => createAssetStore(indexedDbStore('assets')), []);
+  const library = useMemo(() => new Library(indexedDbStore('library')), []);
   const session = useSession(host, sessions, assets);
-  const [settingsTab, setSettingsTab] = useState<SettingsTab | null>(null);
-  // `null`: closed; `''`: a new actor; otherwise the id of the actor being edited.
-  const [editing, setEditing] = useState<string | null>(null);
-  const [starting, setStarting] = useState(false);
+  const [dialog, setDialog] = useState<OpenDialog | null>(null);
   useTheme();
   useEffect(() => {
     // Dev builds expose the session for debugging in the browser console.
     if (import.meta.env.DEV) Object.assign(window, { virtuocity: { host, session } });
   }, [host, session]);
 
-  const actions = useMemo<AppActions>(
-    () => ({
-      openSettings: (tab = 'connection') => setSettingsTab(tab),
-      openNewActor: () => setEditing(''),
-      openEditActor: (actorId) => setEditing(actorId),
-      openNewSession: () => setStarting(true),
-    }),
-    [],
-  );
+  const actions = useMemo(() => dialogActions(setDialog), []);
 
   return (
     <AppActionsContext.Provider value={actions}>
       <AssetsContext.Provider value={assets}>
-        <div className="layout">
-          <Header session={session} assets={assets} />
-          <Feed host={host} session={session} />
-          <Slot name="side" host={host} session={session} />
-          <Composer session={session} />
-        </div>
-        <SettingsModal
-          key={settingsTab ?? 'closed'}
-          host={host}
-          open={settingsTab !== null}
-          initialTab={settingsTab ?? 'connection'}
-          onClose={() => setSettingsTab(null)}
-        />
-        <ActorDialog
-          key={`actor:${editing ?? 'closed'}`}
-          host={host}
-          session={session}
-          actor={session.actors.find((a) => a.id === editing)}
-          open={editing !== null}
-          onClose={() => setEditing(null)}
-        />
-        <BlueprintDialog
-          key={`start:${String(starting)}`}
-          host={host}
-          session={session}
-          open={starting}
-          onClose={() => setStarting(false)}
-        />
+        <LibraryContext.Provider value={library}>
+          <div className="layout">
+            <Header session={session} assets={assets} />
+            <Feed host={host} session={session} />
+            <Slot name="side" host={host} session={session} />
+            <Composer session={session} />
+          </div>
+          <Dialogs host={host} session={session} dialog={dialog} onClose={() => setDialog(null)} />
+        </LibraryContext.Provider>
       </AssetsContext.Provider>
     </AppActionsContext.Provider>
   );

@@ -11,6 +11,15 @@ export interface Release {
 
 export const RELEASES: readonly Release[] = [
   {
+    build: 7,
+    date: '2026-10-12',
+    changes: [
+      'Library: save an actor with the bookmark next to their name, then add them to any later session from the Library.',
+      'Save the whole cast as your own setup in the Library, and start it again from New session.',
+      'Export and import the Library as a file to keep it safe or share it.',
+    ],
+  },
+  {
     build: 6,
     date: '2026-10-12',
     changes: [

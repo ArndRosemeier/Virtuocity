@@ -13,7 +13,7 @@ import { coreModule } from './core-module';
 import { implement } from './implementation';
 import { ModuleHost, loadModules } from './module';
 import { SessionRuntime } from './runtime';
-import { currentBlueprint, startBlueprint } from './setup';
+import { currentBlueprint, startBlueprint, startSavedSetup } from './setup';
 import type { Skill } from './skill';
 
 const painter = defineContract({
@@ -93,15 +93,7 @@ describe('blueprints', () => {
   });
 
   it('records the blueprint in the session and casts its actors', async () => {
-    const host = loadModules(new ModuleHost(), [coreModule]);
-    host.skills.register(talk);
-    host.blueprints.register(stage);
-    const session = new SessionRuntime({
-      host,
-      providerId: 'none',
-      directorId: 'least-recent',
-      modelDefaults: () => ({}),
-    });
+    const { host, session } = stageSession();
     expect(currentBlueprint(session, host.blueprints)).toBeUndefined();
     const blueprint: Blueprint = stage;
     await startBlueprint(session, blueprint, castBlueprint(stage, defaultChoices(stage, [talk])));
@@ -113,4 +105,36 @@ describe('blueprints', () => {
     await session.load(saved);
     expect(currentBlueprint(session, host.blueprints)?.id).toBe('stage');
   });
+
+  it('starts a saved setup with the layout of its blueprint, if installed', async () => {
+    const { host, session } = stageSession();
+    const actors = castBlueprint(stage, defaultChoices(stage, [talk]));
+    const setup = {
+      kind: 'setup',
+      id: 's',
+      savedAt: 0,
+      name: 'Mine',
+      description: '',
+      actors,
+    } as const;
+    await startSavedSetup(session, { ...setup, blueprintId: 'stage' }, host.blueprints);
+    expect(currentBlueprint(session, host.blueprints)?.id).toBe('stage');
+    await session.workspace.load([], null);
+    await startSavedSetup(session, { ...setup, blueprintId: 'gone' }, host.blueprints);
+    expect(currentBlueprint(session, host.blueprints)).toBeUndefined();
+    expect(session.actors.map((a) => a.id)).toEqual(['narrator']);
+  });
 });
+
+function stageSession() {
+  const host = loadModules(new ModuleHost(), [coreModule]);
+  host.skills.register(talk);
+  host.blueprints.register(stage);
+  const session = new SessionRuntime({
+    host,
+    providerId: 'none',
+    directorId: 'least-recent',
+    modelDefaults: () => ({}),
+  });
+  return { host, session };
+}

@@ -249,6 +249,16 @@ as Roleplay or Book room: the roles it casts and the layout it asks for.
 - `layout.panels` picks the side panels and their order; without a layout
   every panel shows.
 
+## Library
+
+`Library` keeps actors and setups apart from any session, in an injected
+`KeyValueStore` (IndexedDB in the app). Items are validated on read, so a bad
+entry is skipped rather than breaking the list. `saveActor`, `saveSetup`,
+`remove`, `exportText`/`importText` (a `virtuocity.library` file) and
+`subscribe` for change notifications. A saved setup remembers the blueprint
+it came from; `startSavedSetup` casts it with that blueprint's layout when the
+blueprint is still installed.
+
 ## Turn flow in the app
 
 After every turn the session pauses. The human can **Act** (post, then the
@@ -260,6 +270,6 @@ actor), or press an actor's name to let exactly that one speak.
 See the roadmap in the project's design notes. The book room (draft, review,
 approve chapters with a writer, a reviewer and you as editor) is the first
 walking skeleton. Audio generation has the plumbing (parts, renderer) but no
-provider support yet. Blueprints exist (Roleplay, Book room); next up are the library of saved
-actors and blueprints, and views and input controls beyond side panels. The
+provider support yet. Blueprints (Roleplay, Book room) and the library exist; next up are views and
+input controls beyond side panels, and continuous output channels. The
 app autosaves one session.
