@@ -2,6 +2,7 @@ import type { CallStats, OutputPart } from '@virtuocity/core';
 import type { ChatView } from '@virtuocity/contract-render';
 import { Fragment, useState } from 'react';
 import { Avatar, IconButton } from '@virtuocity/ui';
+import { useActorTips } from './actorTips';
 import { MessageEditor } from './MessageEdit';
 import { openSpace } from './openSpaces';
 import { useMessageActions } from './messageActions';
@@ -11,6 +12,8 @@ import type { AppHost } from './types';
 interface MessageViewProps {
   readonly host: AppHost;
   readonly name: string;
+  /** Hover text on the speaker's avatar and name: what the actor is. */
+  readonly tip?: string | undefined;
   readonly part: OutputPart;
   readonly human?: boolean;
   readonly stats?: readonly CallStats[] | undefined;
@@ -73,6 +76,7 @@ function MessageButtons({
 export function MessageView({
   host,
   name,
+  tip,
   part,
   human = false,
   stats,
@@ -88,10 +92,12 @@ export function MessageView({
       data-human={human}
       {...(live ? { 'aria-live': 'polite' } : {})}
     >
-      <Avatar name={name} size="lg" />
+      <Avatar name={name} size="lg" title={tip} />
       <div className="message__body">
         <header className="message__header">
-          <h3 className="message__name">{name}</h3>
+          <h3 className="message__name" title={tip}>
+            {name}
+          </h3>
           {stats && <StatsBadge stats={stats} />}
           <MessageButtons
             retry={retry}
@@ -129,6 +135,7 @@ function StoryMarkerLine({ label, actorId }: { label: string; actorId: string })
 /** The chat view's output: the story as a column of messages. */
 export function ChatViewPart({ host, view }: { host: AppHost; view: ChatView }) {
   const actions = useMessageActions();
+  const tipOf = useActorTips();
   const retryOf = (id: string) =>
     actions?.canRetry(id) ? { run: () => actions.retry(id), busy: actions.busy } : undefined;
   const editOf = (id: string) => {
@@ -143,6 +150,7 @@ export function ChatViewPart({ host, view }: { host: AppHost; view: ChatView }) 
           <MessageView
             host={host}
             name={entry.name}
+            tip={tipOf(entry.actorId)}
             part={entry.part}
             human={entry.human}
             stats={entry.stats}

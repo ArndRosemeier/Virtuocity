@@ -3,6 +3,7 @@ import type { Actor } from '@virtuocity/core';
 import { hasActed } from '@virtuocity/core';
 import { Avatar, Button, IconButton, Pill } from '@virtuocity/ui';
 import { useAppActions } from './actions';
+import { useActorTips } from './actorTips';
 import { runSafely } from './LibraryActors';
 import { SessionGoesDialog } from './SessionGoesDialog';
 import { SetupGuide } from './SetupGuide';
@@ -20,8 +21,9 @@ interface CastRowProps {
 /** One actor in the scene, with edit and remove. Editing changes the actor in the library too. */
 function CastRow({ actor: a, speaking, onLeave }: CastRowProps) {
   const { openEditActor } = useAppActions();
+  const tip = useActorTips()(a);
   return (
-    <li className="cast__item" data-speaking={speaking}>
+    <li className="cast__item" data-speaking={speaking} title={tip}>
       <Avatar name={a.personality.name} />
       <div className="cast__info">
         <strong>{a.personality.name}</strong>

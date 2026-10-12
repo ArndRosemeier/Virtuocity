@@ -9,13 +9,27 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
-    build: 40,
+    build: 42,
     date: '2026-10-12',
     changes: [
       'Sessions have names and stay: New session asks for a name and keeps the one you had. The session name at the top opens your session list, where you switch between sessions and delete them.',
       'Templates: tick Template on a session to list it under Templates. Using a template asks for a name and starts a new session from a copy; the template stays as it is.',
       'Loading a session from a file adds it as a new named session.',
       'Deleting an actor deletes every saved session that has it, templates included, after a warning that names them.',
+    ],
+  },
+  {
+    build: 41,
+    date: '2026-10-12',
+    changes: [
+      'Hover over an actor to see what it is: whether a person plays it, its skills, and the start of its description. This works in the Library, the Cast panel, the "let speak" and "ask" buttons, and on the names and pictures above messages.',
+    ],
+  },
+  {
+    build: 40,
+    date: '2026-10-12',
+    changes: [
+      'The Memory panel is gone from the sidebar. A chronicler\'s summary now shows through the "Summarized" marker in the story: click it to open the summary.',
     ],
   },
   {
