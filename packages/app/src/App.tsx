@@ -10,6 +10,7 @@ import { Header } from './Header';
 import { useSidebarStyle } from './ResizeHandle';
 import { Area, Slot, contributions } from './Slot';
 import { AssetsContext } from './media';
+import { ActorTipsContext, actorTips } from './actorTips';
 import { createHost } from './host';
 import { indexedDbStore } from './storage';
 import { useSession } from './useSession';
@@ -31,6 +32,7 @@ export function App() {
   const actors = useMemo(() => ({ library, resolve }), [library, resolve]);
   const session = useSession(host, sessions, assets, actors);
   const ask = useMemo(() => askModel(session), [session]);
+  const tips = useMemo(() => actorTips({ host, session }), [host, session]);
   const [dialog, setDialog] = useState<OpenDialog | null>(null);
   useTheme();
   useEffect(() => {
@@ -48,20 +50,22 @@ export function App() {
         <LibraryContext.Provider value={library}>
           <ConflictsContext.Provider value={resolve}>
             <AskModelContext.Provider value={ask}>
-              <div className={left ? 'layout layout--left' : 'layout'} style={sidebars}>
-                <Header host={host} session={session} assets={assets} />
-                <Slot name="left" host={host} session={session} />
-                <Area name="main" host={host} session={session} />
-                <Slot name="side" host={host} session={session} />
-                <Area name="input" host={host} session={session} />
-              </div>
-              <Dialogs
-                host={host}
-                session={session}
-                dialog={dialog}
-                onClose={() => setDialog(null)}
-              />
-              {conflictDialog}
+              <ActorTipsContext.Provider value={tips}>
+                <div className={left ? 'layout layout--left' : 'layout'} style={sidebars}>
+                  <Header host={host} session={session} assets={assets} />
+                  <Slot name="left" host={host} session={session} />
+                  <Area name="main" host={host} session={session} />
+                  <Slot name="side" host={host} session={session} />
+                  <Area name="input" host={host} session={session} />
+                </div>
+                <Dialogs
+                  host={host}
+                  session={session}
+                  dialog={dialog}
+                  onClose={() => setDialog(null)}
+                />
+                {conflictDialog}
+              </ActorTipsContext.Provider>
             </AskModelContext.Provider>
           </ConflictsContext.Provider>
         </LibraryContext.Provider>
