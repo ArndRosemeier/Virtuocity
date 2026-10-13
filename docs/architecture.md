@@ -349,7 +349,7 @@ from its actor's point of view and returns the facts it has established, as
 output parts of any kind. `skill-fact-gatherer` ships one implementation, "Fact
 gatherer", which asks the text model with the actor's `prompt` setting (a
 sensible default, editable), the whole session and the facts gathered before.
-It refreshes by invoking the contract on its own actor, keeps the result in the
+It refreshes by invoking the contract on its own actor (also on Retry in its space), keeps the result in the
 `facts` document and shows it in its space, where a person can correct it; the
 next gathering keeps their corrections. Like the Illustrator it is support: it
 gathers when a person asks it (`onRequest`), and after other actors' turns only
@@ -392,11 +392,13 @@ only AI actors (the narrator) know the setup.
 ## Spaces
 
 Some actors get their own space on screen, in the app's left slot.
-`contract-space` defines `space@1.0`: `fill` returns what the space shows now
+`contract-space` defines `space@1.1`: `fill` returns what the space shows now
 as output parts of any kind (it must be quick), and the optional `edit` takes
-what a person changed. The optional `discard` and `redo` throw away or make
-again what the space shows (the app's trash and retry buttons in the space's
-header); the Illustrator removes the picture from the scene and the story, or
+what a person changed. `discard` throws away what the space shows and every
+space must offer it (the general rule since 1.1: whatever a space shows, a
+person can get rid of); the optional `redo` makes it again. They are the app's
+trash and retry buttons in the space's header. The canvas and the fact gatherer
+empty their space, the chronicler forgets its summary; the Illustrator removes the picture from the scene and the story, or
 repaints it from the description it keeps in the picture's data and replaces
 every copy. The app's Spaces panel shows one space per actor whose
 skills implement the contract, asks for it again whenever the session's state
@@ -404,9 +406,11 @@ moves, offers editing for spaces that provide `edit` and hold text, and can
 maximize any space to full screen, where its content stretches to fit. The
 Illustrator shows its latest picture; `skill-canvas` is a blank canvas kept in
 its own `canvas` document. Each space is a third of the sidebar's height and
-scrolls inside. A `fill` answering `onDemand: true` stays hidden until opened
-(clicking the actor's story marker) and gets a close button; which spaces are
-open is screen state only (`openSpaces.ts`), never in the session.
+scrolls inside. Every space has a close button; a closed space leaves a "Show"
+button behind. A `fill` answering `onDemand: true` stays hidden until opened
+(clicking the actor's story marker) and leaves nothing behind when closed;
+which spaces are open or closed is screen state only (`openSpaces.ts`), never
+in the session.
 
 ## Instructions
 

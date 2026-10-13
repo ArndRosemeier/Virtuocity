@@ -102,6 +102,14 @@ describe('chronicling a story', () => {
     expect(space).toEqual({ parts: [{ kind: 'text', data: 'Updated.' }], onDemand: true });
   });
 
+  it('forgets its summary and marker when the space is discarded', async () => {
+    const { runtime } = await play('differential-chronicler', 4);
+    const after = await runtime.invoke('chronicler', spaceContract, 'discard', {});
+    expect(after).toEqual({ parts: [] });
+    const { markers } = await runtime.invoke('chronicler', markerContract, 'markers', {});
+    expect(markers).toEqual([]);
+  });
+
   it('folds new story into the last summary when differential', async () => {
     const { prompts } = await play('differential-chronicler', 4);
     expect(prompts).toHaveLength(3);

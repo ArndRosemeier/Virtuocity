@@ -109,4 +109,17 @@ describe('gathering facts', () => {
     await runtime.runTurn('Facts');
     expect(requests[0]?.messages[1]?.content).toContain('Wren burned the map.');
   });
+
+  it('throws the facts away, and gathers them again on retry', async () => {
+    const { runtime, requests, space } = await session();
+    await runtime.runTurn('Facts');
+    await expect(runtime.invoke('Facts', spaceContract, 'discard', {})).resolves.toEqual({
+      parts: [],
+    });
+    await expect(runtime.invoke('Facts', spaceContract, 'redo', {})).resolves.toEqual({
+      parts: [factsPart],
+    });
+    expect(requests).toHaveLength(2);
+    expect((await space()).parts).toEqual([factsPart]);
+  });
 });

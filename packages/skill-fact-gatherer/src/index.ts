@@ -1,6 +1,6 @@
 import { factGathererContract } from '@virtuocity/contract-facts';
 import { spaceContract } from '@virtuocity/contract-space';
-import type { Skill, SkillContext, VirtuocityModule } from '@virtuocity/core';
+import type { OutputPart, Skill, SkillContext, VirtuocityModule } from '@virtuocity/core';
 import { implement, readSettings, turnEnded } from '@virtuocity/core';
 import { FACTS, factsDoc, gatheredFacts } from './facts';
 import { gatherPrompt, sessionText } from './prompt';
@@ -21,13 +21,21 @@ async function gather(ctx: SkillContext) {
   return { parts: [{ kind: 'text', data: facts }] };
 }
 
+const shown = (ctx: SkillContext) => ({ parts: gatheredFacts(ctx.state, ctx.actor.id) });
+
+/** Keeps these facts as the gathered ones, and returns what the space shows now. */
+async function keep(ctx: SkillContext, parts: readonly OutputPart[]) {
+  await ctx.state.change(FACTS, factsDoc, { actorId: ctx.actor.id, parts });
+  return shown(ctx);
+}
+
 /**
  * Gathers the facts through whatever skill of this actor implements the
  * fact-gatherer contract, so any gatherer can stand in, and keeps them for its space.
  */
 async function refresh(ctx: SkillContext): Promise<void> {
   const { parts } = await ctx.invoke(ctx.actor.id, factGathererContract, 'gather', {});
-  await ctx.state.change(FACTS, factsDoc, { actorId: ctx.actor.id, parts });
+  await keep(ctx, parts);
 }
 
 /** Gatherers with a refresh running, so a busy session doesn't start a second one. */
@@ -45,12 +53,10 @@ function refreshInBackground(ctx: SkillContext): void {
   });
 }
 
-const shown = (ctx: SkillContext) => ({ parts: gatheredFacts(ctx.state, ctx.actor.id) });
-
 /**
  * Keeps a list of the facts the session has established in its own space,
  * written by a text model from the whole session and the actor's editable
- * prompt. Picked by a person, it gathers right away; with `automatic` on, it
+ * prompt. Picked by a person (or Retry in its space), it gathers right away; with `automatic` on, it
  * also gathers in the background after other actors' turns. People can
  * correct the list in the space, and the next gathering keeps their corrections.
  */
@@ -64,8 +70,10 @@ export const factGathererSkill: Skill = {
     implement(factGathererContract, { gather: (_input, ctx) => gather(ctx) }),
     implement(spaceContract, {
       fill: (_input, ctx) => Promise.resolve(shown(ctx)),
-      edit: async ({ parts }, ctx) => {
-        await ctx.state.change(FACTS, factsDoc, { actorId: ctx.actor.id, parts });
+      edit: ({ parts }, ctx) => keep(ctx, parts),
+      discard: (_input, ctx) => keep(ctx, []),
+      redo: async (_input, ctx) => {
+        await refresh(ctx);
         return shown(ctx);
       },
     }),

@@ -28,6 +28,11 @@ const shown = (ctx: SkillContext) => ({
   parts: [...(ctx.state.read(CANVAS, canvasDoc).canvases[ctx.actor.id] ?? [])],
 });
 
+async function keep(ctx: SkillContext, parts: readonly OutputPart[]) {
+  await ctx.state.change(CANVAS, canvasDoc, { actorId: ctx.actor.id, parts });
+  return shown(ctx);
+}
+
 /**
  * A blank space for the person: it shows whatever was put in it, nothing more.
  * Give it to any actor to get a canvas beside the story.
@@ -39,10 +44,8 @@ export const canvasSkill: Skill = {
   implements: [
     implement(spaceContract, {
       fill: (_input, ctx) => Promise.resolve(shown(ctx)),
-      edit: async ({ parts }, ctx) => {
-        await ctx.state.change(CANVAS, canvasDoc, { actorId: ctx.actor.id, parts });
-        return shown(ctx);
-      },
+      edit: ({ parts }, ctx) => keep(ctx, parts),
+      discard: (_input, ctx) => keep(ctx, []),
     }),
   ],
 };
