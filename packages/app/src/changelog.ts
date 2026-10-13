@@ -9,6 +9,14 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 55,
+    date: '2026-10-13',
+    changes: [
+      'Every space in the left sidebar can now be closed and its content deleted, as a general rule for all spaces. A closed space leaves a "Show" button so you can bring it back. Deleting empties the Fact gatherer\'s list and a canvas, and makes a Chronicler forget its summary (it writes a fresh one from the whole story at its next update).',
+      "The Fact gatherer's space has a Retry button that gathers the facts again right away.",
+    ],
+  },
+  {
     build: 54,
     date: '2026-10-13',
     changes: [

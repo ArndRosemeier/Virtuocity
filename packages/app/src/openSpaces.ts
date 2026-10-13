@@ -2,20 +2,29 @@ import { useSyncExternalStore } from 'react';
 import { listenerSet } from './listeners';
 
 /**
- * Which on-demand spaces are open, e.g. a chronicler's summary after its
- * marker was clicked. Only what this screen shows; nothing in the session.
+ * Which spaces a person opened or closed on this screen: on-demand ones (e.g.
+ * a chronicler's summary) stay hidden until opened, every other one shows
+ * until closed. Only what this screen shows; nothing in the session.
  */
-let open: ReadonlySet<string> = new Set();
+export interface Toggled {
+  readonly open: ReadonlySet<string>;
+  readonly closed: ReadonlySet<string>;
+}
+
+let toggled: Toggled = { open: new Set(), closed: new Set() };
 const changes = listenerSet();
 
-function set(next: ReadonlySet<string>): void {
-  open = next;
+const without = (ids: ReadonlySet<string>, id: string) =>
+  new Set([...ids].filter((other) => other !== id));
+
+function set(next: Toggled): void {
+  toggled = next;
   changes.notify();
 }
 
 /** Opens an actor's space and brings it into view. */
 export function openSpace(actorId: string): void {
-  if (!open.has(actorId)) set(new Set([...open, actorId]));
+  set({ open: new Set([...toggled.open, actorId]), closed: without(toggled.closed, actorId) });
   requestAnimationFrame(() => {
     const element = document.getElementById(spaceElementId(actorId));
     element?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
@@ -24,11 +33,15 @@ export function openSpace(actorId: string): void {
 }
 
 export function closeSpace(actorId: string): void {
-  set(new Set([...open].filter((id) => id !== actorId)));
+  set({ open: without(toggled.open, actorId), closed: new Set([...toggled.closed, actorId]) });
 }
 
-export function useOpenSpaces(): ReadonlySet<string> {
-  return useSyncExternalStore(changes.subscribe, () => open);
+/** Whether a space shows: on-demand ones once opened, the others until closed. */
+export const isShown = (state: Toggled, actorId: string, onDemand: boolean) =>
+  onDemand ? state.open.has(actorId) : !state.closed.has(actorId);
+
+export function useOpenSpaces(): Toggled {
+  return useSyncExternalStore(changes.subscribe, () => toggled);
 }
 
 export const spaceElementId = (actorId: string) => `space-${actorId}`;

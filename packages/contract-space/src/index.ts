@@ -16,10 +16,13 @@ const content = z.object({
  * latest picture, a cartographer's map, a fact gatherer's notes, or a blank
  * canvas for the person. Not tied to any kind of content; the app renders the
  * parts with its renderers. Actors without it get no space.
+ *
+ * Every space can be thrown away (`discard`), since 1.1; a person can always
+ * get rid of what a space shows.
  */
 export const spaceContract = defineContract({
   name: 'space',
-  version: '1.0',
+  version: '1.1',
   description: 'Shows something in the actor’s own space on screen.',
   actions: {
     fill: action({
@@ -38,9 +41,9 @@ export const spaceContract = defineContract({
       input: content,
       output: content,
     }),
-    discard: optionalAction({
+    discard: action({
       description:
-        'A person threw away what the space shows, e.g. a picture, wherever else it appears too. Returns what it shows now.',
+        'A person threw away what the space shows, e.g. a picture or a list, wherever else it appears too. Returns what it shows now.',
       input: z.object({}),
       output: content,
     }),
@@ -63,11 +66,20 @@ export const spaceContract = defineContract({
       },
     },
     {
-      name: 'still fills its space after discarding, if it can discard',
+      name: 'still fills its space after discarding',
       run: async (t) => {
-        if (!t.implements('discard')) return;
         const { parts } = await t.invoke('discard', {});
         check(Array.isArray(parts), 'expected what the space shows after discarding');
+      },
+    },
+    {
+      name: 'stops showing what was edited in once discarded, if it can be edited',
+      run: async (t) => {
+        if (!t.implements('edit')) return;
+        const parts = [{ kind: 'text', data: 'A note to throw away.' }];
+        await t.invoke('edit', { parts });
+        const { parts: after } = await t.invoke('discard', {});
+        check(JSON.stringify(after) !== JSON.stringify(parts), 'expected the edit to be gone');
       },
     },
     {

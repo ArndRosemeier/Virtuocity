@@ -8,8 +8,9 @@ import { DragHandle } from './DragHandle';
 import { SpaceActions } from './SpaceActions';
 import { useSetting } from './settings';
 import { heightCss, movedHeight, spaceHeightSetting } from './spaceHeight';
-import { closeSpace, spaceElementId, useOpenSpaces } from './openSpaces';
+import { closeSpace, isShown, openSpace, spaceElementId, useOpenSpaces } from './openSpaces';
 import type { AppModule, PanelProps } from './types';
+import type { Toggled } from './openSpaces';
 import type { Shown } from './useParts';
 import { useParts } from './useParts';
 
@@ -84,7 +85,7 @@ function Content({ host, shown }: Pick<PanelProps, 'host'> & { shown: Shown | un
   );
 }
 
-/** A space's name, its own actions, and buttons to maximize it and, for on-demand spaces, to close it. */
+/** A space's name, its own actions, and buttons to maximize and to close it. */
 function SpaceHeader({
   name,
   maximized,
@@ -95,7 +96,7 @@ function SpaceHeader({
   name: string;
   maximized: boolean;
   onToggle: () => void;
-  onClose: (() => void) | undefined;
+  onClose: () => void;
   children?: ReactNode;
 }) {
   return (
@@ -109,9 +110,7 @@ function SpaceHeader({
         label={maximized ? `Restore ${name}'s space` : `Maximize ${name}'s space`}
         onClick={onToggle}
       />
-      {onClose && (
-        <IconButton size="sm" icon="close" label={`Close ${name}'s space`} onClick={onClose} />
-      )}
+      <IconButton size="sm" icon="close" label={`Close ${name}'s space`} onClick={onClose} />
     </header>
   );
 }
@@ -146,8 +145,20 @@ function SpaceResize({ actorId, name }: { actorId: string; name: string }) {
   );
 }
 
-/** One actor's space: whatever its skill shows there. It can be maximized to full screen. */
-function Space({ actor, host, session, open }: PanelProps & { actor: Actor; open: boolean }) {
+/** A closed space that doesn't wait for a marker: a button to show it again. */
+function ClosedSpace({ actorId, name }: { actorId: string; name: string }) {
+  return (
+    <Button size="sm" variant="ghost" icon="maximize" onClick={() => openSpace(actorId)}>
+      {`Show ${name}'s space`}
+    </Button>
+  );
+}
+
+/**
+ * One actor's space: whatever its skill shows there. It can be maximized to
+ * full screen, and closed; on-demand spaces show only once opened.
+ */
+function Space({ actor, host, session, toggled }: PanelProps & { actor: Actor; toggled: Toggled }) {
   const shown = useParts(
     session,
     () => session.invoke(actor.id, spaceContract, 'fill', {}),
@@ -163,7 +174,9 @@ function Space({ actor, host, session, open }: PanelProps & { actor: Actor; open
   const edit = (parts: OutputPart[]) =>
     void session.invoke(actor.id, spaceContract, 'edit', { parts });
   const { onDemand, hasContent } = shownState(shown);
-  if (onDemand && !open) return null;
+  if (!isShown(toggled, actor.id, onDemand)) {
+    return onDemand ? null : <ClosedSpace actorId={actor.id} name={name} />;
+  }
   return (
     <>
       <section
@@ -176,7 +189,7 @@ function Space({ actor, host, session, open }: PanelProps & { actor: Actor; open
           name={name}
           maximized={maximized}
           onToggle={() => setMaximized(!maximized)}
-          onClose={onDemand ? () => closeSpace(actor.id) : undefined}
+          onClose={() => closeSpace(actor.id)}
         >
           {hasContent && <SpaceActions session={session} actor={actor} />}
         </SpaceHeader>
@@ -198,7 +211,7 @@ export function actorsWithSpaces(session: SessionRuntime): Actor[] {
 /** The spaces of every actor that has one; actors without the space contract get none. */
 function SpacesPanel({ host, session }: PanelProps) {
   const actors = actorsWithSpaces(session);
-  const open = useOpenSpaces();
+  const toggled = useOpenSpaces();
   if (actors.length === 0) {
     return (
       <p className="muted">
@@ -210,13 +223,7 @@ function SpacesPanel({ host, session }: PanelProps) {
   return (
     <div className="spaces">
       {actors.map((actor) => (
-        <Space
-          key={actor.id}
-          actor={actor}
-          host={host}
-          session={session}
-          open={open.has(actor.id)}
-        />
+        <Space key={actor.id} actor={actor} host={host} session={session} toggled={toggled} />
       ))}
     </div>
   );
