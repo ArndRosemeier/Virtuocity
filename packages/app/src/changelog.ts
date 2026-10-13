@@ -9,6 +9,13 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 54,
+    date: '2026-10-13',
+    changes: [
+      'Drag the bottom edge of a space in the left sidebar to make it taller or shorter; double-click the edge to go back to a third of the sidebar. Each space remembers its height in this browser.',
+    ],
+  },
+  {
     build: 53,
     date: '2026-10-13',
     changes: [

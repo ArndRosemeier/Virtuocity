@@ -472,9 +472,23 @@
 }
 .spaces {
   display: grid;
-  gap: var(--space-5);
+  gap: var(--space-2);
 }
-/* Each space gets a third of the sidebar's height, so three fit without scrolling. */
+/* The bottom edge of a space: drag to change its height. */
+.space-resize {
+  height: 12px;
+  margin-bottom: var(--space-2);
+  cursor: row-resize;
+  touch-action: none;
+}
+.space-resize:hover,
+.space-resize:active,
+.space-resize:focus-visible {
+  outline: none;
+  background: linear-gradient(var(--accent), var(--accent)) center / 100% 2px no-repeat;
+}
+/* Each space gets a third of the sidebar's height, so three fit without scrolling,
+   until its bottom edge is dragged. */
 .space {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
@@ -628,7 +642,8 @@
     height: auto;
     min-height: 100dvh;
   }
-  .resize-handle {
+  .resize-handle,
+  .space-resize {
     display: none;
   }
   .space {
