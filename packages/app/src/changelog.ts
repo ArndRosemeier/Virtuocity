@@ -10,6 +10,13 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 75,
+    date: '2026-10-13',
+    changes: [
+      'Spaces that show a picture (the Gallery, an illustrator) have Copy and Save buttons. Copy puts the picture on the clipboard; Save asks where to save it, where the browser can, and otherwise downloads it, named after its description.',
+    ],
+  },
+  {
     build: 74,
     date: '2026-10-13',
     changes: [

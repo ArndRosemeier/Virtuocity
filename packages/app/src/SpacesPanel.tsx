@@ -5,6 +5,8 @@ import type { Actor, OutputPart, SessionRuntime } from '@virtuocity/core';
 import { provides } from '@virtuocity/core';
 import { Avatar, Button, IconButton, TextArea } from '@virtuocity/ui';
 import { DragHandle } from './DragHandle';
+import { PictureActions } from './PictureActions';
+import { shownPicture } from './picture';
 import { SpaceActions } from './SpaceActions';
 import { GalleryView, SpaceStepper, browsable } from './SpaceBrowse';
 import { useSetting } from './settings';
@@ -185,6 +187,7 @@ function Space({ actor, host, session, toggled }: PanelProps & { actor: Actor; t
   const edit = (parts: OutputPart[]) =>
     void session.invoke(actor.id, spaceContract, 'edit', { parts });
   const { onDemand, hasContent } = shownState(shown);
+  const picture = shownPicture(shown);
   if (!isShown(toggled, actor.id, onDemand)) {
     return onDemand ? null : <ClosedSpace actorId={actor.id} name={name} />;
   }
@@ -203,6 +206,7 @@ function Space({ actor, host, session, toggled }: PanelProps & { actor: Actor; t
           onClose={() => closeSpace(actor.id)}
         >
           <SpaceStepper session={session} actor={actor} shown={shown} />
+          {picture && <PictureActions picture={picture} />}
           {hasContent && <SpaceActions session={session} actor={actor} />}
         </SpaceHeader>
         <Content host={host} shown={shown} gallery={maximized} session={session} actor={actor} />
