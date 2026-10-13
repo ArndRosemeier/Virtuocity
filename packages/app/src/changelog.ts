@@ -9,6 +9,13 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 69,
+    date: '2026-10-13',
+    changes: [
+      'Hidden premises are kept secret on purpose: AI actors now get a hidden line marked as hidden from you, and are told to build on it without giving it away, instead of reading it as a stray remark.',
+    ],
+  },
+  {
     build: 68,
     date: '2026-10-13',
     changes: [

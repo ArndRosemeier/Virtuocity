@@ -5,6 +5,8 @@ export interface OpMeta {
   readonly opId: string;
   readonly actorId: string;
   readonly at: number;
+  /** Actors the operation is hidden from, if any. */
+  readonly hiddenFrom?: readonly string[];
 }
 
 /** How a correcting operation rewrites the earlier operation it targets. */

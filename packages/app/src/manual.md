@@ -47,6 +47,8 @@ This is the most important idea in Virtuocity.
 
 Open the Library and press New actor, or Copy on an existing one. Give it a name, tick its skills, and fill in what those skills ask for: a personality for actors that talk, settings for each skill (an illustrator's style, a premise's text), and models if it should not use the defaults. A new actor starts with no skills, so the editor only asks for what you pick. "Transform by AI" on long text fields turns a few words into a full description.
 
+A premise opens a session once, when it joins while the session is still empty; editing its text later does not change sessions it already opened. With "Show the premise in the chat" off, you never see it, but the AI actors do: they get it marked as hidden from you, with the request to build on it and not give it away.
+
 Whether an actor is in the **cast** depends on the session type, not on the actor: each type lists its cast contracts. In a roleplay the actors who talk (speakers) are the cast; in an image workflow the illustrators are. Every other actor in a session is a **support** actor (an illustrator in a roleplay, a chronicler, the session type itself). It works beside the session and never takes a turn, though some can be asked to act.
 
 ### Sessions from a file

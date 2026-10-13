@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Actor, Message } from '@virtuocity/core';
 import { textContent } from '@virtuocity/core';
-import { buildPrompt, conversationSettings, contextBudget } from './prompt';
+import { SECRETS, buildPrompt, conversationSettings, contextBudget } from './prompt';
 
 const actor = (id: string, name: string): Actor => ({
   id,
@@ -70,6 +70,26 @@ describe('the scene', () => {
     });
     expect(prompt[0]?.content).toContain('Others in the scene: nobody else yet.');
     expect(prompt[1]).toEqual({ role: 'user', content: 'Ink: A gate in fog' });
+  });
+});
+
+describe('hidden lines', () => {
+  it('marks whom a line was hidden from and asks to keep it secret', () => {
+    const bard = actor('bard', 'Lyra');
+    const you: Actor = { ...actor('user', 'You'), controller: 'human' };
+    const secret: Message = { ...msg('gm', 'The heir did it.'), hiddenFrom: ['user'] };
+    const prompt = buildPrompt(bard, [bard, you, actor('gm', 'Premise')], [secret]);
+    expect(prompt[0]?.content).toContain(SECRETS);
+    expect(prompt[1]).toEqual({
+      role: 'user',
+      content: 'Premise (hidden from You): The heir did it.',
+    });
+  });
+
+  it('says nothing about secrets when there are none', () => {
+    const bard = actor('bard', 'Lyra');
+    const [system] = buildPrompt(bard, [bard], [msg('user', 'Hi')]);
+    expect(system?.content).not.toContain(SECRETS);
   });
 });
 

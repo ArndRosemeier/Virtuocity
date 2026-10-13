@@ -16,6 +16,8 @@ export interface Message extends Content {
   readonly actorId: string;
   /** Present when producing the message involved AI calls. */
   readonly stats?: readonly CallStats[];
+  /** Whom the posting operation was hidden from, so those who see it know it is a secret. */
+  readonly hiddenFrom?: readonly string[];
   readonly createdAt: number;
 }
 
@@ -54,10 +56,11 @@ export const transcriptDoc = defineDocType<Transcript, TranscriptOp>({
     z.object({ type: z.literal('remove'), messageId: z.string() }),
   ]),
   initial: () => ({ messages: [] }),
-  apply: (state, op) => {
+  apply: (state, op, { hiddenFrom }) => {
     if (op.type === 'append') {
       if (state.messages.some((m) => m.id === op.message.id)) return state;
-      return { messages: [...state.messages, op.message] };
+      const message = hiddenFrom?.length ? { ...op.message, hiddenFrom } : op.message;
+      return { messages: [...state.messages, message] };
     }
     if (!state.messages.some((m) => m.id === op.messageId)) return state;
     if (op.type === 'remove')

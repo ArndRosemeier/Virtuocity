@@ -77,6 +77,7 @@ describe('opening a session', () => {
     await ended;
     expect(runtime.transcript('you')).toHaveLength(0);
     expect(runtime.transcript('wren')[0]).toMatchObject(textContent('The butler did it.'));
+    expect(runtime.transcript('wren')[0]?.hiddenFrom).toEqual(['you']);
   });
 
   it('opens an empty story when it joins after the start', async () => {
