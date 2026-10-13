@@ -2,6 +2,7 @@ import type { Actor } from './actor';
 import type { DescribedType, SessionTypeDescription } from './session-type';
 import { TypeTracker, sessionTypeOf } from './session-type';
 import type { Skill } from './skill';
+import { castCapable } from './skill';
 
 interface CastDeps {
   readonly actors: () => readonly Actor[];
@@ -15,8 +16,8 @@ interface CastDeps {
 
 /**
  * Who is cast in a session and with which skill they act, as its session
- * type says: AI actors holding one of the type's cast skills are cast and act
- * with the first of them they have, in the type's order. Everyone else (an
+ * type says: AI actors serving one of the type's cast contracts are cast and
+ * act with their skill serving the first of them, in the type's order. Everyone else (an
  * illustrator in a roleplay, a chronicler, the type itself) is support. A
  * session without a type (a bare runtime, e.g. in tests) casts the actors
  * that can take turns.
@@ -40,7 +41,7 @@ export class SessionCast {
     return this.#types.settle(this.#typeActor());
   }
 
-  /** People, and the AI actors holding a cast skill. */
+  /** People, and the AI actors serving a cast contract. */
   cast(): Actor[] {
     return this.#deps
       .actors()
@@ -64,14 +65,11 @@ export class SessionCast {
     return this.castSkill(actor) ?? this.#requestSkill(actor);
   }
 
-  /** The skill an actor acts with on its turn: the first of the type's cast skills it has. */
+  /** The skill an actor acts with on its turn: its skill serving the first cast contract it serves. */
   castSkill(actor: Actor): Skill | undefined {
     const skills = this.#deps.skillsOf(actor);
     if (!this.#typeActor()) return skills.find((s) => s.takeTurn);
-    const castSkills = this.type()?.description.castSkills ?? [];
-    return castSkills
-      .flatMap((id) => skills.find((s) => s.id === id) ?? [])
-      .find((s) => s.takeTurn !== undefined || s.onRequest !== undefined);
+    return castCapable(skills, this.type()?.description.castContracts ?? [])[0];
   }
 
   #requestSkill(actor: Actor): Skill | undefined {

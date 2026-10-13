@@ -2,7 +2,7 @@ import { z } from 'zod';
 import type { Actor } from './actor';
 import { action, defineContract } from './contract';
 import { check } from './conformance-check';
-import { parseRef } from './contract-version';
+import { tryParseRef } from './contract-version';
 import { defineEvent } from './events';
 import type { Skill } from './skill';
 import { serves } from './skill';
@@ -12,7 +12,7 @@ const role = z.object({
   hint: z.string().describe('One line on what the role adds; may be empty'),
   cast: z
     .boolean()
-    .describe("The actor in this role is cast: it has one of the type's cast skills"),
+    .describe("The actor in this role is cast: it serves one of the type's cast contracts"),
   needs: z
     .array(z.string())
     .describe('Contracts the actor in this role must serve, as "name@major.minor"'),
@@ -22,10 +22,10 @@ const role = z.object({
 export type SessionRole = z.output<typeof role>;
 
 const description = z.object({
-  castSkills: z
+  castContracts: z
     .array(z.string())
     .describe(
-      'Ids of the skills that make an actor cast, in order; on its turn an actor acts with the first it has',
+      'The contracts that make an actor cast, as "name@major.minor", in order; on its turn an actor acts with its skill serving the first it serves',
     ),
   roles: z.array(role).describe('The parts a session of this type usually casts, in order'),
   panels: z
@@ -38,17 +38,17 @@ export type SessionTypeDescription = z.output<typeof description>;
 /**
  * What kind of session this is: Roleplay, Book room, an image workflow. Every
  * session the app keeps has exactly one actor serving it. It decides who is
- * cast (actors with one of its cast skills; everyone else is support), which
+ * cast (actors serving one of its cast contracts; everyone else is support), which
  * panels the session shows and which roles its guide suggests. It never adds
  * actors itself; the person does.
  */
 export const sessionTypeContract = defineContract({
   name: 'session-type',
-  version: '2.0',
+  version: '3.0',
   description: 'Says who is cast, how a session looks and which roles it suggests.',
   actions: {
     describe: action({
-      description: 'The cast skills, panels and suggested roles of this kind of session.',
+      description: 'The cast contracts, panels and suggested roles of this kind of session.',
       input: z.object({}),
       output: description,
     }),
@@ -66,6 +66,13 @@ export const sessionTypeContract = defineContract({
       },
     },
     {
+      name: 'names its cast contracts as contract references',
+      run: async (t) => {
+        const { castContracts } = await t.invoke('describe', {});
+        for (const c of castContracts) check(isRef(c), `cast contract "${c}" is not a reference`);
+      },
+    },
+    {
       name: 'describes the same way when asked twice',
       run: async (t) => {
         const first = await t.invoke('describe', {});
@@ -79,21 +86,14 @@ export const sessionTypeContract = defineContract({
   ],
 });
 
-function isRef(text: string): boolean {
-  try {
-    parseRef(text);
-    return true;
-  } catch {
-    return false;
-  }
-}
+const isRef = (text: string): boolean => tryParseRef(text) !== undefined;
 
 /** Whether the actor is a session type (Roleplay, Book room...). */
 export function isSessionType(actor: Actor, skills: readonly Skill[]): boolean {
   return serves(actor, skills, sessionTypeContract);
 }
 
-/** The session's type: the one actor among `actors` serving `session-type@2`, if any. */
+/** The session's type: the one actor among `actors` serving `session-type@3`, if any. */
 export function sessionTypeOf(
   actors: readonly Actor[],
   skills: readonly Skill[],

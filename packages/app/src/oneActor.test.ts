@@ -14,6 +14,8 @@ import {
   parseSavedSession,
   retryMessage,
   startSession,
+  stubContract,
+  stubImplementation,
   textContent,
   withActorsWritten,
 } from '@virtuocity/core';
@@ -30,17 +32,19 @@ import { testType, testTypeSkill } from './testTypes';
  */
 
 let take = 0;
+const counter = stubContract('counter');
 const counting: Skill = {
   id: 'counting',
   name: 'Counting',
   backing: 'code',
+  implements: [stubImplementation(counter)],
   takeTurn: async (ctx) => {
     await ctx.post(textContent(`take ${++take}`));
   },
 };
 const host = loadModules(new ModuleHost(), [coreModule]);
 host.skills.register(counting);
-host.skills.register(testTypeSkill(['counting']));
+host.skills.register(testTypeSkill([counter.id]));
 
 const marlow: Actor = {
   id: 'marlow',

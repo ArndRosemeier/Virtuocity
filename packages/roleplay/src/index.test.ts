@@ -12,7 +12,7 @@ const typed: Skill = {
   backing: 'code',
   implements: [
     implement(sessionTypeContract, {
-      describe: () => Promise.resolve({ castSkills: [], roles: [], panels: [] }),
+      describe: () => Promise.resolve({ castContracts: [], roles: [], panels: [] }),
     }),
   ],
 };

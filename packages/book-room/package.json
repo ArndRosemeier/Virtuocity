@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@virtuocity/contract-critique": "*",
+    "@virtuocity/contract-speaker": "*",
     "@virtuocity/contract-writing": "*",
     "@virtuocity/core": "*"
   }

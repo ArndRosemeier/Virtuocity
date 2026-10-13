@@ -1,3 +1,4 @@
+import { speakerContract } from '@virtuocity/contract-speaker';
 import type { SessionTypeDescription } from '@virtuocity/core';
 import { sessionTypeContract } from '@virtuocity/core';
 import type { Skill, Starter, VirtuocityModule } from '@virtuocity/core';
@@ -11,7 +12,7 @@ const role = z.object({
   cast: z
     .boolean()
     .default(false)
-    .meta({ title: 'In the cast', description: 'Has one of the cast skills above.' }),
+    .meta({ title: 'In the cast', description: 'Serves one of the cast contracts above.' }),
   needs: z
     .array(choice('contracts'))
     .default([])
@@ -21,10 +22,10 @@ const role = z.object({
 
 /** Who is cast, the roles and the panels, as the person sets them in the actor editor. */
 export const sessionTypeSettings = defineSettings({
-  castSkills: z.array(choice('cast-skills')).default(['conversation']).meta({
-    title: 'Cast skills',
+  castContracts: z.array(choice('contracts')).default([speakerContract.id]).meta({
+    title: 'Cast contracts',
     description:
-      'Actors with one of these skills are cast and act on their turn, with the first they have. Everyone else is support.',
+      'Actors serving one of these are cast and act on their turn, with the first they serve. Everyone else is support.',
   }),
   roles: z
     .array(role)
@@ -38,12 +39,12 @@ export const sessionTypeSettings = defineSettings({
 
 /** The settings as a description; roles still without a name are left out. */
 export function describeSettings(stored: unknown): SessionTypeDescription {
-  const { castSkills, roles, panels } = readSettings(sessionTypeSettings, stored);
-  return { castSkills, roles: roles.filter((r) => r.label.trim() !== ''), panels };
+  const { castContracts, roles, panels } = readSettings(sessionTypeSettings, stored);
+  return { castContracts, roles: roles.filter((r) => r.label.trim() !== ''), panels };
 }
 
 /**
- * A session type written down by hand: its cast skills, roles and panels, set
+ * A session type written down by hand: its cast contracts, roles and panels, set
  * per actor. Roleplay, Book room, Image workflow and Open are actors with this skill.
  */
 export const sessionTypeSkill: Skill = {
@@ -67,7 +68,7 @@ export const openType: Starter = {
       'Every panel, no suggestions. Add whatever actors you like; those who talk are cast.',
   },
   needs: [sessionTypeContract],
-  settings: { 'session-type': { castSkills: ['conversation'], roles: [], panels: [] } },
+  settings: { 'session-type': { castContracts: [speakerContract.id], roles: [], panels: [] } },
 };
 
 export const sessionTypeModule: VirtuocityModule = {

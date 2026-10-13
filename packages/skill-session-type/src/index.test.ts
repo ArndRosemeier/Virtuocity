@@ -13,7 +13,7 @@ describe('session type skill conforms to session-type', () => {
 describe('session type settings', () => {
   it('cast talking actors by default, with no roles and every panel', () => {
     expect(describeSettings(undefined)).toEqual({
-      castSkills: ['conversation'],
+      castContracts: ['speaker@1.0'],
       roles: [],
       panels: [],
     });
@@ -21,12 +21,12 @@ describe('session type settings', () => {
 
   it('fill in defaults and leave out roles without a name', () => {
     const stored = {
-      castSkills: ['illustrator'],
+      castContracts: ['illustrator@1.0'],
       roles: [{ label: 'A narrator', cast: true }, { label: ' ' }],
       panels: ['story', 'composer'],
     };
     expect(describeSettings(stored)).toEqual({
-      castSkills: ['illustrator'],
+      castContracts: ['illustrator@1.0'],
       roles: [{ label: 'A narrator', hint: '', cast: true, needs: [], optional: false }],
       panels: ['story', 'composer'],
     });
@@ -38,7 +38,7 @@ describe('the Open session type', () => {
     const open = castStarter(openType, [sessionTypeSkill]);
     expect(open?.skillIds).toEqual(['session-type']);
     expect(describeSettings(open?.settings?.['session-type'])).toEqual({
-      castSkills: ['conversation'],
+      castContracts: ['speaker@1.0'],
       roles: [],
       panels: [],
     });

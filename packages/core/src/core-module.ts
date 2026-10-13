@@ -3,6 +3,7 @@ import { DECISIONS_MODALITY } from './decisions';
 import { AUDIO_MODALITY, IMAGE_MODALITY, TEXT_MODALITY } from './models';
 import { castContributor, castDoc } from './cast';
 import { channelsDoc } from './channels';
+import { instructionsContract } from './instructions';
 import { setupDoc } from './setup';
 import { transcriptDoc } from './transcript';
 
@@ -10,6 +11,7 @@ import { transcriptDoc } from './transcript';
 export const coreModule: VirtuocityModule = {
   id: 'core',
   register: (host) => {
+    host.contracts.register(instructionsContract);
     host.docTypes.register(transcriptDoc);
     host.docTypes.register(castDoc);
     host.docTypes.register(setupDoc);

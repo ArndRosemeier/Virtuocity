@@ -1,5 +1,5 @@
-import type { InstructionSource, Skill, VirtuocityModule } from '@virtuocity/core';
-import { defineSettings, readSettings, z } from '@virtuocity/core';
+import type { Skill, VirtuocityModule } from '@virtuocity/core';
+import { defineSettings, implement, instructionsContract, readSettings, z } from '@virtuocity/core';
 
 export const systemPromptSettings = defineSettings({
   prompt: z
@@ -10,30 +10,25 @@ export const systemPromptSettings = defineSettings({
 });
 
 /**
- * A system prompt for the whole session. Actors with it stay silent; what it
- * says is added to every text-model call of every actor, ahead of their own
- * instructions. Several are combined in the order the actors joined.
+ * A system prompt for the whole session (`instructions@1.0`). Actors with it
+ * stay silent; what it says is added to every text-model call of every actor,
+ * ahead of their own instructions. Several are combined in the order the
+ * actors joined.
  */
 export const systemPromptSkill: Skill = {
   id: 'system-prompt',
   name: 'System prompt',
   backing: 'code',
   settings: systemPromptSettings,
-};
-
-/** The prompts of every actor holding the skill, in cast order. */
-export const systemPromptSource: InstructionSource = {
-  id: 'system-prompt',
-  instructions: ({ actors }) =>
-    actors
-      .filter((a) => a.skillIds.includes(systemPromptSkill.id))
-      .map((a) => readSettings(systemPromptSettings, a.settings?.[systemPromptSkill.id]).prompt),
+  implements: [
+    implement(instructionsContract, {
+      instructions: (_input, ctx) =>
+        Promise.resolve({ text: readSettings(systemPromptSettings, ctx.settings).prompt }),
+    }),
+  ],
 };
 
 export const systemPromptModule: VirtuocityModule = {
   id: 'skill-system-prompt',
-  register: (host) => {
-    host.skills.register(systemPromptSkill);
-    host.instructions.register(systemPromptSource);
-  },
+  register: (host) => host.skills.register(systemPromptSkill),
 };

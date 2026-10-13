@@ -24,7 +24,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === 'object' && !Array.isArray(value);
 
 /** Lists of the app's that a settings field can pick from instead of free text. */
-export type ChoiceSource = 'contracts' | 'panels' | 'cast-skills';
+export type ChoiceSource = 'contracts' | 'panels';
 
 /**
  * A text setting the app offers as a pick from one of its lists: an installed

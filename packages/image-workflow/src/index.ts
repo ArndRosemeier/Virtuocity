@@ -1,3 +1,4 @@
+import { speakerContract } from '@virtuocity/contract-speaker';
 import { directorContract } from '@virtuocity/contract-director';
 import { illustratorContract } from '@virtuocity/contract-visual';
 import { sessionTypeContract } from '@virtuocity/core';
@@ -29,7 +30,7 @@ export const imageWorkflowType: Starter = {
   needs: [sessionTypeContract],
   settings: {
     'session-type': {
-      castSkills: ['illustrator'],
+      castContracts: [illustratorContract.id],
       roles: [
         {
           label: 'An illustrator',
@@ -60,7 +61,7 @@ export const guidedIllustrationsType: Starter = {
   needs: [sessionTypeContract],
   settings: {
     'session-type': {
-      castSkills: ['conversation'],
+      castContracts: [speakerContract.id],
       roles: [
         {
           label: 'A prompt refiner',

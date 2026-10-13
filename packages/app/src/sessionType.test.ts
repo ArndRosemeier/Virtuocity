@@ -1,17 +1,31 @@
 import type { Actor, SessionRole, Skill } from '@virtuocity/core';
-import { implement, isSessionType, sessionTypeContract, sessionTypeOf } from '@virtuocity/core';
+import {
+  implement,
+  isSessionType,
+  sessionTypeContract,
+  sessionTypeOf,
+  stubContract,
+  stubImplementation,
+} from '@virtuocity/core';
 import { describe, expect, it } from 'vitest';
 import type { TypeState } from './sessionType';
 import { guideLines, slotItems } from './sessionType';
 
-const talk: Skill = { id: 'talk', name: 'Talk', backing: 'llm', takeTurn: () => Promise.resolve() };
+const talking = stubContract('talking');
+const talk: Skill = {
+  id: 'talk',
+  name: 'Talk',
+  backing: 'llm',
+  implements: [stubImplementation(talking)],
+  takeTurn: () => Promise.resolve(),
+};
 const typed: Skill = {
   id: 'typed',
   name: 'Typed',
   backing: 'code',
   implements: [
     implement(sessionTypeContract, {
-      describe: () => Promise.resolve({ castSkills: [], roles: [], panels: [] }),
+      describe: () => Promise.resolve({ castContracts: [], roles: [], panels: [] }),
     }),
   ],
 };
@@ -47,7 +61,7 @@ describe('session types', () => {
     const described: TypeState = {
       kind: 'described',
       actor: actor('Roleplay', ['typed']),
-      description: { castSkills: [], roles: [], panels: ['story'] },
+      description: { castContracts: [], roles: [], panels: ['story'] },
     };
     expect(slotItems(items, 'main', described).map((i) => i.id)).toEqual(['story']);
     expect(slotItems(items, 'side', described)).toEqual([]);
@@ -55,16 +69,16 @@ describe('session types', () => {
     expect(slotItems(items, 'side', { kind: 'none' }).map((i) => i.id)).toEqual(['cast']);
   });
 
-  it('guide the cast: each actor fills the first open role it fits, cast by a cast skill', () => {
+  it('guide the cast: each actor fills the first open role it fits, cast by a cast contract', () => {
     const roles = [
       role('A narrator', { cast: true }),
-      role('A typist', { needs: ['session-type@2.0'], optional: true }),
+      role('A typist', { needs: ['session-type@3.0'], optional: true }),
       role('A painter', { needs: ['painter@1.0'] }),
       role('Broken', { needs: ['not a ref'] }),
     ];
     const cast = [actor('t', ['typed']), actor('n', ['talk'])];
-    expect(guideLines({ roles, castSkills: [] }, skills, cast)[0]?.available).toBe(false);
-    const lines = guideLines({ roles, castSkills: ['talk'] }, skills, cast);
+    expect(guideLines({ roles, castContracts: [] }, skills, cast)[0]?.available).toBe(false);
+    const lines = guideLines({ roles, castContracts: [talking.id] }, skills, cast);
     expect(lines.map((l) => [l.role.label, l.available, l.actor?.id])).toEqual([
       ['A narrator', true, 'n'],
       ['A typist', true, 't'],

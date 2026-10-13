@@ -7,11 +7,16 @@ import { textContent } from './output';
 import { SessionRuntime } from './runtime';
 import { sessionTypeContract, sessionTypeDescribed } from './session-type';
 import type { Skill } from './skill';
+import { stubContract, stubImplementation } from './testing';
+
+const talking = stubContract('talking');
+const painting = stubContract('painting');
 
 const talk: Skill = {
   id: 'talk',
   name: 'Talk',
   backing: 'llm',
+  implements: [stubImplementation(talking)],
   takeTurn: async (ctx) => {
     await ctx.post(textContent('words'));
   },
@@ -20,6 +25,7 @@ const paint: Skill = {
   id: 'paint',
   name: 'Paint',
   backing: 'llm',
+  implements: [stubImplementation(painting)],
   onRequest: async (ctx) => {
     await ctx.post(textContent('a picture'));
   },
@@ -32,7 +38,7 @@ const typeSkill: Skill = {
     implement(sessionTypeContract, {
       describe: (_input, ctx) =>
         Promise.resolve({
-          castSkills: (ctx.actor.settings?.type as { cast: string[] }).cast,
+          castContracts: (ctx.actor.settings?.type as { cast: string[] }).cast,
           roles: [],
           panels: [],
         }),
@@ -68,19 +74,19 @@ async function session(cast: string[], library = new Map<string, Actor>()) {
 }
 
 describe('session types', () => {
-  it('decide the cast: actors with a cast skill, everyone else is support', async () => {
-    const roleplay = await session(['talk']);
+  it('decide the cast: actors serving a cast contract, everyone else is support', async () => {
+    const roleplay = await session([talking.id]);
     expect(ids(roleplay.speakers())).toEqual(['mira']);
     expect(ids(roleplay.askable())).toEqual(['brush']);
-    const images = await session(['paint']);
+    const images = await session([painting.id]);
     expect(ids(images.speakers())).toEqual(['mira', 'brush']);
     expect(images.askable()).toEqual([]);
   });
 
-  it('let an actor act with the first cast skill it has, in the type’s order', async () => {
-    const images = await session(['paint', 'talk']);
+  it('let an actor act with its skill serving the first cast contract, in the type’s order', async () => {
+    const images = await session([painting.id, talking.id]);
     await images.runTurn('mira');
-    const roleplay = await session(['talk', 'paint']);
+    const roleplay = await session([talking.id, painting.id]);
     await roleplay.runTurn('mira');
     expect(images.transcript().map((m) => m.text)).toEqual(['a picture']);
     expect(roleplay.transcript().map((m) => m.text)).toEqual(['words']);
@@ -88,8 +94,8 @@ describe('session types', () => {
 
   it('follow the type when it is edited in the library', async () => {
     const library = new Map<string, Actor>();
-    const runtime = await session(['talk'], library);
-    library.set('room', actor('room', ['type'], ['paint']));
+    const runtime = await session([talking.id], library);
+    library.set('room', actor('room', ['type'], [painting.id]));
     const described = new Promise((resolve) => runtime.bus.on(sessionTypeDescribed, resolve));
     expect(ids(runtime.speakers())).toEqual(['mira']);
     await described;
