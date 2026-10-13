@@ -9,6 +9,13 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 67,
+    date: '2026-10-13',
+    changes: [
+      'New session fills in a name for you: the picked session type\'s name, numbered when it is taken (e.g. "Roleplay 2"). Picking another type changes it, until you type a name of your own.',
+    ],
+  },
+  {
     build: 66,
     date: '2026-10-13',
     changes: [
