@@ -1,3 +1,4 @@
+import { speakerContract } from '@virtuocity/contract-speaker';
 import { directorContract } from '@virtuocity/contract-director';
 import { summarizerContract } from '@virtuocity/contract-memory';
 import { premiseContract } from '@virtuocity/contract-premise';
@@ -16,7 +17,7 @@ export const roleplayType: Starter = {
   needs: [sessionTypeContract],
   settings: {
     'session-type': {
-      castSkills: ['conversation'],
+      castContracts: [speakerContract.id],
       roles: [
         {
           label: 'A premise',

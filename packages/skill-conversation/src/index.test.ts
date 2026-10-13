@@ -5,6 +5,8 @@ import {
   SessionRuntime,
   TOOL_USE,
   action,
+  conformanceSuite,
+  conformanceTarget,
   coreModule,
   defineContract,
   implement,
@@ -13,6 +15,7 @@ import {
   textContent,
   z,
 } from '@virtuocity/core';
+import { speakerContract } from '@virtuocity/contract-speaker';
 import { conversationSkill } from './index';
 
 const coin = defineContract({
@@ -65,4 +68,15 @@ describe('conversation skill', () => {
     expect(message).toMatchObject(textContent('Heads, I win.'));
     expect(message?.stats).toHaveLength(2);
   });
+});
+
+describe('conversation conforms to speaker', () => {
+  const target = conformanceTarget(speakerContract, {
+    skills: [conversationSkill],
+    provider: scriptedProvider(() => 'Hello there.'),
+    modelDefaults: { text: 'text-model' },
+  });
+  for (const testCase of conformanceSuite(speakerContract)) {
+    it(`${testCase.contractId}: ${testCase.name}`, () => testCase.run(target));
+  }
 });

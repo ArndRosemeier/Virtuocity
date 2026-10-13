@@ -14,7 +14,7 @@ import { EventBus, defineEvent } from './events';
 import { FlowRunner } from './flow-runner';
 import type { VEvent } from './events';
 import { HumanTaskQueue } from './human-tasks';
-import { instructedMessages } from './instructions';
+import { instructionsContract, standingInstructions, withInstructions } from './instructions';
 import { JobQueue } from './jobs';
 import type { Implementation } from './implementation';
 import { ContractError, invokeAction } from './implementation';
@@ -27,6 +27,7 @@ import type { ModuleHost } from './module';
 import type { Content } from './output';
 import type { CompletionRequest, CompletionResult, ModelRequest } from './provider';
 import type { Skill, SkillContext } from './skill';
+import { implementersOf } from './skill';
 import type { InvokeAction } from './skill-context';
 import { memoryStore } from './storage';
 import type { RewindOptions } from './oplog';
@@ -315,9 +316,9 @@ export class SessionRuntime {
   }
 
   /** Runs one model call for a skill: picks the model, traces the call, records its cost. */
-  #complete(actor: Actor, skill: Skill, request: ModelRequest): Promise<CompletionResult> {
+  async #complete(actor: Actor, skill: Skill, request: ModelRequest): Promise<CompletionResult> {
     const model = resolveModel(request.modality, this.#models(actor, skill));
-    const messages = this.#instructed(actor, request);
+    const messages = await this.#instructed(actor, skill, request);
     return this.#call({ actorId: actor.id, skillId: skill.id }, { ...request, messages, model });
   }
 
@@ -371,10 +372,13 @@ export class SessionRuntime {
   }
 
   /** A text call's messages with every standing instruction added; other modalities are left alone. */
-  #instructed(actor: Actor, request: ModelRequest): ModelRequest['messages'] {
-    if (request.modality !== 'text') return request.messages;
-    const who = { actor, actors: this.actors, cast: this.cast() };
-    return instructedMessages(request.messages, this.config.host.instructions.list(), who);
+  async #instructed(actor: Actor, skill: Skill, request: ModelRequest) {
+    const source = implementersOf([skill], instructionsContract).length > 0;
+    if (request.modality !== 'text' || source) return request.messages;
+    const ask = (id: string) =>
+      this.invoke(id, instructionsContract, 'instructions', { actorId: actor.id });
+    const skills = this.config.host.skills.list();
+    return withInstructions(request.messages, await standingInstructions(this.actors, skills, ask));
   }
 
   /** Delivers events to every skill of every actor that listens for them. */

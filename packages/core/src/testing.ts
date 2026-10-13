@@ -1,3 +1,8 @@
+import { z } from 'zod';
+import type { Contract } from './contract';
+import { action, defineContract } from './contract';
+import type { Implementation } from './implementation';
+import { implement } from './implementation';
 import type { GeneratedMedia } from './media';
 import type { CompletionRequest, CompletionResult, ModelProvider, ToolCall } from './provider';
 
@@ -83,3 +88,22 @@ export function scriptedProvider(
       }),
   };
 }
+
+/**
+ * A contract with one action that does nothing, for tests that only need
+ * something to serve, e.g. a session type's cast contracts.
+ */
+export function stubContract(name: string): Contract {
+  return defineContract({
+    name,
+    version: '1.0',
+    description: `Stands in for ${name} in tests.`,
+    actions: {
+      ping: action({ description: 'Does nothing.', input: z.object({}), output: z.object({}) }),
+    },
+  });
+}
+
+/** An implementation of a `stubContract`. */
+export const stubImplementation = (contract: Contract): Implementation =>
+  implement(contract, { ping: () => Promise.resolve({}) } as never);

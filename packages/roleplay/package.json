@@ -10,6 +10,7 @@
     "@virtuocity/contract-director": "*",
     "@virtuocity/contract-memory": "*",
     "@virtuocity/contract-premise": "*",
+    "@virtuocity/contract-speaker": "*",
     "@virtuocity/contract-visual": "*",
     "@virtuocity/core": "*"
   }

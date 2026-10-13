@@ -47,7 +47,7 @@ This is the most important idea in Virtuocity.
 
 Open the Library and press New actor, or Copy on an existing one. Give it a name, tick its skills, and fill in what those skills ask for: a personality for actors that talk, settings for each skill (an illustrator's style, a premise's text), and models if it should not use the defaults. A new actor starts with no skills, so the editor only asks for what you pick. "Transform by AI" on long text fields turns a few words into a full description.
 
-Whether an actor is in the **cast** depends on the session type, not on the actor: each type lists its cast skills. In a roleplay the actors who talk are the cast; in an image workflow the illustrators are. Every other actor in a session is a **support** actor (an illustrator in a roleplay, a chronicler, the session type itself). It works beside the session and never takes a turn, though some can be asked to act.
+Whether an actor is in the **cast** depends on the session type, not on the actor: each type lists its cast contracts. In a roleplay the actors who talk (speakers) are the cast; in an image workflow the illustrators are. Every other actor in a session is a **support** actor (an illustrator in a roleplay, a chronicler, the session type itself). It works beside the session and never takes a turn, though some can be asked to act.
 
 ### Sessions from a file
 
@@ -61,11 +61,11 @@ A session saved to a file carries its actors with it, because the file has to wo
 
 A session type is an actor with the Session type skill. Every session has exactly one, chosen when you start it. It stays for the life of the session: you can't remove it or swap it for another. It decides three things:
 
-- **Cast skills:** which skills make an actor part of the cast, in order. An actor with one of them takes turns and acts with the first one it has. An illustrator that can also talk paints in an image workflow (cast skill Illustrator) and talks in a roleplay (cast skill Conversation).
+- **Cast contracts:** what an actor must be able to do to be part of the cast, in order, such as speaker or illustrator. An actor serving one of them takes turns and acts with the first one it serves. An illustrator that can also talk paints in an image workflow (cast contract illustrator) and talks in a roleplay (cast contract speaker). The cast is never picked by a skill's name, so any skill that can speak takes part wherever speakers are cast.
 - **Panels:** which panels the session shows, in which order. Book room shows the manuscript and no chat; Roleplay shows the spaces, the conversation and the input box. With no panels listed, a session shows everything.
-- **Roles:** what the setup guide suggests adding, such as "A narrator" or "An illustrator". A role says what an actor must be able to do ("In the cast": one of the cast skills, or a contract such as director or reviewer), never which actor. Optional roles are listed as options.
+- **Roles:** what the setup guide suggests adding, such as "A narrator" or "An illustrator". A role says what an actor must be able to do ("In the cast": one of the cast contracts, or another contract such as director or reviewer), never which actor. Optional roles are listed as options.
 
-A session type never adds actors itself; you do. To make your own, copy Roleplay under a new name and change its cast skills, roles and panels in the actor editor. An actor either is a session type or isn't: to make one, create a new actor with the Session type skill. If your Library has no session type left, New session asks you to make one first. A roleplay with dice, one without a director, or one with only players is just a different session type. Like any actor, editing a session type changes every session of that type, and deleting it deletes those sessions after a warning.
+A session type never adds actors itself; you do. To make your own, copy Roleplay under a new name and change its cast contracts, roles and panels in the actor editor. An actor either is a session type or isn't: to make one, create a new actor with the Session type skill. If your Library has no session type left, New session asks you to make one first. A roleplay with dice, one without a director, or one with only players is just a different session type. Like any actor, editing a session type changes every session of that type, and deleting it deletes those sessions after a warning.
 
 ## Turns and directors
 

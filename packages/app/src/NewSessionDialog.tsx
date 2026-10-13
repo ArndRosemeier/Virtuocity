@@ -36,7 +36,7 @@ function Choice({
 /**
  * Starts a new, named session of one of the library's session types; the one
  * that was open stays in the session list. The type joins the new session and
- * decides its cast skills, panels and guide; you add the other actors.
+ * decides its cast contracts, panels and guide; you add the other actors.
  */
 export function NewSessionDialog({
   host,

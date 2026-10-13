@@ -1,5 +1,6 @@
 import type { Actor } from './actor';
 import type { ContractRef } from './contract-version';
+import { tryParseRef } from './contract-version';
 import { fulfils } from './contract';
 import type { VEvent } from './events';
 import type { Implementation } from './implementation';
@@ -58,6 +59,20 @@ export function canTakeTurns(actor: Actor, skills: (id: string) => Skill): boole
 /** Skills that can fill a slot requiring `wanted`, directly or through a descendant contract. */
 export function implementersOf(skills: readonly Skill[], wanted: ContractRef): Skill[] {
   return skills.filter((s) => (s.implements ?? []).some((i) => fulfils(i.contract, wanted)));
+}
+
+/**
+ * The skills that let an actor act as cast under a session type's cast
+ * contracts (references such as "speaker@1.0"): those serving one and able to
+ * act, in the contracts' order. Text that is no reference matches nothing.
+ */
+export function castCapable(skills: readonly Skill[], castContracts: readonly string[]): Skill[] {
+  return castContracts
+    .flatMap((text) => {
+      const ref = tryParseRef(text);
+      return ref ? implementersOf(skills, ref) : [];
+    })
+    .filter((s) => s.takeTurn !== undefined || s.onRequest !== undefined);
 }
 
 /** Whether one of the actor's skills serves `wanted`. */

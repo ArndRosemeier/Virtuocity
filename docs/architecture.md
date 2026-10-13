@@ -14,7 +14,8 @@ product is, and why that shapes every change, is in [vision.md](vision.md).
 | `@virtuocity/contract-critique`   | `critic@1` and `reviewer@1` (extends `critic@1`) contracts.                           |
 | `@virtuocity/openai-api`          | `ModelProvider`s for OpenRouter and OpenAI (same chat API).                           |
 | `@virtuocity/anthropic`           | `ModelProvider` for Anthropic's Messages API (Claude).                                |
-| `@virtuocity/skill-conversation`  | Conversation skill: lets an actor speak in character via a text model.                |
+| `@virtuocity/contract-speaker`    | `speaker@1.0` contract: says the actor's part in the session.                         |
+| `@virtuocity/skill-conversation`  | Conversation skill: implements `speaker@1.0` with a text model.                       |
 | `@virtuocity/skill-dice`          | Code-only skill implementing `dice-roller@1`.                                         |
 | `@virtuocity/skill-reviewer`      | LLM skill implementing `reviewer@1` (and so `critic@1`).                              |
 | `@virtuocity/contract-writing`    | `writer@1` contract.                                                                  |
@@ -25,7 +26,7 @@ product is, and why that shapes every change, is in [vision.md](vision.md).
 | `@virtuocity/skill-fact-gatherer` | LLM skill implementing `fact-gatherer@1.0`; shows facts in its space.                 |
 | `@virtuocity/book-room`           | Walking skeleton: `manuscript` document and `book-pipeline` flow.                     |
 | `@virtuocity/contract-director`   | `director@1.0` contract: picks who takes the next turn.                               |
-| `@virtuocity/skill-session-type`  | "Session type": cast skills, roles and panels in the actor's settings; the Open type. |
+| `@virtuocity/skill-session-type`  | "Session type": cast contracts, roles, panels in the actor's settings; the Open type. |
 | `@virtuocity/skill-director`      | Code and decision-model skills implementing `director@1.0`.                           |
 | `@virtuocity/turn-taking`         | `turn-taking` flow: pass (the director picks) or choose who speaks.                   |
 | `@virtuocity/roleplay`            | Roleplay session type and its starter actors (narrator, players...).                  |
@@ -71,7 +72,7 @@ app ──► any module ──► ui ──────────► core
   `onEvent` for reacting (silent and support actors), `takeTurn` for actors that
   speak, `onRequest` for support actors a person can ask to act (`runtime.askable()`,
   "or ask:" in the composer; `runTurn` runs it like a turn, the director never
-  picks it). Conversation is just a skill with `takeTurn`. A skill that takes over
+  picks it). Conversation is just a skill with `takeTurn` that serves `speaker@1.0`. A skill that takes over
   a removed one lists it in `replaces`; `upgradeActor` (`skill-upgrade.ts`)
   moves actors onto it, and the app's `Library` applies that to stored actors
   and to every actor it adopts, sessions' casts included.
@@ -192,7 +193,7 @@ head, so all documents (transcript, outline, inventory, scene) move together.
   file, or a session saved before 0.059) into includes; `withActorsWritten`
   does the reverse for a file, which has to stand alone. `runtime.cast()` (and
   `ctx.cast`, `ContextRequest.cast`) is the cast proper: people and the actors
-  holding one of the session type's cast skills (`SessionCast`, see
+  serving one of the session type's cast contracts (`SessionCast`, see
   [Session types](#session-types)). Everyone else is support (an illustrator
   in a roleplay, a chronicler, the story view); prompts name only the cast as
   being in the scene.
@@ -309,7 +310,7 @@ request, schema)` asks for JSON matching a zod schema, then shows the model
 ## Session types
 
 A session type (Roleplay, Book room, Image workflow, Open) is not built into
-the app: it is an **actor** whose skill serves `session-type@2.0`
+the app: it is an **actor** whose skill serves `session-type@3.0`
 (`sessionTypeContract` in `core/src/session-type.ts`; in core because the
 runtime's cast depends on it). **Every session the app keeps has exactly
 one**: New session requires one, the type can't be removed from a session or
@@ -319,12 +320,15 @@ when they would open, and files without one are refused (`switcher.ts`,
 adds or removes the skill is refused, so no session loses its type by an
 edit. Its `describe` action returns:
 
-- `castSkills`: skill ids, in order. AI actors holding one are **cast**; all
-  others are support. On its turn an actor acts with the first of these it
-  has (`takeTurn`, or `onRequest` for a skill like the illustrator). So an
+- `castContracts`: contract references, in order. AI actors serving one are
+  **cast**; all others are support. On its turn an actor acts with its skill
+  serving the first of these it serves (`castCapable` in `skill.ts`; the
+  skill's `takeTurn`, or `onRequest` for a skill like the illustrator). So an
   illustrator that can also talk paints in an image workflow
-  (`['illustrator']`) and talks in a roleplay (`['conversation']`). Nothing is
-  tied to what a model can output; the order decides. The runtime keeps the
+  (`['illustrator@1.0']`) and talks in a roleplay (`['speaker@1.0']`). Casting
+  goes by what an actor promises, never by a skill's name: any skill serving
+  `speaker@1.0` takes turns wherever speakers are cast. Nothing is tied to
+  what a model can output; the order decides. The runtime keeps the
   type's last description (`TypeTracker`), settled after every join, leave
   and load and refreshed when the type actor changes, so `cast()` stays
   synchronous; `sessionTypeDescribed` tells views to redraw. A bare runtime
@@ -334,7 +338,7 @@ edit. Its `describe` action returns:
   `main` views as tabs. Book room shows only the manuscript and no composer;
   Roleplay shows the spaces, the session and the composer.
 - `roles`: what the setup guide suggests adding. A role names what an actor
-  must be able to do (`cast`: one of the cast skills, and `needs` as contract
+  must be able to do (`cast`: one of the cast contracts, and `needs` as contract
   references), never a skill. The app's guide (`guideLines` in `app/src/sessionType.ts`) matches
   the cast to the roles, each actor filling the first open role it fits, and
   shows it at the top of the Cast panel until it is hidden (`hideGuide`, kept
@@ -465,12 +469,14 @@ in the session.
 
 ## Instructions
 
-`host.instructions` holds `InstructionSource`s: standing instructions the
-runtime adds to every text-model call of every actor (`withInstructions`, ahead
-of the call's own system prompt), so no skill has to opt in. Image and audio
-calls are left alone. `skill-system-prompt` is the first source: a silent
-support skill whose `prompt` setting is added for everyone; several such actors
-are combined in the order they joined.
+`instructions@1.0` (`instructionsContract` in `core/src/instructions.ts`; in
+core because the runtime asks it) gives standing instructions the runtime adds
+to every text-model call of every actor (`withInstructions`, ahead of the
+call's own system prompt), so no skill has to opt in. Before each text call the
+runtime asks every AI actor serving it, in cast order; calls made by a skill
+serving it get none, so a source is never asked on its own behalf. Image and
+audio calls are left alone. `skill-system-prompt` is the first implementation:
+a silent support skill whose `prompt` setting is added for everyone.
 
 ## Story view
 

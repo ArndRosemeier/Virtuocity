@@ -5,7 +5,6 @@ import type { ContextContributor } from './context-assembly';
 import { ContractRegistry } from './contract-registry';
 import type { DocType } from './doc-type';
 import type { Flow } from './flow';
-import type { InstructionSource } from './instructions';
 import type { ModalityInfo } from './models';
 import type { Identified } from './registry';
 import { Registry } from './registry';
@@ -44,7 +43,6 @@ export class ModuleHost<R = unknown, C = unknown> {
   readonly profileFields = new Registry<ProfileField>('profile field');
   readonly channels = new Registry<Channel>('channel');
   readonly contextContributors = new Registry<ContextContributor>('context contributor');
-  readonly instructions = new Registry<InstructionSource>('instruction source');
   /** Ready-made actors a session owns rather than the library, e.g. story views. */
   readonly actors = new Registry<Actor>('ready-made actor');
 }

@@ -19,8 +19,10 @@ describe('image workflow starters', () => {
   const host = loadModules(new ModuleHost(), [imageWorkflowModule]);
 
   it('cast illustrators and offer one that paints only on its turn', () => {
-    const { castSkills } = imageWorkflowType.settings?.['session-type'] as { castSkills: string[] };
-    expect(castSkills).toEqual(['illustrator']);
+    const { castContracts } = imageWorkflowType.settings?.['session-type'] as {
+      castContracts: string[];
+    };
+    expect(castContracts).toEqual(['illustrator@1.0']);
     expect(castStarter(host.starters.get('painter'), [painting])).toMatchObject({
       skillIds: ['illustrator'],
       settings: { illustrator: { automatic: false } },
@@ -28,10 +30,10 @@ describe('image workflow starters', () => {
   });
 
   it('offer guided illustrations: a talking refiner is cast, the illustrator is support', () => {
-    const { castSkills } = guidedIllustrationsType.settings?.['session-type'] as {
-      castSkills: string[];
+    const { castContracts } = guidedIllustrationsType.settings?.['session-type'] as {
+      castContracts: string[];
     };
-    expect(castSkills).toEqual(['conversation']);
+    expect(castContracts).toEqual(['speaker@1.0']);
     expect(host.starters.get('prompt-refiner').speaks).toBe(true);
   });
 

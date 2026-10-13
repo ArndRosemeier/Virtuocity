@@ -9,6 +9,14 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 66,
+    date: '2026-10-13',
+    changes: [
+      'Every skill now keeps a contract: Conversation serves speaker@1.0 and System prompt serves instructions@1.0.',
+      'Session types pick their cast by contract instead of by skill: the "Cast skills" setting is now "Cast contracts" (Roleplay, Book room and Guided illustrations cast speakers, Image workflow casts illustrators). Any skill that can speak is cast wherever speakers are.',
+    ],
+  },
+  {
     build: 65,
     date: '2026-10-13',
     changes: [

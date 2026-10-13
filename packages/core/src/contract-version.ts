@@ -33,6 +33,15 @@ export function parseRef(text: string): ContractRef {
   return { name, version: parseVersion(version) };
 }
 
+/** Like `parseRef`, but undefined for text that is no contract reference. */
+export function tryParseRef(text: string): ContractRef | undefined {
+  try {
+    return parseRef(text);
+  } catch {
+    return undefined;
+  }
+}
+
 export function assertContractName(name: string): void {
   if (!NAME.test(name)) {
     throw new Error(`Invalid contract name "${name}": use lowercase letters, digits and dashes`);

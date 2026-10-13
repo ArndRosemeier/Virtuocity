@@ -1,7 +1,16 @@
 import type { Actor, ModelProvider, Skill } from '@virtuocity/core';
-import { ModuleHost, SessionRuntime, coreModule, loadModules, textContent } from '@virtuocity/core';
+import {
+  ModuleHost,
+  SessionRuntime,
+  conformanceSuite,
+  conformanceTarget,
+  coreModule,
+  instructionsContract,
+  loadModules,
+  textContent,
+} from '@virtuocity/core';
 import { describe, expect, it, vi } from 'vitest';
-import { systemPromptModule } from './index';
+import { systemPromptModule, systemPromptSkill } from './index';
 
 const talker: Skill = {
   id: 'talker',
@@ -64,4 +73,11 @@ describe('system prompt', () => {
       { role: 'system', content: 'You are Lyra.' },
     ]);
   });
+});
+
+describe('system prompt conforms to instructions', () => {
+  const target = conformanceTarget(instructionsContract, { skills: [systemPromptSkill] });
+  for (const testCase of conformanceSuite(instructionsContract)) {
+    it(`${testCase.contractId}: ${testCase.name}`, () => testCase.run(target));
+  }
 });
