@@ -13,7 +13,7 @@ export function StoryViewPicker({ host, session }: PanelProps) {
     if (renderer) void setRenderer(session, renderer);
   };
   return (
-    <div className="story-view-picker">
+    <div className="cast__fixture">
       <RendererSelect
         host={host}
         label="Session view"
@@ -23,7 +23,7 @@ export function StoryViewPicker({ host, session }: PanelProps) {
       />
       <IconButton
         icon="edit"
-        label="Edit the story view"
+        label="Edit the session view"
         onClick={() => openEditActor(STORY_VIEW)}
       />
     </div>

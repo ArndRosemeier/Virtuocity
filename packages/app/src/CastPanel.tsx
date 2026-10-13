@@ -6,6 +6,7 @@ import { useAppActions } from './actions';
 import { useActorTips } from './actorTips';
 import { runSafely } from './LibraryActors';
 import { SessionGoesDialog } from './SessionGoesDialog';
+import { SessionTypeField } from './SessionTypeField';
 import { SetupGuide } from './SetupGuide';
 import { StoryViewPicker } from './StoryViewPicker';
 import { STORY_VIEW } from './storyView';
@@ -15,8 +16,7 @@ import { useSwitcher } from './switcher';
 interface CastRowProps {
   readonly actor: Actor;
   readonly speaking: boolean;
-  /** Unset for the session type, which stays as long as the session. */
-  readonly onLeave?: () => void;
+  readonly onLeave: () => void;
 }
 
 /** One actor in the scene, with edit and remove. Editing changes the actor in the library too. */
@@ -43,14 +43,12 @@ function CastRow({ actor: a, speaking, onLeave }: CastRowProps) {
         label={`Edit ${a.personality.name}`}
         onClick={() => openEditActor(a.id)}
       />
-      {onLeave && (
-        <IconButton
-          size="sm"
-          icon="trash"
-          label={`Remove ${a.personality.name} from the session`}
-          onClick={onLeave}
-        />
-      )}
+      <IconButton
+        size="sm"
+        icon="trash"
+        label={`Remove ${a.personality.name} from the session`}
+        onClick={onLeave}
+      />
     </li>
   );
 }
@@ -85,24 +83,22 @@ function useRemove({ session }: PanelProps) {
 
 /**
  * Who is in the session: the cast (actors with one of the session type's cast
- * skills) and, apart from it, support actors. Actors can join and leave at any
- * time, except the session type, which the session keeps for good.
+ * skills) and, apart from it, support actors, who can all join and leave at
+ * any time. Below them the two every session has exactly one of: its type
+ * (kept for good) and its view.
  */
 function CastPanel({ host, session }: PanelProps) {
   const { openAddActor } = useAppActions();
   const [remove, removeDialog] = useRemove({ host, session });
   const fixed = (a: Actor) => isSessionType(a, host.skills.list());
   const row = (a: Actor) => (
-    <CastRow
-      key={a.id}
-      actor={a}
-      speaking={session.speaking === a.id}
-      {...(fixed(a) ? {} : { onLeave: () => remove(a) })}
-    />
+    <CastRow key={a.id} actor={a} speaking={session.speaking === a.id} onLeave={() => remove(a)} />
   );
+  const type = session.actors.find(fixed);
   const cast = session.cast().filter((a) => a.controller === 'ai');
   const support = session.actors.filter(
-    (a) => a.controller === 'ai' && a.id !== STORY_VIEW && !cast.some((c) => c.id === a.id),
+    (a) =>
+      a.controller === 'ai' && a.id !== STORY_VIEW && !fixed(a) && !cast.some((c) => c.id === a.id),
   );
   return (
     <div className="cast">
@@ -122,6 +118,7 @@ function CastPanel({ host, session }: PanelProps) {
       <Button icon="plus" onClick={openAddActor}>
         Add actor
       </Button>
+      {type && <SessionTypeField type={type} />}
       <StoryViewPicker host={host} session={session} />
       {removeDialog}
     </div>

@@ -49,7 +49,7 @@ Open the Library and press New actor, or Copy on an existing one. Give it a name
 
 A premise opens a session once, when it joins while the session is still empty; editing its text later does not change sessions it already opened. With "Show the premise in the chat" off, you never see it, but the AI actors do: they get it marked as hidden from you, with the request to build on it and not give it away.
 
-Whether an actor is in the **cast** depends on the session type, not on the actor: each type lists its cast contracts. In a roleplay the actors who talk (speakers) are the cast; in an image workflow the illustrators are. Every other actor in a session is a **support** actor (an illustrator in a roleplay, a chronicler, the session type itself). It works beside the session and never takes a turn, though some can be asked to act.
+Whether an actor is in the **cast** depends on the session type, not on the actor: each type lists its cast contracts. In a roleplay the actors who talk (speakers) are the cast; in an image workflow the illustrators are. Every other actor in a session is a **support** actor (an illustrator in a roleplay, a chronicler, the session type itself). It works beside the session and never takes a turn, though some can be asked to act. The Cast panel lists the cast, then the support actors; below them, the session type and the session view each have a field of their own, since every session has exactly one of each. The view can be swapped there; the type stays for good, and both open in the actor editor.
 
 ### Sessions from a file
 
