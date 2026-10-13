@@ -45,7 +45,7 @@ function EditSessionActor({
   const inLibrary = isLibraryActor(actor);
   const others = inLibrary ? actors.filter((i) => i.id !== actorId) : [];
   const save = (next: Actor) =>
-    inLibrary ? saveEverywhere(library, session, next) : session.join(next);
+    inLibrary ? saveEverywhere({ host, library, session }, next) : session.join(next);
   return (
     <ActorDialog
       host={host}

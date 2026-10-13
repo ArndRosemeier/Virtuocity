@@ -333,8 +333,10 @@ summarizer writes as much as it needs to keep every detail that may matter.
 Who speaks next is a contract like everything else. `contract-director`
 defines `director@1.0`: `next` gets the cast as candidates (id, name, whether
 it is a person) and returns the id of who takes the next turn. Picking a person
-hands the turn back, so the session waits for them. The turn-taking flow asks
-the first actor in the session that serves the contract; a human can direct
+hands the turn back, so the session waits for them. A session has at most one
+director: the app refuses to add a second one, or to give a second actor in the
+session a director skill (`rivalDirector` in `turn-taking`). The turn-taking
+flow asks that director; a human can direct
 too (they get a task). Without a director, passing picks nobody: people click
 who speaks, and the app shows Pass only when the session has a director.
 

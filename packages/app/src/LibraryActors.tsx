@@ -6,6 +6,7 @@ import { useActorTips } from './actorTips';
 import { CopyActorDialog } from './LibraryActorDialogs';
 import { saveEverywhere, useLibrary } from './library';
 import { SessionGoesDialog } from './SessionGoesDialog';
+import { assertCanJoin, joinProblem } from './oneDirector';
 import type { PanelProps } from './types';
 import type { SessionEntry } from './sessions';
 import { useSwitcher } from './switcher';
@@ -56,11 +57,14 @@ type Open =
 function ActorButtons({
   actor,
   inSession,
+  blocked,
   onAdd,
   onOpen,
 }: {
   actor: Actor;
   inSession: boolean;
+  /** Why the actor cannot be added to the session, e.g. it would be a second director. */
+  blocked: string | undefined;
   onAdd: () => void;
   onOpen: (open: Open) => void;
 }) {
@@ -69,6 +73,8 @@ function ActorButtons({
     <>
       {inSession ? (
         <Pill tone="accent">in the session</Pill>
+      ) : blocked ? (
+        <Pill title={blocked}>a director is here</Pill>
       ) : (
         <Button size="sm" icon="plus" onClick={onAdd}>
           Add
@@ -112,13 +118,10 @@ function ActorListDialog({
 }) {
   const library = useLibrary();
   const others = (actor?: Actor) => names.filter((n) => !actor || n !== actor.personality.name);
-  const join = async (actor: Actor) => {
-    await session.join(actor);
-    onAdded?.();
-  };
   const create = async (actor: Actor) => {
+    if (onAdded) assertCanJoin(host, session, actor);
     await library.saveActor(actor);
-    if (onAdded) await join(actor);
+    if (onAdded) await session.join(actor).then(onAdded);
   };
   if (open.kind === 'new') {
     const label = onAdded ? 'Create and add' : 'Create';
@@ -136,7 +139,7 @@ function ActorListDialog({
   }
   const { actor } = open;
   if (open.kind === 'edit') {
-    const save = (a: Actor) => runSafely(() => saveEverywhere(library, session, a));
+    const save = (a: Actor) => runSafely(() => saveEverywhere({ host, library, session }, a));
     return (
       <ActorDialog
         host={host}
@@ -215,6 +218,7 @@ export function LibraryActors({
   const inSession = (id: string) => session.actors.some((a) => a.id === id);
   const add = (actor: Actor) =>
     runSafely(async () => {
+      assertCanJoin(host, session, actor);
       await session.join(actor);
       onAdded?.();
     });
@@ -237,6 +241,7 @@ export function LibraryActors({
             <ActorButtons
               actor={actor}
               inSession={inSession(id)}
+              blocked={joinProblem(host, session, actor)}
               onAdd={() => add(actor)}
               onOpen={onOpen}
             />

@@ -9,7 +9,9 @@ import type {
   SessionRuntime,
 } from '@virtuocity/core';
 import { sameActor } from '@virtuocity/core';
+import { assertCanJoin } from './oneDirector';
 import { STORY_VIEW } from './storyView';
+import type { AppHost } from './types';
 
 export const LibraryContext = createContext<Library | null>(null);
 
@@ -49,14 +51,18 @@ export function isLibraryActor(actor: Actor): boolean {
   return actor.controller === 'ai' && actor.id !== STORY_VIEW;
 }
 
-/** Saves an actor in the library and, if it is in the session, there too. */
+/**
+ * Saves an actor in the library and, if it is in the session, there too.
+ * Refuses, saving nothing, when the change would give the session a second director.
+ */
 export async function saveEverywhere(
-  library: Library,
-  session: SessionRuntime,
+  { host, library, session }: { host: AppHost; library: Library; session: SessionRuntime },
   actor: Actor,
 ): Promise<void> {
+  const inSession = session.actors.some((a) => a.id === actor.id);
+  if (inSession) assertCanJoin(host, session, actor);
   await library.saveActor(actor);
-  if (session.actors.some((a) => a.id === actor.id)) await session.join(actor);
+  if (inSession) await session.join(actor);
 }
 
 /**

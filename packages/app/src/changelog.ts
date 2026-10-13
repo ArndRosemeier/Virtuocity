@@ -9,6 +9,13 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 49,
+    date: '2026-10-13',
+    changes: [
+      'A session has one director at most. Once a director is in the session, other directors in the Library show "a director is here" instead of Add, and an actor in the session can\'t be given a director skill while another one directs.',
+    ],
+  },
+  {
     build: 48,
     date: '2026-10-13',
     changes: [
