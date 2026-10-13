@@ -166,6 +166,14 @@ export class Workspace {
     await this.#moved();
   }
 
+  /** Takes operations out of the history; what followed each now follows its parent. */
+  async excise(opIds: readonly string[]): Promise<void> {
+    for (const id of opIds) this.log.excise(id);
+    this.#cache.clear();
+    this.#redo = [];
+    await this.#moved();
+  }
+
   /** Replaces all state with a saved log (see `persistence.ts`). */
   async load(ops: readonly Operation[], head: string | null): Promise<void> {
     this.log.replace(ops, head);

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Actor } from '@virtuocity/core';
-import { hasActed, isSessionType } from '@virtuocity/core';
+import { isSessionType, withdraw } from '@virtuocity/core';
 import { Avatar, Button, IconButton, Pill } from '@virtuocity/ui';
 import { useAppActions } from './actions';
 import { useActorTips } from './actorTips';
@@ -56,15 +56,17 @@ function CastRow({ actor: a, speaking, onLeave }: CastRowProps) {
 }
 
 /**
- * Removing an actor that did nothing yet is clean. One that did something
- * stays part of the session, so removing it deletes the session, after a warning.
+ * Removing an actor nobody has built on yet is clean: what it did goes with it.
+ * One whose work the session went on from stays part of the session, so removing it
+ * deletes the session, after a warning.
  */
 function useRemove({ session }: PanelProps) {
   const switcher = useSwitcher();
   const [actor, setActor] = useState<Actor>();
   const remove = (a: Actor) => {
-    if (hasActed(session.workspace.log.all(), a.id)) setActor(a);
-    else void session.leave(a.id);
+    void withdraw(session, a.id).then((gone) => {
+      if (!gone) setActor(a);
+    });
   };
   const name = actor?.personality.name ?? '';
   const dialog = actor && (
@@ -74,7 +76,7 @@ function useRemove({ session }: PanelProps) {
       onConfirm={() => runSafely(() => switcher.removeOpen())}
       onClose={() => setActor(undefined)}
     >
-      {name} has already taken part in this session, so removing {name} means deleting the session.{' '}
+      The session has gone on since {name} took part, so removing {name} means deleting the session.{' '}
       {name} stays in your Library.
     </SessionGoesDialog>
   );
