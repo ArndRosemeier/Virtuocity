@@ -10,6 +10,13 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 78,
+    date: '2026-10-13',
+    changes: [
+      'A new answer scrolls the session all the way to its end again, also when the view folds parts of it. Only scrolling up yourself stops the session from following new text.',
+    ],
+  },
+  {
     build: 77,
     date: '2026-10-13',
     changes: [
