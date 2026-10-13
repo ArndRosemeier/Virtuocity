@@ -463,7 +463,10 @@ edits it, and does not list it as a cast member.
 - **Adopting.** `adopt(actors, resolve)` makes the library hold incoming actors
   under their own ids, e.g. a loaded session's cast (the app's `syncCast`) or
   an imported library file. New names are added, identical actors linked, and
-  names taken by different actors go to `resolve` (keep or replace).
+  names taken by different actors go to `resolve` (keep or replace). Only a
+  session or library loaded from a file asks the person; a stored session
+  (opened, reloaded, or copied from a template) settles with `keepLibrary`, since
+  its saved actor copies may simply be older than the library's.
 - **Deleting** an actor the session uses deletes that session too, after a
   warning, so nothing refers to a deleted actor.
 - A saved setup lists actor ids and the blueprint it came from;

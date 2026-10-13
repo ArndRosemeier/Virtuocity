@@ -43,9 +43,10 @@ export function App() {
   const [dialog, setDialog] = useState<OpenDialog | null>(null);
   useTheme();
   useEffect(() => {
-    // Dev builds expose the session for debugging in the browser console.
-    if (import.meta.env.DEV) Object.assign(window, { virtuocity: { host, session } });
-  }, [host, session]);
+    // Dev builds expose the session, library and switcher for debugging in the browser console.
+    if (import.meta.env.DEV)
+      Object.assign(window, { virtuocity: { host, session, library, switcher } });
+  }, [host, session, library, switcher]);
 
   const actions = useMemo(() => dialogActions(setDialog), []);
   const left = contributions({ host, session }, 'left').length > 0;

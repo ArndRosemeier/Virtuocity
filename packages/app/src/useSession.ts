@@ -6,7 +6,7 @@ import { SessionSwitcher } from './switcher';
 import type { AppHost } from './types';
 import { readModelDefaults } from './settings';
 import { ensureStoryView } from './storyView';
-import { syncCast } from './library';
+import { keepLibrary, syncCast } from './library';
 import { prepareLibrary } from './seed';
 
 export const USER_ID = 'user';
@@ -55,8 +55,8 @@ export function useSession(
       new SessionSwitcher({
         runtime: session,
         catalog: new SessionCatalog(store, () => crypto.randomUUID()),
-        prepare: async (runtime) => {
-          await syncCast(library, runtime, resolve);
+        prepare: async (runtime, fromFile) => {
+          await syncCast(library, runtime, fromFile ? resolve : keepLibrary);
           await ensureCast(host, runtime);
         },
         scratch: () => createRuntime(host, assets),

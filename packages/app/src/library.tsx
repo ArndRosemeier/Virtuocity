@@ -66,6 +66,13 @@ export async function saveEverywhere(
 }
 
 /**
+ * Settles every clash for the library's version. A stored session's actors are
+ * library actors; the copy it was saved with may be older than the library's
+ * (edited while another session was open), and that is no clash.
+ */
+export const keepLibrary: ResolveConflicts = () => Promise.resolve({});
+
+/**
  * Makes every actor in the session a library actor, e.g. after loading a file:
  * new names join the library, taken ones are settled by `resolve`, and the
  * session gets the actors as the library holds them.
