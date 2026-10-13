@@ -9,6 +9,13 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 64,
+    date: '2026-10-13',
+    changes: [
+      'The actor editor lists skills by name only; hover a skill to see its contracts ("Contracts: ...").',
+    ],
+  },
+  {
     build: 63,
     date: '2026-10-13',
     changes: [
@@ -256,34 +263,6 @@ export const RELEASES: readonly Release[] = [
     changes: [
       'The roleplay renderer shows markdown in colors: italics blue, bold rose, headings purple, quotes green, code teal, and speech stays amber. Struck-through text is greyed out.',
       'Everything the roleplay renderer draws (lists, quotes, hidden notes, headings) uses the same story size as the plain view; headings are larger.',
-    ],
-  },
-  {
-    build: 31,
-    date: '2026-10-12',
-    changes: [
-      'A Stop button sits next to whoever is writing. It cancels a stuck or unwanted answer right away, keeps nothing of it, and the session waits for you again. It works for retries too.',
-    ],
-  },
-  {
-    build: 30,
-    date: '2026-10-12',
-    changes: [
-      'Every AI response has a retry button. It takes that response and everything after it back, and the same actor answers again. On an older response, everything below it goes away.',
-    ],
-  },
-  {
-    build: 29,
-    date: '2026-10-12',
-    changes: [
-      'The roleplay renderer shows paragraphs apart again: there is a blank line between them, as the model wrote it, instead of a thin gap that made them run together.',
-    ],
-  },
-  {
-    build: 28,
-    date: '2026-10-12',
-    changes: [
-      'A Premise actor has a "Show the premise in the chat" setting. Turn it off and the premise stays hidden from you: only the AI actors see it, so the narrator knows the setup and you discover it as you play.',
     ],
   },
   ...EARLIER_RELEASES,
