@@ -26,6 +26,7 @@ export * from './library-import';
 export * from './implementation';
 export * from './instructions';
 export * from './media';
+export * from './pictures';
 export * from './models';
 export * from './module';
 export * from './oplog';

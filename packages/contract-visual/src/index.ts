@@ -63,3 +63,32 @@ export const illustratorContract = defineContract({
     },
   ],
 });
+
+/**
+ * Which picture a session is working on: the one a talking model looks at
+ * when asked to change "it", or an illustrator refines. A session has at most
+ * one; a gallery the person steps through is the usual one.
+ */
+export const pictureSourceContract = defineContract({
+  name: 'picture-source',
+  version: '1.0',
+  description: 'Says which picture of the session is the current one.',
+  actions: {
+    current: action({
+      description: 'The current picture and the message it is in; none while there is none.',
+      input: z.object({}),
+      output: z.object({
+        picture: picture.extend({ messageId: z.string() }).optional(),
+      }),
+    }),
+  },
+  conformance: [
+    {
+      name: 'names the current picture by its message, if there is one',
+      run: async (t) => {
+        const { picture: current } = await t.invoke('current', {});
+        check(current === undefined || current.messageId !== '', 'expected a message id');
+      },
+    },
+  ],
+});

@@ -1,6 +1,6 @@
 import { speakerContract } from '@virtuocity/contract-speaker';
 import { directorContract } from '@virtuocity/contract-director';
-import { illustratorContract } from '@virtuocity/contract-visual';
+import { illustratorContract, pictureSourceContract } from '@virtuocity/contract-visual';
 import { sessionTypeContract } from '@virtuocity/core';
 import type { Starter, VirtuocityModule } from '@virtuocity/core';
 
@@ -14,6 +14,14 @@ const director = (hint: string) => ({
   needs: [directorContract.id],
   optional: true,
 });
+
+/** The optional gallery role: which picture is the current one. */
+const GALLERY = {
+  label: 'A gallery',
+  hint: 'Shows every picture; the one in view is the one a talking model looks at and refines.',
+  needs: [pictureSourceContract.id],
+  optional: true,
+};
 
 /**
  * The Image workflow session type: you write what you want to see and an
@@ -40,6 +48,7 @@ export const imageWorkflowType: Starter = {
         director(
           'Lets an illustrator answer each prompt on its own. Without one, you click who paints.',
         ),
+        GALLERY,
       ],
       panels: PANELS,
     },
@@ -74,6 +83,7 @@ export const guidedIllustrationsType: Starter = {
           needs: [illustratorContract.id],
         },
         director('Lets the refiner answer when you press Act. Without one, you click the refiner.'),
+        GALLERY,
       ],
       panels: PANELS,
     },
@@ -104,6 +114,7 @@ export const imageWorkflowModule: VirtuocityModule = {
   register: (host) => {
     host.contracts.register(illustratorContract);
     host.contracts.register(directorContract);
+    host.contracts.register(pictureSourceContract);
     host.contracts.register(sessionTypeContract);
     [imageWorkflowType, painterStarter, guidedIllustrationsType, refinerStarter].forEach((s) =>
       host.starters.register(s),

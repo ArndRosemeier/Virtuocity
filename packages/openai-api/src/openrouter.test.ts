@@ -24,8 +24,9 @@ describe('OpenRouter provider', () => {
       text: 'Hello',
       stats: { model: 'x/model', promptTokens: 12, completionTokens: 3, costUsd: 0.0004 },
     });
-    const init = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
-    expect(init[1].headers).toMatchObject({ Authorization: 'Bearer k' });
+    const calls = fetchMock.mock.calls as unknown as [string, RequestInit][];
+    const init = calls.find(([url]) => url.includes('/chat/'));
+    expect(init?.[1].headers).toMatchObject({ Authorization: 'Bearer k' });
   });
 
   it('asks decision models through the Decisions API', async () => {

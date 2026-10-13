@@ -144,7 +144,7 @@ describe('requests', () => {
 
 describe('models without tool support', () => {
   it('retries without tools when OpenRouter finds no endpoint for them', async () => {
-    const fetchMock = vi
+    const chats = vi
       .fn()
       .mockResolvedValueOnce(
         new Response('{"error":{"message":"No endpoints found that support tool use"}}', {
@@ -154,11 +154,19 @@ describe('models without tool support', () => {
       .mockResolvedValueOnce(
         new Response(JSON.stringify({ model: 'm', choices: [{ message: { content: 'Hi' } }] })),
       );
-    const provider = createOpenRouterProvider({ apiKey: () => 'k', fetch: fetchMock });
+    const fetchMock = vi.fn((url: string, init?: RequestInit) =>
+      url.includes('/models')
+        ? Promise.resolve(new Response('{"data":[]}'))
+        : (chats(url, init) as Promise<Response>),
+    );
+    const provider = createOpenRouterProvider({
+      apiKey: () => 'k',
+      fetch: fetchMock as unknown as typeof fetch,
+    });
     const tools = [{ name: 'roll', description: 'Roll', parameters: { type: 'object' } }];
     const result = await provider.complete({ modality: 'text', model: 'm', messages: [], tools });
     expect(result.text).toBe('Hi');
-    const second = fetchMock.mock.calls[1] as [string, RequestInit];
+    const second = chats.mock.calls[1] as [string, RequestInit];
     expect(JSON.parse(String(second[1].body))).not.toHaveProperty('tools');
   });
 });

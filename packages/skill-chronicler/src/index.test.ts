@@ -1,4 +1,4 @@
-import { textContent } from '@virtuocity/core';
+import { chatText, textContent } from '@virtuocity/core';
 import { summarizerContract } from '@virtuocity/contract-memory';
 import { markerContract } from '@virtuocity/contract-render';
 import { spaceContract } from '@virtuocity/contract-space';
@@ -18,7 +18,9 @@ import { chroniclerModule, differentialChroniclerSkill, fullChroniclerSkill } fr
 import { chronicles } from './memory';
 
 const summaryReply = (request: CompletionRequest) =>
-  request.messages.at(-1)?.content.includes('The summary so far') ? 'Updated.' : 'From scratch.';
+  chatText(request.messages.at(-1)?.content ?? '').includes('The summary so far')
+    ? 'Updated.'
+    : 'From scratch.';
 
 for (const skill of [differentialChroniclerSkill, fullChroniclerSkill]) {
   describe(`${skill.name} conforms to summarizer`, () => {
@@ -78,7 +80,9 @@ async function play(skillId: string, turns: number) {
     if (i > 0) await ended;
   }
   const memory = chronicles(runtime.workspace.view('narrator'));
-  const prompts = runtime.calls.list().map((c) => c.request.messages.at(-1)?.content ?? '');
+  const prompts = runtime.calls
+    .list()
+    .map((c) => chatText(c.request.messages.at(-1)?.content ?? ''));
   return { runtime, known, memory, prompts };
 }
 

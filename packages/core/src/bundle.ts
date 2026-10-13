@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { AssetStore } from './assets';
 import { findAssetIds } from './assets';
+import { encodeBase64 } from './media';
 import type { SavedSession } from './persistence';
 import { parseSavedSession } from './persistence';
 
@@ -19,8 +20,6 @@ const bundleShape = z.object({
   assets: z.record(z.string(), z.object({ mime: z.string(), base64: z.string() })),
 });
 
-const toBase64 = (bytes: Uint8Array) =>
-  btoa(Array.from(bytes, (b) => String.fromCharCode(b)).join(''));
 const fromBase64 = (text: string) => Uint8Array.from(atob(text), (c) => c.charCodeAt(0));
 
 /** Serializes a session and its assets into one JSON text, e.g. for "save all to file". */
@@ -28,7 +27,7 @@ export async function exportBundle(session: SavedSession, assets: AssetStore): P
   const entries: [string, { mime: string; base64: string }][] = [];
   for (const id of findAssetIds(session.operations.map((op) => op.payload))) {
     const asset = await assets.get(id);
-    if (asset) entries.push([id, { mime: asset.mime, base64: toBase64(asset.bytes) }]);
+    if (asset) entries.push([id, { mime: asset.mime, base64: encodeBase64(asset.bytes) }]);
   }
   const bundle: SessionBundle = {
     format: 'virtuocity.bundle',

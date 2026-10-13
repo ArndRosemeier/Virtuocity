@@ -1,5 +1,11 @@
 import type Anthropic from '@anthropic-ai/sdk';
-import type { ChatMessage, CompletionRequest, CompletionResult, ToolCall } from '@virtuocity/core';
+import type {
+  ChatMessage,
+  ChatPart,
+  CompletionRequest,
+  CompletionResult,
+  ToolCall,
+} from '@virtuocity/core';
 
 type MessageParam = Anthropic.MessageParam;
 type Block = Anthropic.ContentBlockParam;
@@ -24,6 +30,27 @@ function assistantBlocks(message: Extract<ChatMessage, { role: 'assistant' }>): 
   return [...text, ...calls];
 }
 
+type ImageType = Anthropic.Base64ImageSource['media_type'];
+const IMAGE_TYPES: readonly string[] = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+const isImageType = (mime: string): mime is ImageType => IMAGE_TYPES.includes(mime);
+
+/** Words as text, pictures as base64 images; a picture Anthropic cannot read becomes its `alt`. */
+function partBlock(part: ChatPart): Block {
+  const data = part.type === 'image' ? /^data:[^;]+;base64,(.*)$/s.exec(part.url ?? '')?.[1] : '';
+  if (part.type === 'text') return { type: 'text', text: part.text };
+  if (!data || !isImageType(part.mime)) return { type: 'text', text: part.alt };
+  return { type: 'image', source: { type: 'base64', media_type: part.mime, data } };
+}
+
+function userMessage(message: Extract<ChatMessage, { role: 'user' }>): MessageParam | undefined {
+  if (typeof message.content === 'string') {
+    return message.content ? { role: 'user', content: message.content } : undefined;
+  }
+  return message.content.length > 0
+    ? { role: 'user', content: message.content.map(partBlock) }
+    : undefined;
+}
+
 /** One chat message in Anthropic's shape; empty ones are left out, since the API refuses them. */
 function toMessage(message: ChatMessage): MessageParam | undefined {
   if (message.role === 'tool') {
@@ -38,7 +65,7 @@ function toMessage(message: ChatMessage): MessageParam | undefined {
     const content = assistantBlocks(message);
     return content.length > 0 ? { role: 'assistant', content } : undefined;
   }
-  return message.role === 'user' && message.content ? message : undefined;
+  return message.role === 'user' ? userMessage(message) : undefined;
 }
 
 /** A conversation must open with the user, so one that opens with the model gets a nudge first. */

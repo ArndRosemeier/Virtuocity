@@ -9,6 +9,15 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 68,
+    date: '2026-10-13',
+    changes: [
+      'Gallery: a new support actor whose space shows every picture of the session. Step back and forth with "‹ 2/5 ›"; maximized, the current picture takes half the screen and the others line up as thumbnails. The picture in view is the current picture, and a new one becomes current when it arrives. Image workflow and Guided illustrations offer it as an optional role.',
+      'Talking models see pictures: Conversation shows the model the current picture, and every other picture as a numbered line like "[Picture 2: a fox]". Models that cannot see pictures get the descriptions.',
+      'Talking image models (like Nano Banana) need only Conversation: the pictures they draw while talking are posted as pictures.',
+    ],
+  },
+  {
     build: 67,
     date: '2026-10-13',
     changes: [
@@ -271,21 +280,6 @@ export const RELEASES: readonly Release[] = [
     changes: [
       'Illustrators have a new setting, "Paint on its own after other actors\' turns". Turn it off and an illustrator only paints when you click it under "or ask:" next to the speakers. It paints the newest message, so write what you want to see first, then click it.',
       'Clicking an illustrator works with the setting on too, for an extra picture of the newest message. Retry and Stop work for these pictures as well.',
-    ],
-  },
-  {
-    build: 33,
-    date: '2026-10-12',
-    changes: [
-      'Each time a Chronicler updates its summary, it leaves a short note in the chat, such as "Updated the story so far (240 words)". Only you see the note; the other actors read the summary itself.',
-    ],
-  },
-  {
-    build: 32,
-    date: '2026-10-12',
-    changes: [
-      'The roleplay renderer shows markdown in colors: italics blue, bold rose, headings purple, quotes green, code teal, and speech stays amber. Struck-through text is greyed out.',
-      'Everything the roleplay renderer draws (lists, quotes, hidden notes, headings) uses the same story size as the plain view; headings are larger.',
     ],
   },
   ...EARLIER_RELEASES,

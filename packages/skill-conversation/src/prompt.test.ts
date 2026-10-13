@@ -38,7 +38,7 @@ describe('buildPrompt', () => {
 });
 
 describe('reading the story', () => {
-  it('reads every kind of message through its text form', () => {
+  it('reads every kind of message through its text form, pictures numbered', () => {
     const bard = actor('bard', 'Lyra');
     const picture: Message = {
       id: 'p',
@@ -56,7 +56,7 @@ describe('reading the story', () => {
     expect(prompt.slice(1)).toEqual([
       { role: 'assistant', content: '[dice_roll → 4]' },
       { role: 'assistant', content: 'A four.' },
-      { role: 'user', content: 'ink: A gate in fog' },
+      { role: 'user', content: 'ink: [Picture 1: A gate in fog]' },
     ]);
   });
 });

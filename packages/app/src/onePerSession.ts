@@ -1,12 +1,17 @@
 import type { Actor, SessionRuntime } from '@virtuocity/core';
 import { rivalFor } from '@virtuocity/core';
 import { directorContract } from '@virtuocity/contract-director';
+import { pictureSourceContract } from '@virtuocity/contract-visual';
 import { sessionTypeContract } from '@virtuocity/core';
 import type { AppHost } from './types';
 
 /** Contracts a session has at most one of, and what the one actor serving it does there. */
 const ONE_EACH = [
   { contract: directorContract, does: 'directs this session; a session has one director' },
+  {
+    contract: pictureSourceContract,
+    does: 'decides the current picture; a session has one picture source',
+  },
   { contract: sessionTypeContract, does: 'is the type of this session; a session has one type' },
 ];
 

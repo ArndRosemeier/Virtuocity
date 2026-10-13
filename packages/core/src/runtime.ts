@@ -16,6 +16,7 @@ import type { VEvent } from './events';
 import { HumanTaskQueue } from './human-tasks';
 import { instructionsContract, standingInstructions, withInstructions } from './instructions';
 import { JobQueue } from './jobs';
+import { withPictureUrls } from './pictures';
 import type { Implementation } from './implementation';
 import { ContractError, invokeAction } from './implementation';
 import type { DescribedType } from './session-type';
@@ -366,9 +367,10 @@ export class SessionRuntime {
   }
 
   /** Hands a call to the provider its model reference names, with the provider's own model id. */
-  #run(request: CompletionRequest): Promise<CompletionResult> {
+  async #run(request: CompletionRequest): Promise<CompletionResult> {
     const { provider, model } = parseModelRef(request.model);
-    return this.config.host.providers.get(provider).complete({ ...request, model });
+    const messages = await withPictureUrls(request.messages, this.assets);
+    return this.config.host.providers.get(provider).complete({ ...request, messages, model });
   }
 
   /** A text call's messages with every standing instruction added; other modalities are left alone. */

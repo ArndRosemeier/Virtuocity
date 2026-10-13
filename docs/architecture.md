@@ -20,8 +20,9 @@ product is, and why that shapes every change, is in [vision.md](vision.md).
 | `@virtuocity/skill-reviewer`      | LLM skill implementing `reviewer@1` (and so `critic@1`).                              |
 | `@virtuocity/contract-writing`    | `writer@1` contract.                                                                  |
 | `@virtuocity/skill-writer`        | LLM skill implementing `writer@1`.                                                    |
-| `@virtuocity/contract-visual`     | `illustrator@1` contract.                                                             |
+| `@virtuocity/contract-visual`     | `illustrator@1` and `picture-source@1.0` contracts.                                   |
 | `@virtuocity/skill-illustrator`   | Image-model skill implementing `illustrator@1`; illustrates turns.                    |
+| `@virtuocity/skill-gallery`       | Gallery: every picture in a space; serves `picture-source@1.0` (the current picture). |
 | `@virtuocity/contract-facts`      | `fact-gatherer@1.0` contract: the facts a session has established.                    |
 | `@virtuocity/skill-fact-gatherer` | LLM skill implementing `fact-gatherer@1.0`; shows facts in its space.                 |
 | `@virtuocity/book-room`           | Walking skeleton: `manuscript` document and `book-pipeline` flow.                     |
@@ -90,7 +91,9 @@ app ──► any module ──► ui ──────────► core
   pickers (`ProviderModelPicker` in `ui`). Keys live in the browser, so every
   provider is called straight from it.
   The OpenRouter provider asks an image model for exactly the outputs its
-  catalog entry lists (pictures only, or pictures and text).
+  catalog entry lists (pictures only, or pictures and text), and does the same
+  for a text call to a model that can also paint. Pictures in a call reach
+  only models whose catalog lists image input; others get their descriptions.
 - **Modalities** (`host.modalities`): the modalities the app offers a default
   model for. `coreModule` registers text, image, audio and decisions; modules add more.
 - **Workspace** (`workspace.ts`, `oplog.ts`, `doc-type.ts`): all shared state.
@@ -249,6 +252,11 @@ starts one run; the run does some steps through its `FlowContext` (`runTurn`,
 request, schema)` asks for JSON matching a zod schema, then shows the model
   what was wrong and asks again (twice by default). Use it instead of parsing
   replies by hand.
+- **Pictures in calls** (`provider.ts`, `pictures.ts`): a user message's
+  content is text or a list of parts, `text` and `image` (asset id, mime, alt).
+  The runtime fills each picture's `url` from the asset store before the call
+  (`withPictureUrls`), so providers stay free of storage; a provider that
+  cannot show a picture sends its `alt` (`chatText`, `withoutPictures`).
 - **Tools** (`tools.ts`, `skill-tools.ts`): `defineTool` turns a zod schema and
   a function into a tool; `completeWithTools` runs the call-tools-answer loop
   and reports failed calls back to the model. `ctx.tools` holds the actor's
@@ -276,6 +284,16 @@ request, schema)` asks for JSON matching a zod schema, then shows the model
   other actor's turn in a background job and posts the picture. Asked by a
   person (`onRequest`), it paints the newest message right away; with its
   `automatic` setting off, that is the only time it paints.
+- **Current picture** (`picture-source@1.0` in `contract-visual`,
+  `skill-gallery`): a session has at most one picture source, which names the
+  picture everyone works on. The Gallery serves it: its space shows every
+  picture of the story, the current one in view, and a person steps through
+  them (`browse`). The pick is a `gallery` document in the log, so it rewinds
+  and branches with the story; it holds until a newer picture arrives, which
+  then is current. Conversation (`skill-conversation/pictures.ts`) shows the
+  model the current picture itself, after the story, and every other picture
+  as a numbered label (`[Picture 2: alt]`); pictures a talking model returns
+  are posted as image messages, described by what it said.
 
 ## Settings and profiles
 
@@ -447,8 +465,11 @@ only AI actors (the narrator) know the setup.
 ## Spaces
 
 Some actors get their own space on screen, in the app's left slot.
-`contract-space` defines `space@1.1`: `fill` returns what the space shows now
-as output parts of any kind (it must be quick), and the optional `edit` takes
+`contract-space` defines `space@1.2`: `fill` returns what the space shows now
+as output parts of any kind (it must be quick), and since 1.2 optionally
+several `items` with the `current` one, which a person steps through with the
+optional `browse` (the app shows "‹ 2/5 ›" in the header, and when maximized a
+gallery: the current item takes half the screen, thumbnails the rest). The optional `edit` takes
 what a person changed. `discard` throws away what the space shows and every
 space must offer it (the general rule since 1.1: whatever a space shows, a
 person can get rid of); the optional `redo` makes it again. They are the app's

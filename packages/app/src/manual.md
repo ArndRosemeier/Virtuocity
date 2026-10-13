@@ -20,7 +20,7 @@ A roleplay is one session type: a narrator, maybe AI players, a director, a prem
 4. **Add actors.** Use Add actor in the Cast panel. The session type's guide at the top of the Cast panel lists what it usually needs and ticks each role off as a matching actor joins.
 5. **Play.** Write in the box at the bottom. Who answers depends on the session (see Turns below).
 
-On a fresh start your Library already holds some ready-made actors: the Open, Roleplay, Book room, Image workflow and Guided illustrations session types and their usual cast (Narrator, Wren, Director, Ink, Chronicler, Premise, Quill, Marlow, Painter, Prompt refiner). They are ordinary actors: edit them, copy them or delete them.
+On a fresh start your Library already holds some ready-made actors: the Open, Roleplay, Book room, Image workflow and Guided illustrations session types and their usual cast (Narrator, Wren, Director, Ink, Chronicler, Premise, Quill, Marlow, Painter, Prompt refiner, Gallery). They are ordinary actors: edit them, copy them or delete them.
 
 ## The screen
 
@@ -80,6 +80,14 @@ After every turn the session pauses. Without a director, nobody speaks on their 
 ## Spaces
 
 Some actors have a space in the left sidebar: a picture, a canvas, a list of facts, a summary. Every space can be resized, closed and brought back, and its content can be deleted. Some spaces stay hidden until a marker in the conversation (like a chronicler's "summarized" line) opens them.
+
+## Pictures and the gallery
+
+A session can hold many pictures, so one of them is always **the current picture**: the one everyone works on. A **Gallery** actor decides which. Its space shows the current picture with "‹ 2/5 ›" to step back and forth; maximized, it shows the current picture on one half and every other picture as thumbnails you click. A new picture becomes current as soon as it arrives. A session has at most one gallery.
+
+A talking model sees the current picture itself, and every other picture as a numbered line such as "[Picture 2: a fox in the snow]", so you can say "go back to picture 2". Models that can't see pictures get only the descriptions.
+
+A talking image model (one that both writes and paints, like Nano Banana) needs only the Conversation skill: the pictures it draws while talking land in the conversation as pictures. Give it a gallery, and it sees the picture you want changed.
 
 ## Sessions and templates
 

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { CallTrace, ChatMessage, SessionRuntime } from '@virtuocity/core';
+import { chatText } from '@virtuocity/core';
 import { IconButton, Modal, Pill, formatUsd } from '@virtuocity/ui';
 
 const STATUS: Record<CallTrace['status'], string> = {
@@ -35,7 +36,7 @@ function TraceDetails({ trace }: { trace: CallTrace }) {
       {request.messages.map((m, i) => (
         <div key={i} className="trace__message">
           <span className="trace__role">{messageLabel(m)}</span>
-          {m.content && <pre>{m.content}</pre>}
+          {m.content && <pre>{chatText(m.content)}</pre>}
         </div>
       ))}
       <div className="trace__message trace__message--answer">

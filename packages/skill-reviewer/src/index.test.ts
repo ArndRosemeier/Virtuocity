@@ -1,5 +1,5 @@
 import { reviewerContract } from '@virtuocity/contract-critique';
-import { conformanceSuite, conformanceTarget, scriptedProvider } from '@virtuocity/core';
+import { chatText, conformanceSuite, conformanceTarget, scriptedProvider } from '@virtuocity/core';
 import { describe, it } from 'vitest';
 import { reviewerSkill } from './index';
 
@@ -9,7 +9,9 @@ const reply = (system: string) =>
     : '{"notes": [{"comment": "Show the waiting.", "quote": "Mira waited by the door"}]}';
 
 describe('reviewer skill conforms to reviewer and critic', () => {
-  const provider = scriptedProvider((request) => reply(request.messages[0]?.content ?? ''));
+  const provider = scriptedProvider((request) =>
+    reply(chatText(request.messages[0]?.content ?? '')),
+  );
   const target = conformanceTarget(reviewerContract, { skills: [reviewerSkill], provider });
   for (const testCase of conformanceSuite(reviewerContract)) {
     it(`${testCase.contractId}: ${testCase.name}`, () => testCase.run(target));
