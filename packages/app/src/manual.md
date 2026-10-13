@@ -21,7 +21,7 @@ A roleplay is one session type: a narrator, maybe AI players, a director, a prem
 5. **Add actors later.** Use Add actor in the Cast panel. The session type's guide at the top of the Cast panel lists what it usually needs and ticks each role off as a matching actor joins.
 6. **Play.** Write in the box at the bottom. Who answers depends on the session (see Turns below).
 
-On a fresh start your Library already holds some ready-made actors: the Open, Roleplay, Book room, Image workflow and Guided illustrations session types and their usual cast (Narrator, Wren, Director, Ink, Chronicler, Premise, Quill, Marlow, Painter, Prompt refiner, Gallery). They are ordinary actors: edit them, copy them or delete them.
+On a fresh start your Library already holds some ready-made actors: the Open, Roleplay, Book room, Image workflow and Guided illustrations session types and their usual cast (Narrator, Wren, Director, Ink, Chronicler, Premise, Quill, Marlow, Painter, Prompt refiner, Gallery). They are ordinary actors: edit them, copy them or delete them. When a new version improves them, Settings › Save & load › Update default actors sets them back to how the app ships them now (your changes to them are lost, deleted ones come back, other actors stay).
 
 ## The screen
 

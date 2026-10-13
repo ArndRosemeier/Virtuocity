@@ -5,6 +5,7 @@ import { CONNECTIONS } from './connections';
 import type { Connection } from './connections';
 import { THEME, keySetting, useModelDefaults, useSetting, writeModelDefaults } from './settings';
 import { BackupTab } from './BackupTab';
+import { DefaultActors } from './DefaultActors';
 import { RendererSelect } from './RendererSelect';
 import { RENDERER, rendererActors } from './storyView';
 import { SHOW_GUIDE } from './SetupGuide';
@@ -151,7 +152,17 @@ export function SettingsModal({
       icon: 'palette',
       content: () => <AppearanceTab host={host} />,
     },
-    { id: 'backup', label: 'Save & load', icon: 'download', content: () => <BackupTab /> },
+    {
+      id: 'backup',
+      label: 'Save & load',
+      icon: 'download',
+      content: () => (
+        <>
+          <BackupTab />
+          <DefaultActors host={host} />
+        </>
+      ),
+    },
   ];
   return (
     <Modal open={open} title="Settings" onClose={onClose} doneLabel="Done">
