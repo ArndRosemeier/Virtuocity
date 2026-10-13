@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import type { Actor } from '@virtuocity/core';
-import { freeName, isSessionType, startSession } from '@virtuocity/core';
+import { isSessionType, startSession } from '@virtuocity/core';
 import { Modal } from '@virtuocity/ui';
 import { useLibraryItems } from './library';
 import type { PanelProps } from './types';
@@ -34,28 +34,6 @@ function Choice({
 }
 
 /**
- * The session's name, filled with the picked type's name (made unique, e.g.
- * "Roleplay 2") while the field is empty or still holds such a filled-in name.
- * A name the person typed is never replaced.
- */
-function useNameFromType(type: Actor | undefined) {
-  const session = useSessionName();
-  const { typed, setName, taken } = session;
-  const filled = useRef('');
-  const current = useRef(typed);
-  current.current = typed;
-  const suggestion = type && freeName(type.personality.name, taken);
-  // Runs when the suggestion changes (another type, or the session list loaded), never on typing.
-  useEffect(() => {
-    const now = current.current;
-    if (!suggestion || (now.trim() !== '' && now !== filled.current)) return;
-    filled.current = suggestion;
-    setName(suggestion);
-  }, [suggestion, setName]);
-  return session;
-}
-
-/**
  * Starts a new, named session of one of the library's session types; the one
  * that was open stays in the session list. The type joins the new session and
  * decides its cast contracts, panels and guide; you add the other actors.
@@ -70,7 +48,7 @@ export function NewSessionDialog({
   const [picked, setPicked] = useState<string>();
   const type = types.find((t) => t.id === picked) ?? types[0];
   const switcher = useSwitcher();
-  const { name, ok, field } = useNameFromType(type);
+  const { name, ok, field } = useSessionName('', undefined, type?.personality.name);
 
   const start = () => {
     if (!ok || !type) return;
