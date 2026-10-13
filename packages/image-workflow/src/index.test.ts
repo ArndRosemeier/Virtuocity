@@ -2,7 +2,7 @@ import { illustratorContract } from '@virtuocity/contract-visual';
 import type { Skill } from '@virtuocity/core';
 import { ModuleHost, castStarter, implement, loadModules, parseRef } from '@virtuocity/core';
 import { describe, expect, it } from 'vitest';
-import { imageWorkflowModule, imageWorkflowType } from './index';
+import { guidedIllustrationsType, imageWorkflowModule, imageWorkflowType } from './index';
 
 const painting: Skill = {
   id: 'illustrator',
@@ -27,12 +27,20 @@ describe('image workflow starters', () => {
     });
   });
 
-  it('name every need of its roles as a contract reference', () => {
-    const { roles } = imageWorkflowType.settings?.['session-type'] as {
-      roles: { needs?: string[] }[];
+  it('offer guided illustrations: a talking refiner is cast, the illustrator is support', () => {
+    const { castSkills } = guidedIllustrationsType.settings?.['session-type'] as {
+      castSkills: string[];
     };
-    for (const need of roles.flatMap((r) => r.needs ?? [])) {
-      expect(() => parseRef(need)).not.toThrow();
+    expect(castSkills).toEqual(['conversation']);
+    expect(host.starters.get('prompt-refiner').speaks).toBe(true);
+  });
+
+  it('name every need of their roles as a contract reference', () => {
+    for (const type of [imageWorkflowType, guidedIllustrationsType]) {
+      const { roles } = type.settings?.['session-type'] as { roles: { needs?: string[] }[] };
+      for (const need of roles.flatMap((r) => r.needs ?? [])) {
+        expect(() => parseRef(need)).not.toThrow();
+      }
     }
   });
 });
