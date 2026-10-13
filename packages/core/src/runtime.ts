@@ -7,6 +7,9 @@ import { CallLog } from './calls';
 import { CAST, castDoc } from './cast';
 import type { Contract } from './contract';
 import { createSkillContext } from './contexts';
+import type { DecisionRequest, DecisionResult } from './decisions';
+import { DECISIONS_MODALITY } from './decisions';
+import { decisionCall } from './decision-call';
 import { EventBus, defineEvent } from './events';
 import { FlowRunner } from './flow-runner';
 import type { VEvent } from './events';
@@ -292,9 +295,11 @@ export class SessionRuntime {
 
   #context(actor: Actor, skill: Skill): SkillContext {
     const complete = (request: ModelRequest) => this.#complete(actor, skill, request);
+    const decide = (request: Omit<DecisionRequest, 'model'>) => this.#decide(actor, skill, request);
     const contributors = this.config.host.contextContributors.list();
     return createSkillContext(this, actor, skill, {
       complete,
+      decide,
       skills: this.#skills(actor),
       contributors,
     });
@@ -311,6 +316,24 @@ export class SessionRuntime {
     return this.#call({ actorId: actor.id, skillId: skill.id }, { ...request, messages, model });
   }
 
+  /** Runs one decision call for a skill, traced and counted like any model call. */
+  async #decide(
+    actor: Actor,
+    skill: Skill,
+    request: Omit<DecisionRequest, 'model'>,
+  ): Promise<DecisionResult> {
+    const layers = {
+      defaults: this.config.modelDefaults(),
+      actor: actor.models,
+      skill: skill.models,
+    };
+    const model = resolveModel(DECISIONS_MODALITY.id, layers);
+    const providers = (id: string) => this.config.host.providers.get(id);
+    const call = decisionCall(model, request, providers);
+    await this.#call({ actorId: actor.id, skillId: skill.id }, call.traced, call.run);
+    return call.result();
+  }
+
   /**
    * A model call made for the person rather than for an actor, e.g. rewriting a
    * text field. It uses the default model for the modality, with no standing
@@ -321,13 +344,17 @@ export class SessionRuntime {
     return this.#call({ actorId: 'user', skillId: purpose }, { ...request, model });
   }
 
-  async #call(meta: CallMeta, request: CompletionRequest): Promise<CompletionResult> {
+  async #call(
+    meta: CallMeta,
+    request: CompletionRequest,
+    run = (r: CompletionRequest) => this.#run(r),
+  ): Promise<CompletionResult> {
     const signals = [request.signal, this.#turn?.signal, this.flows.signal].filter(
       (s): s is AbortSignal => s !== undefined,
     );
     const signal = signals.length > 0 ? AbortSignal.any(signals) : undefined;
     const full = { ...request, ...(signal ? { signal } : {}) };
-    const result = await this.calls.track(meta, full, (r) => this.#run(r));
+    const result = await this.calls.track(meta, full, run);
     this.#spent.push(result.stats);
     return result;
   }

@@ -6,6 +6,7 @@ import type {
   VirtuocityModule,
 } from '@virtuocity/core';
 import { cachedCatalog } from '@virtuocity/core';
+import { decide } from './decisions';
 import { failUnlessOk, jsonPost, readAnswer } from './http';
 import type { ImagesResponse } from './images';
 import { IMAGES_ENDPOINT, fromImagesResponse, imagesBody, needsImagesEndpoint } from './images';
@@ -30,16 +31,18 @@ export function createOpenRouterProvider(options: OpenRouterOptions): ModelProvi
     if (!found) throw new Error(`Model "${model}" is not in OpenRouter's model list.`);
     return found.outputs;
   };
+  const headersNow = () => ({
+    Authorization: `Bearer ${options.apiKey()}`,
+    'X-Title': options.appTitle ?? 'Virtuocity',
+  });
   return {
     id: 'openrouter',
     name: NAME,
     ready: () => options.apiKey() !== '',
     listModels,
+    decide: (request) => decide(doFetch, headersNow(), request),
     async complete(request: CompletionRequest): Promise<CompletionResult> {
-      const headers = {
-        Authorization: `Bearer ${options.apiKey()}`,
-        'X-Title': options.appTitle ?? 'Virtuocity',
-      };
+      const headers = headersNow();
       const post = jsonPost(doFetch, headers, request);
       const chat = (r: CompletionRequest, outputs?: readonly string[]) =>
         post(ENDPOINT, { ...requestBody(r, outputs), usage: { include: true } });

@@ -6,6 +6,7 @@ import type { Contract } from './contract';
 import type { EventBus } from './events';
 import type { JobQueue } from './jobs';
 import type { Content } from './output';
+import type { Decide } from './decisions';
 import type { Complete } from './provider';
 import type { Skill } from './skill';
 import type { InvokeAction, SkillContext } from './skill-context';
@@ -39,6 +40,7 @@ export function createSkillContext(
   skill: Skill,
   extras: {
     readonly complete: Complete;
+    readonly decide: Decide;
     readonly skills: readonly Skill[];
     readonly contributors: readonly ContextContributor[];
   },
@@ -66,6 +68,7 @@ export function createSkillContext(
     post: (content, stats, options) => source.post(actor.id, content, stats, options),
     invoke: source.invoke,
     complete: extras.complete,
+    decide: extras.decide,
     tools: skillTools(extras.skills, skill, call),
     startJob: (label, run) => void source.jobs.start({ actorId: actor.id, label }, run),
   };

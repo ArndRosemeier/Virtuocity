@@ -5,6 +5,7 @@ import type { ActionInput, ActionOutput, Contract } from './contract';
 import type { EventBus } from './events';
 import type { JobControl } from './jobs';
 import type { Content } from './output';
+import type { Decide } from './decisions';
 import type { Complete } from './provider';
 import type { Message } from './transcript';
 import type { CallStats } from './stats';
@@ -37,6 +38,8 @@ export interface SkillContext {
   post(content: Content, stats?: readonly CallStats[], options?: ChangeOptions): Promise<Message>;
   /** Runs a model call. The model is already resolved for this skill and actor. */
   readonly complete: Complete;
+  /** Asks the decisions model typed questions; the model is resolved like `complete`'s. */
+  readonly decide: Decide;
   /**
    * The actor's other abilities as tools for model calls: every action of every
    * contract its other skills implement. Calling one runs that skill.

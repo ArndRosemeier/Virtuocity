@@ -24,12 +24,15 @@ export const THEME: Setting = { key: 'virtuocity.theme', fallback: 'system' };
 
 const MODEL_PREFIX = 'virtuocity.model.';
 
-/** OpenRouter's auto router until a text model is picked; other modalities start unset. */
+/** Models used until one is picked; other modalities start unset. */
+const FALLBACK_MODELS: Partial<Record<Modality, string>> = {
+  text: 'openrouter:openrouter/auto',
+  decisions: 'openrouter:~typesafe/jev-latest',
+};
+
+/** OpenRouter's auto router for text and Jev for decisions until a model is picked. */
 export function modelSetting(modality: Modality): Setting {
-  return {
-    key: `${MODEL_PREFIX}${modality}`,
-    fallback: modality === 'text' ? 'openrouter:openrouter/auto' : '',
-  };
+  return { key: `${MODEL_PREFIX}${modality}`, fallback: FALLBACK_MODELS[modality] ?? '' };
 }
 
 const memory = new Map<string, string>();
