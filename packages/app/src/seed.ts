@@ -39,3 +39,30 @@ async function prepare(library: Library, host: AppHost): Promise<void> {
   }
   writeSetting(OFFERED, offered.join(' '));
 }
+
+/** What `restoreStarters` did: library actors set back to the defaults, and ones added again. */
+export interface Restored {
+  readonly updated: readonly string[];
+  readonly added: readonly string[];
+}
+
+/**
+ * Sets every ready-made actor back to how this version ships it: a library
+ * actor with a starter's name is overwritten in place (it stays the same
+ * actor, so every session using it changes too), a missing one is added.
+ * Changes made to them by hand are lost.
+ */
+export async function restoreStarters(library: Library, host: AppHost): Promise<Restored> {
+  const skills = host.skills.list();
+  const updated: string[] = [];
+  const added: string[] = [];
+  for (const starter of host.starters.list()) {
+    const actor = castStarter(starter, skills);
+    if (!actor) continue;
+    const name = actor.personality.name;
+    const existing = (await library.actors()).find((a) => sameName(a.personality.name, name));
+    await library.saveActor({ ...actor, id: existing?.id ?? crypto.randomUUID() });
+    (existing ? updated : added).push(name);
+  }
+  return { updated, added };
+}
