@@ -10,6 +10,13 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 71,
+    date: '2026-10-13',
+    changes: [
+      'Starting from a template fills in a free name (the template\'s, numbered, e.g. "Dungeon 2"), selected so you can type over it. Session names you are asked for start selected too.',
+    ],
+  },
+  {
     build: 70,
     date: '2026-10-13',
     changes: [

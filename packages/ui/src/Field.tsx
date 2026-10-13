@@ -1,5 +1,5 @@
 import { useId, useState } from 'react';
-import type { InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from 'react';
+import type { ComponentProps, InputHTMLAttributes, ReactNode, TextareaHTMLAttributes } from 'react';
 import { IconButton } from './Button';
 
 /** Label + control + hint. The control receives the generated id. */
@@ -24,7 +24,7 @@ export function Field({
   );
 }
 
-export function TextInput(props: InputHTMLAttributes<HTMLInputElement>) {
+export function TextInput(props: ComponentProps<'input'>) {
   return <input className="v-input" {...props} />;
 }
 

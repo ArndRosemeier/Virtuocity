@@ -141,6 +141,7 @@ export function SessionsDialog({ onNew, onClose }: { onNew: () => void; onClose:
         <SessionNameDialog
           title={`New session from ${copying.name}`}
           note={`The new session starts as a copy of ${copying.name}; the template stays as it is.`}
+          suggest={copying.name}
           onStart={(name) => runSafely(() => switcher.copy(copying.id, name).then(onClose))}
           onClose={() => setCopying(null)}
         />
