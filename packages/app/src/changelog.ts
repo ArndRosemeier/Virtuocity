@@ -10,6 +10,13 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 72,
+    date: '2026-10-13',
+    changes: [
+      'The Cast panel shows the session type the way it shows the session view: in a field of its own below the actors, with an edit button, instead of as a support actor. Every session has exactly one of each.',
+    ],
+  },
+  {
     build: 71,
     date: '2026-10-13',
     changes: [
