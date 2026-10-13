@@ -51,6 +51,7 @@ export function systemPrompt(
     actor.personality.description,
     `Others in the scene: ${cast}.`,
     `Stay in character. Write only ${actor.personality.name}'s next contribution, without a name prefix, and never speak or act for other characters.`,
+    `Every line by someone else starts with their name, like "${others[0]?.personality.name ?? 'Name'}: …"; your own earlier lines carry no name.`,
     LENGTH[settings.length],
     secrets && SECRETS,
     context && `What you know:\n\n${context}`,

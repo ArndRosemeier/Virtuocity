@@ -29,6 +29,9 @@ describe('buildPrompt', () => {
     expect(prompt[0]?.content).toContain('You are Lyra');
     expect(prompt[0]?.content).toContain('Lyra is brave.');
     expect(prompt[0]?.content).toContain('Vex');
+    expect(prompt[0]?.content).toContain(
+      'Every line by someone else starts with their name, like "Vex: …"',
+    );
     expect(prompt.slice(1)).toEqual([
       { role: 'user', content: 'Vex: Psst.' },
       { role: 'assistant', content: 'What?' },

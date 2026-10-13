@@ -10,6 +10,14 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 77,
+    date: '2026-10-13',
+    changes: [
+      'You have a name now: the small field next to Act (User until you change it). The AI actors see your lines as "Name: …", where they used to see "You: …" and could take your lines for their own. A new session starts with the name you gave last; it must not be an actor\'s name.',
+      "Talking actors are told that every line by someone else starts with its speaker's name, so sessions with several AI actors keep who said what apart.",
+    ],
+  },
+  {
     build: 76,
     date: '2026-10-13',
     changes: [

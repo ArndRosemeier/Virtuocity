@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useReducer } from 'react';
-import type { Actor, AssetStore, KeyValueStore, Library, ResolveConflicts } from '@virtuocity/core';
+import type { AssetStore, KeyValueStore, Library, ResolveConflicts } from '@virtuocity/core';
 import { SessionRuntime } from '@virtuocity/core';
 import { SessionCatalog } from './sessions';
 import { SessionSwitcher, typeDeps } from './switcher';
@@ -8,19 +8,13 @@ import { readModelDefaults } from './settings';
 import { ensureStoryView } from './storyView';
 import { keepLibrary, syncCast } from './library';
 import { prepareLibrary } from './seed';
+import { USER_ID, personActor } from './personName';
 
-export const USER_ID = 'user';
-
-const user: Actor = {
-  id: USER_ID,
-  controller: 'human',
-  personality: { name: 'You', description: '' },
-  skillIds: [],
-};
+export { USER_ID } from './personName';
 
 /** Makes sure the human and a story view are in the cast, e.g. after loading or starting fresh. */
 export async function ensureCast(host: AppHost, session: SessionRuntime): Promise<void> {
-  if (!session.actors.some((a) => a.id === USER_ID)) await session.join(user);
+  if (!session.actors.some((a) => a.id === USER_ID)) await session.join(personActor());
   await ensureStoryView(host, session);
 }
 

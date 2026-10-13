@@ -7,6 +7,7 @@ import type { TurnTakingInput } from '@virtuocity/turn-taking';
 import { Avatar, Button, Icon } from '@virtuocity/ui';
 import { useActorTips } from './actorTips';
 import type { AppModule } from './types';
+import { PersonName } from './PersonName';
 import { USER_ID } from './useSession';
 
 /** Runs one round of the turn-taking flow, surfacing a failed run as an error. */
@@ -168,6 +169,7 @@ export function Composer({ session }: { session: SessionRuntime }) {
             onKeyDown={onKey}
             placeholder="What do you do? (Enter to send, Shift+Enter for a new line)"
           />
+          <PersonName session={session} disabled={busy} />
           <Button
             variant="primary"
             icon="send"
