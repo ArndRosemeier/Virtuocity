@@ -4,8 +4,6 @@ import type { Setting } from './settings';
 export const MIN_WIDTH = 224;
 /** Widest a sidebar gets, as a share of the window. */
 export const MAX_SHARE = 0.45;
-/** How far one arrow key press moves a sidebar's edge, in pixels. */
-export const KEY_STEP = 16;
 
 /** A sidebar's width in this browser, in pixels; empty means the default. */
 export const sidebarSetting = (slot: string): Setting => ({

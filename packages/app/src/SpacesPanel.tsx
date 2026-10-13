@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { spaceContract } from '@virtuocity/contract-space';
 import type { Actor, OutputPart, SessionRuntime } from '@virtuocity/core';
 import { provides } from '@virtuocity/core';
 import { Avatar, Button, IconButton, TextArea } from '@virtuocity/ui';
+import { DragHandle } from './DragHandle';
 import { SpaceActions } from './SpaceActions';
+import { useSetting } from './settings';
+import { heightCss, movedHeight, spaceHeightSetting } from './spaceHeight';
 import { closeSpace, spaceElementId, useOpenSpaces } from './openSpaces';
 import type { AppModule, PanelProps } from './types';
 import type { Shown } from './useParts';
@@ -121,6 +124,28 @@ function shownState(
   return { onDemand: parts?.onDemand === true, hasContent: (parts?.parts.length ?? 0) > 0 };
 }
 
+/** The height a space was given, unless it is maximized. */
+function useSpaceHeight(actorId: string, maximized: boolean): CSSProperties | undefined {
+  const [stored] = useSetting(spaceHeightSetting(actorId));
+  const height = heightCss(stored);
+  return height && !maximized ? { height } : undefined;
+}
+
+/** The bottom edge of a space; its height is remembered in this browser, per actor. */
+function SpaceResize({ actorId, name }: { actorId: string; name: string }) {
+  const [, setHeight] = useSetting(spaceHeightSetting(actorId));
+  return (
+    <DragHandle
+      axis="y"
+      className="space-resize"
+      label={`Resize ${name}'s space`}
+      size={(handle) => handle.previousElementSibling?.getBoundingClientRect().height ?? 0}
+      onMove={(start, delta) => setHeight(String(movedHeight(start, delta, window.innerHeight)))}
+      onReset={() => setHeight('')}
+    />
+  );
+}
+
 /** One actor's space: whatever its skill shows there. It can be maximized to full screen. */
 function Space({ actor, host, session, open }: PanelProps & { actor: Actor; open: boolean }) {
   const shown = useParts(
@@ -129,6 +154,7 @@ function Space({ actor, host, session, open }: PanelProps & { actor: Actor; open
     actor.id,
   );
   const [maximized, setMaximized] = useState(false);
+  const style = useSpaceHeight(actor.id, maximized);
   const restore = useCallback(() => setMaximized(false), []);
   useEscape(maximized, restore);
   const implementation = session.implementationFor(actor.id, spaceContract);
@@ -139,20 +165,28 @@ function Space({ actor, host, session, open }: PanelProps & { actor: Actor; open
   const { onDemand, hasContent } = shownState(shown);
   if (onDemand && !open) return null;
   return (
-    <section className="space" id={spaceElementId(actor.id)} data-maximized={maximized}>
-      <SpaceHeader
-        name={name}
-        maximized={maximized}
-        onToggle={() => setMaximized(!maximized)}
-        onClose={onDemand ? () => closeSpace(actor.id) : undefined}
+    <>
+      <section
+        className="space"
+        id={spaceElementId(actor.id)}
+        data-maximized={maximized}
+        style={style}
       >
-        {hasContent && <SpaceActions session={session} actor={actor} />}
-      </SpaceHeader>
-      <Content host={host} shown={shown} />
-      {editable && shown && 'parts' in shown && textOnly(shown.parts) && (
-        <Editor name={name} parts={shown.parts} onSave={edit} />
-      )}
-    </section>
+        <SpaceHeader
+          name={name}
+          maximized={maximized}
+          onToggle={() => setMaximized(!maximized)}
+          onClose={onDemand ? () => closeSpace(actor.id) : undefined}
+        >
+          {hasContent && <SpaceActions session={session} actor={actor} />}
+        </SpaceHeader>
+        <Content host={host} shown={shown} />
+        {editable && shown && 'parts' in shown && textOnly(shown.parts) && (
+          <Editor name={name} parts={shown.parts} onSave={edit} />
+        )}
+      </section>
+      {!maximized && <SpaceResize actorId={actor.id} name={name} />}
+    </>
   );
 }
 
