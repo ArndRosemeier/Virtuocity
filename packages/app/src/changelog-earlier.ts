@@ -5,7 +5,7 @@ export interface Release {
   readonly changes: readonly string[];
 }
 
-/** Builds 24 and older, newest first; kept apart so the changelog stays short. */
+/** Builds 31 and older, newest first; kept apart so the changelog stays short. */
 export const EARLIER_RELEASES: readonly Release[] = [
   {
     build: 31,

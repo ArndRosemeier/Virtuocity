@@ -9,6 +9,13 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 65,
+    date: '2026-10-13',
+    changes: [
+      'The actor editor lists skills by name only; hover a skill to see its contracts ("Contracts: ...").',
+    ],
+  },
+  {
     build: 64,
     date: '2026-10-13',
     changes: [

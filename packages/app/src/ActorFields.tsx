@@ -1,14 +1,6 @@
-import type { ModelOverrides } from '@virtuocity/core';
+import type { ModelOverrides, Skill } from '@virtuocity/core';
 import { actorUse, readSettings, z } from '@virtuocity/core';
-import {
-  Field,
-  LongText,
-  ModelLayerEditor,
-  Pill,
-  SchemaField,
-  Section,
-  TextInput,
-} from '@virtuocity/ui';
+import { Field, LongText, ModelLayerEditor, SchemaField, Section, TextInput } from '@virtuocity/ui';
 import type { AppHost } from './types';
 import { useProviderCatalogs } from './useModels';
 
@@ -27,7 +19,13 @@ interface FieldsProps {
   readonly onChange: (d: Draft) => void;
 }
 
-/** Which skills the actor has; contracts show what each one can stand in for. */
+/** What a skill can stand in for, as a hover text, e.g. "Contracts: director". */
+const contractsTip = (skill: Skill) => {
+  const ids = (skill.implements ?? []).map((i) => i.contract.id);
+  return ids.length > 0 ? `Contracts: ${ids.join(', ')}` : undefined;
+};
+
+/** Which skills the actor has; hovering a skill shows its contracts. */
 function SkillPicker({ host, draft, onChange }: FieldsProps) {
   const value = draft.skillIds;
   const toggle = (id: string, on: boolean) =>
@@ -36,16 +34,13 @@ function SkillPicker({ host, draft, onChange }: FieldsProps) {
     <ul className="skill-picker">
       {host.skills.list().map((skill) => (
         <li key={skill.id}>
-          <label>
+          <label title={contractsTip(skill)}>
             <input
               type="checkbox"
               checked={value.includes(skill.id)}
               onChange={(e) => toggle(skill.id, e.target.checked)}
             />
             <span>{skill.name}</span>
-            {(skill.implements ?? []).map((i) => (
-              <Pill key={i.contract.id}>{i.contract.id}</Pill>
-            ))}
           </label>
         </li>
       ))}
