@@ -80,6 +80,21 @@ export class OpLog {
     this.#head = id;
   }
 
+  /** Replaces an operation's payload; it keeps its place, id and time. */
+  rewrite(id: string, payload: unknown): Operation {
+    const op = { ...this.get(id), payload };
+    this.#ops.set(id, op);
+    return op;
+  }
+
+  /** Takes one operation out of the history; what followed it now follows its parent. */
+  excise(id: string): void {
+    const { parentId } = this.get(id);
+    for (const child of this.children(id)) this.#ops.set(child.id, { ...child, parentId });
+    this.#ops.delete(id);
+    if (this.#head === id) this.#head = parentId;
+  }
+
   /** Moves the head to any existing operation, e.g. the leaf of another branch. */
   switchTo(id: string): void {
     this.#head = this.get(id).id;

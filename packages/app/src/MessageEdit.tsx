@@ -2,7 +2,10 @@ import { useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import { Button, TextArea } from '@virtuocity/ui';
 
-/** Editing a message in place: its text in a box, saved or cancelled. */
+/**
+ * Editing a message in place. Leaving the box (clicking elsewhere, or
+ * Ctrl+Enter) keeps the change; Revert or Escape drops it.
+ */
 export function MessageEditor({
   text,
   onSave,
@@ -13,10 +16,10 @@ export function MessageEditor({
   onCancel: () => void;
 }) {
   const [draft, setDraft] = useState(text);
-  const save = () => (draft.trim() ? onSave(draft) : onCancel());
+  const finish = () => (draft.trim() && draft !== text ? onSave(draft) : onCancel());
   const onKey = (e: KeyboardEvent) => {
     if (e.key === 'Escape') onCancel();
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) save();
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) finish();
   };
   return (
     <div className="message__edit">
@@ -27,13 +30,17 @@ export function MessageEditor({
         aria-label="Message text"
         onChange={(e) => setDraft(e.target.value)}
         onKeyDown={onKey}
+        onBlur={finish}
       />
       <div className="message__edit-actions">
-        <Button size="sm" variant="ghost" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button size="sm" variant="primary" onClick={save}>
-          Save
+        {/* Pressing Revert must not blur the box first, which would keep the change. */}
+        <Button
+          size="sm"
+          variant="ghost"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={onCancel}
+        >
+          Revert
         </Button>
       </div>
     </div>

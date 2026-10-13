@@ -54,4 +54,17 @@ describe('OpLog', () => {
     expect(l.path()).toEqual([]);
     expect(l.all()).toEqual([]);
   });
+
+  it('rewrites an operation in place and takes one out, keeping what followed', () => {
+    const l = log();
+    l.append(op('one'));
+    const two = l.append(op('two'));
+    const three = l.append(op('three'));
+    l.rewrite(two.id, 'TWO');
+    expect(payloads(l)).toEqual(['one', 'TWO', 'three']);
+    l.excise(two.id);
+    expect(payloads(l)).toEqual(['one', 'three']);
+    l.excise(three.id);
+    expect(l.head).toBe('o1');
+  });
 });

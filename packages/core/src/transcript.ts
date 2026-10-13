@@ -37,9 +37,12 @@ export const messageSchema = contentSchema.extend({
 });
 
 /**
- * The conversation as a shared document: a collection of messages. Branching,
- * rewinding and editing all happen in the operation log, so the transcript
- * moves together with every other document of the session.
+ * The conversation as a shared document: a collection of messages. Branching
+ * and rewinding happen in the operation log, so the transcript moves together
+ * with every other document of the session. A message lives in exactly one
+ * place, the operation that posted it: editing rewrites that operation and
+ * deleting takes it out, so rewinding (e.g. a retry) never brings an old
+ * version back.
  */
 export const transcriptDoc = defineDocType<Transcript, TranscriptOp>({
   id: 'transcript',
@@ -65,6 +68,17 @@ export const transcriptDoc = defineDocType<Transcript, TranscriptOp>({
     };
   },
   migrate: migrateTranscriptOp,
+  amends: (op) => {
+    if (op.type === 'append') return undefined;
+    return {
+      targets: (earlier) => earlier.type === 'append' && earlier.message.id === op.messageId,
+      rewrite: (earlier) => {
+        if (op.type === 'remove' || earlier.type !== 'append') return null;
+        const { kind, data, text } = op.content;
+        return { type: 'append', message: { ...earlier.message, kind, data, text } };
+      },
+    };
+  },
 });
 
 /** The document id of a session's main transcript. */

@@ -141,13 +141,26 @@ describe('SessionRuntime transcript', () => {
     const second = await session.post('user', textContent('two'));
     await session.editMessage('user', first.id, textContent('uno'));
     expect(text(session)).toEqual(['uno', 'two']);
-    // The edit came after both posts, so rewinding before `two` undoes it as well.
+    // An edit rewrites the message where it was posted, so rewinding keeps it.
     await session.rewindToMessage(second.id, { before: true, keepBranch: true });
-    expect(text(session)).toEqual(['one']);
+    expect(text(session)).toEqual(['uno']);
     await session.post('user', textContent('dos'));
-    expect(text(session)).toEqual(['one', 'dos']);
+    expect(text(session)).toEqual(['uno', 'dos']);
     expect(session.workspace.log.leaves()).toHaveLength(2);
     await session.rewindToMessage(first.id);
+    expect(text(session)).toEqual(['uno']);
+    expect(session.workspace.log.all().map((op) => op.payload)).not.toContainEqual(
+      expect.objectContaining({ type: 'edit' }),
+    );
+  });
+
+  it('keeps a deleted message deleted when rewinding past later messages', async () => {
+    const session = setup();
+    await session.post('user', textContent('one'));
+    const second = await session.post('user', textContent('two'));
+    const third = await session.post('user', textContent('three'));
+    await session.removeMessage('user', second.id);
+    await session.rewindToMessage(third.id, { before: true });
     expect(text(session)).toEqual(['one']);
   });
 
