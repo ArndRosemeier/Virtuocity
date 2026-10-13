@@ -10,10 +10,8 @@ import { useSessions } from './switcher';
 export function useSessionName(initial = '', renaming?: string) {
   const { entries } = useSessions();
   const [name, setName] = useState(initial);
-  const problem = sessionNameProblem(
-    name,
-    entries.filter((e) => e.id !== renaming).map((e) => e.name),
-  );
+  const taken = entries.filter((e) => e.id !== renaming).map((e) => e.name);
+  const problem = sessionNameProblem(name, taken);
   const field = (
     <Field
       label="Session name"
@@ -24,7 +22,7 @@ export function useSessionName(initial = '', renaming?: string) {
       )}
     </Field>
   );
-  return { name: name.trim(), ok: problem === undefined, field };
+  return { name: name.trim(), ok: problem === undefined, field, typed: name, setName, taken };
 }
 
 /** Cancel, and Start (or another action) once the session's name can be used. */
