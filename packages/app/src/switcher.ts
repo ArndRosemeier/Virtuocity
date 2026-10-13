@@ -12,12 +12,19 @@ export const OPEN_SESSION: Setting = { key: 'virtuocity.openSession', fallback: 
 export const FIRST_SESSION = 'Session';
 const AUTOSAVE_DELAY_MS = 400;
 
+type Load = (runtime: SessionRuntime) => Promise<void>;
+
 export interface SwitcherDeps {
   /** The one runtime the page shows; switching loads another session into it. */
   readonly runtime: SessionRuntime;
   readonly catalog: SessionCatalog;
-  /** Brings a freshly loaded session's cast in line with the library and the app. */
-  readonly prepare: (runtime: SessionRuntime) => Promise<void>;
+  /**
+   * Brings a freshly loaded session's cast in line with the library and the app.
+   * `fromFile` is set for a session loaded from a file: only its actors may
+   * clash with the library. A stored session's actors are the library's, so the
+   * library's current version of each simply replaces the copy it was saved with.
+   */
+  readonly prepare: (runtime: SessionRuntime, fromFile: boolean) => Promise<void>;
   /** A runtime that is never shown, for reading a stored session's cast. */
   readonly scratch: () => SessionRuntime;
 }
@@ -86,24 +93,24 @@ export class SessionSwitcher {
   }
 
   /** Starts an empty session, which `fill` may set up (e.g. from a blueprint). */
-  async startNew(name: string, fill: (runtime: SessionRuntime) => Promise<void> = async () => {}) {
+  async startNew(name: string, fill: Load = async () => {}) {
     await this.#startAs(name, async (runtime) => {
       await runtime.workspace.load([], null);
-      await this.#deps.prepare(runtime);
+      await this.#deps.prepare(runtime, false);
       await fill(runtime);
     });
   }
 
-  /** Starts a new session from a copy of saved state: a template, or a file. */
+  /** Starts a new session from a session loaded from a file. */
   async startFrom(name: string, state: unknown): Promise<void> {
-    await this.#startAs(name, (runtime) => runtime.load(state));
+    await this.#startAs(name, (runtime) => runtime.load(state), true);
   }
 
   /** Starts a new session from a copy of a stored one, e.g. a template. */
   async copy(id: string, name: string): Promise<void> {
     await this.flush();
     const stored = await this.catalog.get(id);
-    if (stored) await this.startFrom(name, stored.state);
+    if (stored) await this.#startAs(name, (runtime) => runtime.load(stored.state));
   }
 
   /** Deletes a session; when it was open, another one opens. */
@@ -141,16 +148,16 @@ export class SessionSwitcher {
     return scratch.actors;
   }
 
-  async #startAs(name: string, load: (runtime: SessionRuntime) => Promise<void>): Promise<void> {
-    await this.#swap(load);
+  async #startAs(name: string, load: Load, fromFile = false): Promise<void> {
+    await this.#swap(load, fromFile);
     this.#show(await this.catalog.create(name, this.#deps.runtime.save()));
   }
 
-  async #swap(load: (runtime: SessionRuntime) => Promise<void>): Promise<void> {
+  async #swap(load: Load, fromFile = false): Promise<void> {
     await this.flush();
     this.#id = undefined;
     await load(this.#deps.runtime);
-    await this.#deps.prepare(this.#deps.runtime);
+    await this.#deps.prepare(this.#deps.runtime, fromFile);
   }
 
   #show(id: string): void {
