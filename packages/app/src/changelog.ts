@@ -9,6 +9,16 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 61,
+    date: '2026-10-13',
+    changes: [
+      'Session types: Roleplay and Book room are now actors in your Library with the new Session type skill. New session lists them, and the one you pick joins the session and decides which panels it shows and which roles its guide suggests.',
+      'Make your own session type in the actor editor: copy Roleplay and change its roles (what each must be able to do, picked from the installed contracts) and its panels. A roleplay with dice, without a director or with only players is just another session type.',
+      'Actors without a personality (support actors) now have a short description, shown in lists such as New session.',
+      'Ready-made actors from newer versions are offered in your Library once, without bringing back the ones you deleted.',
+    ],
+  },
+  {
     build: 60,
     date: '2026-10-13',
     changes: [
@@ -257,30 +267,6 @@ export const RELEASES: readonly Release[] = [
     date: '2026-10-12',
     changes: [
       'A Premise actor has a "Show the premise in the chat" setting. Turn it off and the premise stays hidden from you: only the AI actors see it, so the narrator knows the setup and you discover it as you play.',
-    ],
-  },
-  {
-    build: 27,
-    date: '2026-10-12',
-    changes: [
-      'Both sidebars can be resized: drag their inner edge (or focus it and use the arrow keys). The width is remembered in this browser; double-click the edge to go back to the default.',
-    ],
-  },
-  {
-    build: 26,
-    date: '2026-10-12',
-    changes: [
-      'Actors now read the whole story by default, so nothing is cut from what they remember. You can still set a memory limit per actor in Edit actor › Conversation; leave it empty for no limit.',
-      'Chroniclers no longer have a summary length. They write as much as the story needs and keep every detail that may still matter, so long sessions keep their history.',
-    ],
-  },
-  {
-    build: 25,
-    date: '2026-10-12',
-    changes: [
-      'One premise skill, now just called "Premise": you write the opening yourself, and Transform by AI turns a few words into a full premise. "Premise (from a prompt)" is gone; actors that used it now use Premise, with what you had asked for as their premise text.',
-      'A new actor starts with no skills, so the editor asks only for what the skills you pick need. Before, every new actor had Conversation ticked, so a new Chronicler also talked and showed personality and appearance fields it does not use.',
-      'Number settings such as a chronicler\'s summary words are plain fields you type into, without up and down arrows. Typing works now: before, a number outside the allowed range while typing (like "3" on the way to "300") snapped back to the default. Values outside the range are kept within it.',
     ],
   },
   ...EARLIER_RELEASES,

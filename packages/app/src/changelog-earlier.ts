@@ -8,6 +8,30 @@ export interface Release {
 /** Builds 24 and older, newest first; kept apart so the changelog stays short. */
 export const EARLIER_RELEASES: readonly Release[] = [
   {
+    build: 27,
+    date: '2026-10-12',
+    changes: [
+      'Both sidebars can be resized: drag their inner edge (or focus it and use the arrow keys). The width is remembered in this browser; double-click the edge to go back to the default.',
+    ],
+  },
+  {
+    build: 26,
+    date: '2026-10-12',
+    changes: [
+      'Actors now read the whole story by default, so nothing is cut from what they remember. You can still set a memory limit per actor in Edit actor › Conversation; leave it empty for no limit.',
+      'Chroniclers no longer have a summary length. They write as much as the story needs and keep every detail that may still matter, so long sessions keep their history.',
+    ],
+  },
+  {
+    build: 25,
+    date: '2026-10-12',
+    changes: [
+      'One premise skill, now just called "Premise": you write the opening yourself, and Transform by AI turns a few words into a full premise. "Premise (from a prompt)" is gone; actors that used it now use Premise, with what you had asked for as their premise text.',
+      'A new actor starts with no skills, so the editor asks only for what the skills you pick need. Before, every new actor had Conversation ticked, so a new Chronicler also talked and showed personality and appearance fields it does not use.',
+      'Number settings such as a chronicler\'s summary words are plain fields you type into, without up and down arrows. Typing works now: before, a number outside the allowed range while typing (like "3" on the way to "300") snapped back to the default. Values outside the range are kept within it.',
+    ],
+  },
+  {
     build: 24,
     date: '2026-10-12',
     changes: [
