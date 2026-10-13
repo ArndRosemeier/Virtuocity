@@ -1,12 +1,31 @@
 import { directorContract } from '@virtuocity/contract-director';
-import type { Flow, FlowContext, VirtuocityModule } from '@virtuocity/core';
-import { defineFlow, z } from '@virtuocity/core';
+import type { Actor, Flow, FlowContext, Skill, VirtuocityModule } from '@virtuocity/core';
+import { defineFlow, implementersOf, z } from '@virtuocity/core';
 
 export type TurnTakingInput =
   { readonly kind: 'pass' } | { readonly kind: 'choose'; readonly actorId: string };
 
+/** Whether one of the actor's skills serves `director@1`. */
+export function directs(actor: Actor, skills: readonly Skill[]): boolean {
+  const directing = implementersOf(skills, directorContract).map((s) => s.id);
+  return actor.skillIds.some((id) => directing.includes(id));
+}
+
 /**
- * Asks the session's director (the first actor serving `director@1`) who goes
+ * A session has at most one director. Returns the director already among
+ * `actors` that `actor` would be a second one to, if any.
+ */
+export function rivalDirector(
+  actor: Actor,
+  actors: readonly Actor[],
+  skills: readonly Skill[],
+): Actor | undefined {
+  if (!directs(actor, skills)) return undefined;
+  return actors.find((a) => a.id !== actor.id && directs(a, skills));
+}
+
+/**
+ * Asks the session's director (the one actor serving `director@1`) who goes
  * next. Without a director, or when it hands the turn to a person, nobody does.
  */
 async function directorsPick(ctx: FlowContext): Promise<string | undefined> {

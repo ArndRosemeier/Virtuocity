@@ -9,7 +9,7 @@ import {
   textContent,
 } from '@virtuocity/core';
 import { describe, expect, it } from 'vitest';
-import { turnTakingModule } from './index';
+import { directs, rivalDirector, turnTakingModule } from './index';
 
 const provider: ModelProvider = {
   id: 'fake',
@@ -109,5 +109,24 @@ describe('turn taking', () => {
     await session.stop();
     expect((await run).outcome).not.toBe('failed');
     expect(session.transcript()).toHaveLength(0);
+  });
+});
+
+describe('one director per session', () => {
+  const skills = [talker, always('bard')];
+  const director = actor('director', 'ai', ['always-bard']);
+  const bard = actor('bard', 'ai', ['talker']);
+
+  it('names the director a second one would clash with', () => {
+    const second = actor('second', 'ai', ['always-bard']);
+    expect(directs(director, skills)).toBe(true);
+    expect(directs(bard, skills)).toBe(false);
+    expect(rivalDirector(second, [bard, director], skills)?.id).toBe('director');
+  });
+
+  it('lets a director join a session without one, or be updated in place', () => {
+    expect(rivalDirector(director, [bard], skills)).toBeUndefined();
+    expect(rivalDirector(director, [bard, director], skills)).toBeUndefined();
+    expect(rivalDirector(bard, [director], skills)).toBeUndefined();
   });
 });
