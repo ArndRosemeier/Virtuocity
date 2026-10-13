@@ -10,7 +10,7 @@ The app itself knows nothing about stories, books or games. Everything it does i
 - **Actors** are yours. You make an actor, give it skills and describe it. Actors live in your **Library** and can take part in any session.
 - **Session types** say what kind of session it is: who is in the cast, which panels it shows and which roles its guide suggests. Every session has exactly one. A session type is itself an actor, so you can copy it and change it.
 
-A roleplay is one session type: a narrator, maybe AI players, a director, a premise, an illustrator and a chronicler. A book room is another: a writer, a reviewer and you as editor. An image workflow is a third: you describe a picture and an illustrator paints it. Guided illustrations puts a talking prompt refiner in between, who turns your words into a detailed prompt before the illustrator paints. A pen-and-paper game with dice or, later, a 3D world are further session types made from the same parts. When a new skill arrives, every session type can use it.
+A roleplay is one session type: a narrator, maybe AI players, a director, a premise, an illustrator and a chronicler. A book room is another: a writer, a reviewer and you as editor. An image workflow is a third: you describe a picture and an illustrator paints it. Guided illustrations puts a talking prompt refiner in between, who turns your words into a detailed prompt before the illustrator paints. Pathfinder 2e and D&D 5e are tabletop games: a game master runs the game by the system's rules and rolls real dice, you and AI players play characters. A 3D world could later be another session type made from the same parts. When a new skill arrives, every session type can use it.
 
 ## Getting started
 
@@ -21,7 +21,7 @@ A roleplay is one session type: a narrator, maybe AI players, a director, a prem
 5. **Add actors later.** Use Add actor in the Cast panel. The session type's guide at the top of the Cast panel lists what it usually needs and ticks each role off as a matching actor joins.
 6. **Play.** Write in the box at the bottom. Who answers depends on the session (see Turns below).
 
-On a fresh start your Library already holds some ready-made actors: the Open, Roleplay, Book room, Image workflow and Guided illustrations session types and their usual cast (Narrator, Wren, Director, Ink, Chronicler, Premise, Quill, Marlow, Painter, Prompt refiner, Gallery). They are ordinary actors: edit them, copy them or delete them. When a new version improves them, Settings › Save & load › Update default actors sets them back to how the app ships them now (your changes to them are lost, deleted ones come back, other actors stay).
+On a fresh start your Library already holds some ready-made actors: the Open, Roleplay, Book room, Image workflow, Guided illustrations, Pathfinder 2e and D&D 5e session types and their usual cast (Narrator, Wren, Director, Ink, Chronicler, Premise, Quill, Marlow, Painter, Prompt refiner, Gallery, Game Master, Kira, Dungeon Master, Bram). They are ordinary actors: edit them, copy them or delete them. When a new version improves them, Settings › Save & load › Update default actors sets them back to how the app ships them now (your changes to them are lost, deleted ones come back, other actors stay).
 
 ## The screen
 
@@ -69,6 +69,12 @@ A session type is an actor with the Session type skill. Every session has exactl
 - **Roles:** what the setup wizard asks for and the guide suggests, such as "A narrator" or "An illustrator". A role says what an actor must be able to do ("In the cast": one of the cast contracts, or another contract such as director or reviewer), never which actor. Each role also has an importance (needed, recommended or optional), a line on what the session lacks without it ("Without it"), and the question the wizard asks. The wizard knows nothing else about the kind of session: everything it asks comes from these roles.
 
 A session type never adds actors itself; you do. To make your own, copy Roleplay under a new name and change its cast contracts, roles and panels in the actor editor. An actor either is a session type or isn't: to make one, create a new actor with the Session type skill. If your Library has no session type left, New session asks you to make one first. A roleplay with dice, one without a director, or one with only players is just a different session type. Like any actor, editing a session type changes every session of that type, and deleting it deletes those sessions after a warning.
+
+## Tabletop games
+
+The PF2E GM, PF2E Player, D&D 5 classic GM and D&D 5 classic Player skills turn a talking actor into a seat at a tabletop game. Give an actor Conversation and one of them. The skill tells that actor's model the system's rules and its part at the table (only that actor's: the others don't see it), and gives it three tools: roll a check (d20 + bonus against a DC, with advantage or disadvantage, and the outcome by the rules, such as Pathfinder's four degrees of success), find the DC for a task, and work out a proficiency bonus. Rolls are real and show up in the conversation. Each skill has a House rules field for variants your table plays with.
+
+A player actor's description is its character: ancestry, class, level, scores, bonuses and personality, like Kira's or Bram's. The Pathfinder 2e and D&D 5e session types only suggest a game master and players of their own system. D&D 5 classic means the 2014 rules.
 
 ## Turns and directors
 
