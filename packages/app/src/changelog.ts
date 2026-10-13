@@ -9,6 +9,13 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 56,
+    date: '2026-10-13',
+    changes: [
+      'Retrying an answer keeps the old one. A retried message shows "‹ 2/2 ›": step back to an earlier version and everything that followed it comes back with it; the newest version is shown by default. Anything new you write then continues from the version you picked.',
+    ],
+  },
+  {
     build: 55,
     date: '2026-10-13',
     changes: [

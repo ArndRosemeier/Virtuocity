@@ -110,7 +110,11 @@ app ──► any module ──► ui ──────────► core
   `leave` at any time (the app only lets an actor leave while `hasActed` in
   `cast.ts` is false; removing one that acted deletes the session); `post` adds a message;
   `runTurn` lets a chosen actor speak; `retryMessage` (`retry.ts`)
-  rewinds to before an actor's message and lets that actor speak again;
+  rewinds to before an actor's message, keeping the old answer and what
+  followed as a branch, and lets that actor speak again. Those sibling
+  branches are the message's versions (`versions.ts`: `messageVersions`,
+  `showVersion` moves the head to the newest end of the picked branch, so the
+  whole branch comes back); the app shows a "‹ 2/3 ›" picker on the message;
   `editMessage` rewrites one message in place (the app's pencil button, for
   text messages), leaving everything after it; `removeMessage` takes one
   message out (the trash button on every message), leaving everything after it. `stop`

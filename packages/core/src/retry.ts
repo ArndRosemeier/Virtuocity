@@ -9,12 +9,13 @@ export function retryable(session: SessionRuntime, messageId: string): string | 
 }
 
 /**
- * Takes a message back and lets its author answer again: all state rewinds to
- * just before the message, so it and everything after it are gone.
+ * Lets a message's author answer again: all state rewinds to just before the
+ * message. The old answer and everything after it stay as an earlier version
+ * (see `versions.ts`), so the person can go back to it.
  */
 export async function retryMessage(session: SessionRuntime, messageId: string): Promise<void> {
   const actorId = retryable(session, messageId);
   if (!actorId) throw new Error('Only a message from an actor that takes turns can be retried.');
-  await session.rewindToMessage(messageId, { before: true });
+  await session.rewindToMessage(messageId, { before: true, keepBranch: true });
   await session.runTurn(actorId);
 }

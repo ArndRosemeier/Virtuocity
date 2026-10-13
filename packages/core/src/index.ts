@@ -47,4 +47,5 @@ export * from './structured';
 export * from './testing';
 export * from './tools';
 export * from './transcript';
+export * from './versions';
 export * from './workspace';

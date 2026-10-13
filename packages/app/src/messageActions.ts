@@ -4,8 +4,12 @@ import { createContext, useContext } from 'react';
 export interface MessageActions {
   /** Whether the message can be retried: it came from an actor that takes turns. */
   readonly canRetry: (messageId: string) => boolean;
-  /** Takes the message and everything after it back, and lets its author answer again. */
+  /** Lets the message's author answer again; the old answer stays as an earlier version. */
   readonly retry: (messageId: string) => void;
+  /** Which version of a retried message is shown, and how many there are. */
+  readonly versions: (messageId: string) => { index: number; count: number } | undefined;
+  /** Shows another version of a message, with everything that followed it. */
+  readonly showVersion: (messageId: string, index: number) => void;
   /** The message's text when it can be edited (a text message), else `undefined`. */
   readonly editableText: (messageId: string) => string | undefined;
   /** Rewrites the message in place; everything after it stays. */
