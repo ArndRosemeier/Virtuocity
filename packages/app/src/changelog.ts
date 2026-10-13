@@ -9,10 +9,17 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
-    build: 64,
+    build: 65,
     date: '2026-10-13',
     changes: [
       'The actor editor lists skills by name only; hover a skill to see its contracts ("Contracts: ...").',
+    ],
+  },
+  {
+    build: 64,
+    date: '2026-10-13',
+    changes: [
+      'New session type Guided illustrations: say what you want, a Prompt refiner turns it into a detailed image prompt, and an illustrator (like Ink) paints it on its own. Ask for changes and the refiner rewrites the prompt for the next picture. A ready-made Prompt refiner comes with it.',
     ],
   },
   {

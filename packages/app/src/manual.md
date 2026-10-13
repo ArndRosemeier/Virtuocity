@@ -10,7 +10,7 @@ The app itself knows nothing about stories, books or games. Everything it does i
 - **Actors** are yours. You make an actor, give it skills and describe it. Actors live in your **Library** and can take part in any session.
 - **Session types** say what kind of session it is: who is in the cast, which panels it shows and which roles its guide suggests. Every session has exactly one. A session type is itself an actor, so you can copy it and change it.
 
-A roleplay is one session type: a narrator, maybe AI players, a director, a premise, an illustrator and a chronicler. A book room is another: a writer, a reviewer and you as editor. An image workflow is a third: you describe a picture and an illustrator paints it. A pen-and-paper game with dice or, later, a 3D world are further session types made from the same parts. When a new skill arrives, every session type can use it.
+A roleplay is one session type: a narrator, maybe AI players, a director, a premise, an illustrator and a chronicler. A book room is another: a writer, a reviewer and you as editor. An image workflow is a third: you describe a picture and an illustrator paints it. Guided illustrations puts a talking prompt refiner in between, who turns your words into a detailed prompt before the illustrator paints. A pen-and-paper game with dice or, later, a 3D world are further session types made from the same parts. When a new skill arrives, every session type can use it.
 
 ## Getting started
 
@@ -20,7 +20,7 @@ A roleplay is one session type: a narrator, maybe AI players, a director, a prem
 4. **Add actors.** Use Add actor in the Cast panel. The session type's guide at the top of the Cast panel lists what it usually needs and ticks each role off as a matching actor joins.
 5. **Play.** Write in the box at the bottom. Who answers depends on the session (see Turns below).
 
-On a fresh start your Library already holds some ready-made actors: the Open, Roleplay, Book room and Image workflow session types and their usual cast (Narrator, Wren, Director, Ink, Chronicler, Premise, Quill, Marlow, Painter). They are ordinary actors: edit them, copy them or delete them.
+On a fresh start your Library already holds some ready-made actors: the Open, Roleplay, Book room, Image workflow and Guided illustrations session types and their usual cast (Narrator, Wren, Director, Ink, Chronicler, Premise, Quill, Marlow, Painter, Prompt refiner). They are ordinary actors: edit them, copy them or delete them.
 
 ## The screen
 

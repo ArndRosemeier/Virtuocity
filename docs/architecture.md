@@ -29,7 +29,7 @@ product is, and why that shapes every change, is in [vision.md](vision.md).
 | `@virtuocity/skill-director`      | Code and decision-model skills implementing `director@1.0`.                           |
 | `@virtuocity/turn-taking`         | `turn-taking` flow: pass (the director picks) or choose who speaks.                   |
 | `@virtuocity/roleplay`            | Roleplay session type and its starter actors (narrator, players...).                  |
-| `@virtuocity/image-workflow`      | Image workflow session type (illustrators are its cast) and a Painter.                |
+| `@virtuocity/image-workflow`      | Image workflow and Guided illustrations session types, Painter, Prompt refiner.       |
 | `@virtuocity/app`                 | Vite + React web app. Decides which modules are installed.                            |
 
 New skills, session types and providers are new packages under `packages/`. New
