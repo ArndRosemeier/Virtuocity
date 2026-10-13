@@ -13,6 +13,7 @@ export const RELEASES: readonly Release[] = [
     date: '2026-10-13',
     changes: [
       'Sessions can be renamed: open the session list from the header and click the pencil next to a session or template. Names stay unique.',
+      'Text in the left sidebar spaces is now smaller by default, the same size as the other small text in the sidebars.',
     ],
   },
   {

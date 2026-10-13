@@ -524,6 +524,9 @@
   display: grid;
   gap: var(--space-2);
   min-height: 0;
+  /* Spaces read at the small size of other sidebar text, story text included. */
+  font-size: var(--text-sm);
+  --text-lg: var(--text-sm);
 }
 .space .media-image img {
   width: 100%;
