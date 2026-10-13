@@ -1,4 +1,5 @@
 import type { VirtuocityModule } from './module';
+import { DECISIONS_MODALITY } from './decisions';
 import { AUDIO_MODALITY, IMAGE_MODALITY, TEXT_MODALITY } from './models';
 import { castContributor, castDoc } from './cast';
 import { channelsDoc } from './channels';
@@ -14,7 +15,7 @@ export const coreModule: VirtuocityModule = {
     host.docTypes.register(setupDoc);
     host.docTypes.register(channelsDoc);
     host.contextContributors.register(castContributor(() => host.profileFields.list()));
-    for (const modality of [TEXT_MODALITY, IMAGE_MODALITY, AUDIO_MODALITY])
+    for (const modality of [TEXT_MODALITY, IMAGE_MODALITY, AUDIO_MODALITY, DECISIONS_MODALITY])
       host.modalities.register(modality);
   },
 };

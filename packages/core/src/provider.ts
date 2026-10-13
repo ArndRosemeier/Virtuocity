@@ -1,3 +1,4 @@
+import type { DecisionRequest, DecisionResult } from './decisions';
 import type { Identified } from './registry';
 import type { GeneratedMedia } from './media';
 import type { Modality } from './models';
@@ -76,6 +77,8 @@ export interface ModelProvider extends Identified {
   /** Whether it can run calls now, e.g. once its key is set. Pickers offer only ready providers. */
   ready(): boolean;
   complete(request: CompletionRequest): Promise<CompletionResult>;
+  /** Asks a decision model typed questions, for providers that offer decision models. */
+  decide?(request: DecisionRequest): Promise<DecisionResult>;
   /** The provider's model catalog, if it can list one. */
   listModels?(): Promise<readonly ModelInfo[]>;
 }

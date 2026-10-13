@@ -1,60 +1,105 @@
 import { directorContract } from '@virtuocity/contract-director';
-import type { Actor, ChatMessage } from '@virtuocity/core';
-import { conformanceSuite, conformanceTarget, scriptedProvider } from '@virtuocity/core';
+import type { Actor, DecisionRequest, Message, ModelProvider } from '@virtuocity/core';
+import { conformanceSuite, conformanceTarget } from '@virtuocity/core';
 import { describe, expect, it } from 'vitest';
-import { directorPrompt, directorSkill } from './index';
+import { decisionDirectorSkill, directorSkill, leastRecent, nextQuestion } from './index';
 
-describe('director skill conforms to director', () => {
-  const provider = scriptedProvider(() => '```json\n{"next": "Mira"}\n```');
-  const target = conformanceTarget(directorContract, { skills: [directorSkill], provider });
-  for (const testCase of conformanceSuite(directorContract)) {
-    it(`${testCase.contractId}: ${testCase.name}`, () => testCase.run(target));
+const asked: DecisionRequest[] = [];
+/** A decision model that picks the option named `pick`, or the first one. */
+const decider = (pick: string): ModelProvider => ({
+  id: 'fake',
+  name: 'Fake',
+  ready: () => true,
+  complete: () => Promise.reject(new Error('not a chat model')),
+  decide: (request) => {
+    asked.push(request);
+    const options = Object.keys(request.questions.next?.criteria ?? {});
+    const choice = options.includes(pick) ? pick : (options[0] ?? '');
+    return Promise.resolve({
+      answers: { next: { type: 'choice', choice } },
+      stats: { model: request.model, promptTokens: 1, completionTokens: 0 },
+    });
+  },
+});
+const modelDefaults = { decisions: 'jev' };
+
+describe('director skills conform to director', () => {
+  const targets = {
+    director: conformanceTarget(directorContract, { skills: [directorSkill] }),
+    'decision director': conformanceTarget(directorContract, {
+      skills: [decisionDirectorSkill],
+      provider: decider('Mira'),
+      modelDefaults,
+    }),
+  };
+  for (const [name, target] of Object.entries(targets)) {
+    for (const testCase of conformanceSuite(directorContract)) {
+      it(`${name}: ${testCase.contractId}: ${testCase.name}`, () => testCase.run(target));
+    }
   }
 });
 
-describe('director skill', () => {
-  it('asks again when the model names someone who is not a candidate', async () => {
-    const asked: (readonly ChatMessage[])[] = [];
-    const replies = ['{"next": "Gandalf"}', '{"next": "Tobin"}'];
-    const provider = scriptedProvider((request) => {
-      asked.push(request.messages);
-      return replies[asked.length - 1] ?? '';
-    });
-    const target = conformanceTarget(directorContract, { skills: [directorSkill], provider });
-    const candidates = [
-      { id: 'you', name: 'You', person: true },
-      { id: 't', name: 'Tobin', person: false },
-    ];
-    expect(await target.invoke('next', { candidates })).toEqual({ next: 't' });
-    expect(asked).toHaveLength(2);
+const said = (actorId: string, i: number): Message => ({
+  id: `m${i}`,
+  actorId,
+  kind: 'text',
+  data: 'Hi',
+  text: 'Hi',
+  createdAt: i,
+});
+const you = { id: 'you', name: 'You', person: true };
+const mira = { id: 'mira', name: 'Mira', person: false };
+const tobin = { id: 'tobin', name: 'Tobin', person: false };
+
+describe('director (code)', () => {
+  it('lets the AI who spoke least recently go next, one who never spoke first', () => {
+    expect(leastRecent([you, mira, tobin], [said('mira', 0), said('you', 1)])?.id).toBe('tobin');
+    const all = [said('tobin', 0), said('mira', 1), said('you', 2)];
+    expect(leastRecent([you, mira, tobin], all)?.id).toBe('tobin');
   });
 
-  it('shows the candidates, which of them are people, and the session so far', () => {
+  it('hands the turn to a person when no AI is in the cast', () => {
+    expect(leastRecent([you], [said('you', 0)])?.id).toBe('you');
+  });
+});
+
+describe('director (decision model)', () => {
+  it('asks the decisions model, by name, with the session as state', async () => {
+    const target = conformanceTarget(directorContract, {
+      skills: [decisionDirectorSkill],
+      provider: decider('Tobin'),
+      modelDefaults,
+    });
+    asked.length = 0;
+    expect(await target.invoke('next', { candidates: [you, mira, tobin] })).toEqual({
+      next: 'tobin',
+    });
+    expect(asked[0]?.model).toBe('jev');
+    expect(Object.keys(asked[0]?.questions.next?.criteria ?? {})).toEqual(['You', 'Mira', 'Tobin']);
+  });
+
+  it('puts how the actor directs into the question, and says who is a person', () => {
     const director: Actor = {
       id: 'd',
       controller: 'ai',
       personality: { name: 'Director', description: 'Keep the narrator at the centre.' },
-      skillIds: ['director'],
+      skillIds: ['decision-director'],
     };
-    const bard: Actor = { ...director, id: 'bard', personality: { name: 'Bard', description: '' } };
-    const said = {
-      id: 'm',
-      actorId: 'bard',
-      kind: 'text',
-      data: 'Hello',
-      text: 'Hello',
-      createdAt: 0,
-    };
-    const [system, user] = directorPrompt(
-      director,
-      [
-        { id: 'you', name: 'You', person: true },
-        { id: 'bard', name: 'Bard', person: false },
-      ],
-      { transcript: [said], actors: [director, bard] },
+    const question = nextQuestion(director, [you, mira], []);
+    expect(question.instructions).toContain('Keep the narrator at the centre.');
+    expect(question.type === 'choice' && question.criteria.You).toMatch(/A person/);
+  });
+
+  it('uses ids as options when two candidates share a name', () => {
+    const twin = { ...mira, id: 'mira-2' };
+    const question = nextQuestion(
+      { id: 'd', controller: 'ai', personality: { name: 'D', description: '' }, skillIds: [] },
+      [mira, twin],
+      [],
     );
-    expect(system?.content).toContain('Keep the narrator at the centre.');
-    expect(system?.content).toContain('- You (a person)\n- Bard');
-    expect(user?.content).toContain('Bard: Hello');
+    expect(question.type === 'choice' && Object.keys(question.criteria)).toEqual([
+      'mira',
+      'mira-2',
+    ]);
   });
 });

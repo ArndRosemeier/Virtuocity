@@ -13,6 +13,7 @@ export * from './contract';
 export * from './contract-registry';
 export * from './contract-version';
 export * from './core-module';
+export * from './decisions';
 export * from './doc-type';
 export * from './events';
 export * from './flow';

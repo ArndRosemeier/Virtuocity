@@ -23,7 +23,7 @@ vision behind this lives in [vision.md](vision.md).
 | `@virtuocity/skill-illustrator`  | Image-model skill implementing `illustrator@1`; illustrates turns.     |
 | `@virtuocity/book-room`          | Walking skeleton: `manuscript` document and `book-pipeline` flow.      |
 | `@virtuocity/contract-director`  | `director@1.0` contract: picks who takes the next turn.                |
-| `@virtuocity/skill-director`     | LLM skill implementing `director@1.0`.                                 |
+| `@virtuocity/skill-director`     | Code and decision-model skills implementing `director@1.0`.            |
 | `@virtuocity/turn-taking`        | `turn-taking` flow: pass (the director picks) or choose who speaks.    |
 | `@virtuocity/roleplay`           | `roleplay` blueprint: a narrator, plus optional players and support.   |
 | `@virtuocity/app`                | Vite + React web app. Decides which modules are installed.             |
@@ -87,7 +87,7 @@ app ──► any module ──► ui ──────────► core
   The OpenRouter provider asks an image model for exactly the outputs its
   catalog entry lists (pictures only, or pictures and text).
 - **Modalities** (`host.modalities`): the modalities the app offers a default
-  model for. `coreModule` registers text, image and audio; modules add more.
+  model for. `coreModule` registers text, image, audio and decisions; modules add more.
 - **Workspace** (`workspace.ts`, `oplog.ts`, `doc-type.ts`): all shared state.
   See [State](#state) below.
 - **Transcript** (`transcript.ts`): the story as one document type: a
@@ -207,6 +207,14 @@ starts one run; the run does some steps through its `FlowContext` (`runTurn`,
 - Flows see the `cast()` and whether an actor `serves(actorId, contract)`.
 
 ## Model calls
+
+- **Decisions** (`decisions.ts`, `decision-call.ts`): decision models (the
+  `decisions` modality, e.g. TypeSafe's Jev on OpenRouter) answer typed
+  questions about a state (`choice`, `noul` for yes or no, `score`) with
+  probabilities instead of writing text. Skills call `ctx.decide`; the runtime
+  resolves the decisions model like any other and hands the call to its
+  provider's `decide`. Decision calls are traced and counted like model calls.
+  The app uses Jev until another decisions model is picked.
 
 - **One call shape** (`provider.ts`): messages (system, user, assistant with tool
   calls, tool results), optional `tools`, `toolChoice`, `responseSchema` and an
@@ -340,11 +348,12 @@ flow asks that director; a human can direct
 too (they get a task). Without a director, passing picks nobody: people click
 who speaks, and the app shows Pass only when the session has a director.
 
-`skill-director` is the first implementation: it reads the whole session and
-what its actor knows, and asks the default text model to name the next speaker.
-The actor's personality says how it directs. The Roleplay blueprint lists a
-director as an optional role, so a "Director" actor is offered in the library
-on a fresh start.
+`skill-director` ships two implementations. "Director" is plain code: the AI
+in the cast who spoke least recently goes next. "Director (decision model)"
+asks the decisions model (Jev by default) a choice question about the newest
+part of the session and what its actor knows; the actor's personality says how
+it directs. The Roleplay blueprint lists a director as an optional role, so a
+"Director" actor with the code skill is offered in the library on a fresh start.
 
 ## Premise
 
