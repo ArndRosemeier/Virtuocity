@@ -23,7 +23,8 @@ codebase modular and free of duplication; CI enforces most of them.
 - Every change merged to `main` is one build: add an entry with the next build number at the top of
   `packages/app/src/changelog.ts`, describing what changed for the user (version = build / 1000).
 - One name, one actor: sessions refer to library actors by id and never hold a copy (see
-  `docs/architecture.md`, Library). Keep the user manual (`packages/app/src/manual.md`) current
+  `docs/architecture.md`, Library). `packages/app/src/oneActor.test.ts` guards it; extend it
+  when you add a flow that touches actors, never weaken it. Keep the user manual (`packages/app/src/manual.md`) current
   when a change affects how people use the app, above all concepts that work unlike other apps.
 - Inject side effects (fetch, randomness, time, ids) so code stays testable.
 

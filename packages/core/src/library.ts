@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { Actor } from './actor';
+import type { Actor, LibraryActor } from './actor';
 import { nameKey } from './actor-names';
 import { actorSchema } from './cast';
 import type { ResolveConflicts } from './library-import';
@@ -12,7 +12,7 @@ export interface SavedActor {
   readonly kind: 'actor';
   readonly id: string;
   readonly savedAt: number;
-  readonly actor: Actor;
+  readonly actor: LibraryActor;
 }
 
 /** A cast kept for reuse: library actors started together, like a blueprint. */
@@ -62,6 +62,9 @@ export interface SetupDraft {
   readonly actorIds: readonly string[];
 }
 
+/** Marks an actor as the library's own; only the library does this. */
+const held = (actor: Actor) => actor as LibraryActor;
+
 const isActor = (i: LibraryItem): i is SavedActor => i.kind === 'actor';
 const isSetup = (i: LibraryItem): i is SavedSetup => i.kind === 'setup';
 
@@ -76,7 +79,7 @@ export class Library {
   readonly #now: () => number;
   readonly #upgrade: (actor: Actor) => Actor;
   /** Every actor as of the last change or `load`, for looking actors up without waiting. */
-  #known = new Map<string, Actor>();
+  #known = new Map<string, LibraryActor>();
 
   constructor(
     private readonly store: KeyValueStore<unknown>,
@@ -102,14 +105,14 @@ export class Library {
    * The actor with this id, right away, as of the last change or `load`. Sessions
    * look their library actors up with it (see `SessionConfig.actors`).
    */
-  readonly actor = (id: string): Actor | undefined => this.#known.get(id);
+  readonly actor = (id: string): LibraryActor | undefined => this.#known.get(id);
 
   /** Reads the stored actors so `actor` finds them, e.g. on start. */
   load(): Promise<void> {
     return this.#changed();
   }
 
-  async actors(): Promise<Actor[]> {
+  async actors(): Promise<LibraryActor[]> {
     return (await this.list()).filter(isActor).map((i) => i.actor);
   }
 
@@ -126,7 +129,7 @@ export class Library {
     if (await this.nameTaken(actor.personality.name, actor.id)) {
       throw new NameTakenError(actor.personality.name.trim());
     }
-    return this.#put({ kind: 'actor', id: actor.id, savedAt: this.#now(), actor });
+    return this.#put({ kind: 'actor', id: actor.id, savedAt: this.#now(), actor: held(actor) });
   }
 
   saveSetup(draft: SetupDraft): Promise<SavedSetup> {
