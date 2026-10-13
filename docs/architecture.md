@@ -7,26 +7,28 @@ vision behind this lives in [vision.md](vision.md).
 
 ## Packages
 
-| Package                          | Role                                                                   |
-| -------------------------------- | ---------------------------------------------------------------------- |
-| `@virtuocity/core`               | Concepts and extension points. No UI, no network, no other packages.   |
-| `@virtuocity/contract-dice`      | `dice-roller@1` contract.                                              |
-| `@virtuocity/contract-critique`  | `critic@1` and `reviewer@1` (extends `critic@1`) contracts.            |
-| `@virtuocity/openai-api`         | `ModelProvider`s for OpenRouter and OpenAI (same chat API).            |
-| `@virtuocity/anthropic`          | `ModelProvider` for Anthropic's Messages API (Claude).                 |
-| `@virtuocity/skill-conversation` | Conversation skill: lets an actor speak in character via a text model. |
-| `@virtuocity/skill-dice`         | Code-only skill implementing `dice-roller@1`.                          |
-| `@virtuocity/skill-reviewer`     | LLM skill implementing `reviewer@1` (and so `critic@1`).               |
-| `@virtuocity/contract-writing`   | `writer@1` contract.                                                   |
-| `@virtuocity/skill-writer`       | LLM skill implementing `writer@1`.                                     |
-| `@virtuocity/contract-visual`    | `illustrator@1` contract.                                              |
-| `@virtuocity/skill-illustrator`  | Image-model skill implementing `illustrator@1`; illustrates turns.     |
-| `@virtuocity/book-room`          | Walking skeleton: `manuscript` document and `book-pipeline` flow.      |
-| `@virtuocity/contract-director`  | `director@1.0` contract: picks who takes the next turn.                |
-| `@virtuocity/skill-director`     | Code and decision-model skills implementing `director@1.0`.            |
-| `@virtuocity/turn-taking`        | `turn-taking` flow: pass (the director picks) or choose who speaks.    |
-| `@virtuocity/roleplay`           | `roleplay` blueprint: a narrator, plus optional players and support.   |
-| `@virtuocity/app`                | Vite + React web app. Decides which modules are installed.             |
+| Package                           | Role                                                                   |
+| --------------------------------- | ---------------------------------------------------------------------- |
+| `@virtuocity/core`                | Concepts and extension points. No UI, no network, no other packages.   |
+| `@virtuocity/contract-dice`       | `dice-roller@1` contract.                                              |
+| `@virtuocity/contract-critique`   | `critic@1` and `reviewer@1` (extends `critic@1`) contracts.            |
+| `@virtuocity/openai-api`          | `ModelProvider`s for OpenRouter and OpenAI (same chat API).            |
+| `@virtuocity/anthropic`           | `ModelProvider` for Anthropic's Messages API (Claude).                 |
+| `@virtuocity/skill-conversation`  | Conversation skill: lets an actor speak in character via a text model. |
+| `@virtuocity/skill-dice`          | Code-only skill implementing `dice-roller@1`.                          |
+| `@virtuocity/skill-reviewer`      | LLM skill implementing `reviewer@1` (and so `critic@1`).               |
+| `@virtuocity/contract-writing`    | `writer@1` contract.                                                   |
+| `@virtuocity/skill-writer`        | LLM skill implementing `writer@1`.                                     |
+| `@virtuocity/contract-visual`     | `illustrator@1` contract.                                              |
+| `@virtuocity/skill-illustrator`   | Image-model skill implementing `illustrator@1`; illustrates turns.     |
+| `@virtuocity/contract-facts`      | `fact-gatherer@1.0` contract: the facts a session has established.     |
+| `@virtuocity/skill-fact-gatherer` | LLM skill implementing `fact-gatherer@1.0`; shows facts in its space.  |
+| `@virtuocity/book-room`           | Walking skeleton: `manuscript` document and `book-pipeline` flow.      |
+| `@virtuocity/contract-director`   | `director@1.0` contract: picks who takes the next turn.                |
+| `@virtuocity/skill-director`      | Code and decision-model skills implementing `director@1.0`.            |
+| `@virtuocity/turn-taking`         | `turn-taking` flow: pass (the director picks) or choose who speaks.    |
+| `@virtuocity/roleplay`            | `roleplay` blueprint: a narrator, plus optional players and support.   |
+| `@virtuocity/app`                 | Vite + React web app. Decides which modules are installed.             |
 
 New skills, blueprints and providers are new packages under `packages/`. New
 contracts are `contract-*` packages.
@@ -335,6 +337,19 @@ marker (`marker@1.0`) after the last message its summary covers, and has an
 on-demand space showing the summary, which opens when the marker is clicked.
 Summaries have no length setting: the
 summarizer writes as much as it needs to keep every detail that may matter.
+
+## Facts
+
+`contract-facts` defines `fact-gatherer@1.0`: `gather` reads the whole session
+from its actor's point of view and returns the facts it has established, as
+output parts of any kind. `skill-fact-gatherer` ships one implementation, "Fact
+gatherer", which asks the text model with the actor's `prompt` setting (a
+sensible default, editable), the whole session and the facts gathered before.
+It refreshes by invoking the contract on its own actor, keeps the result in the
+`facts` document and shows it in its space, where a person can correct it; the
+next gathering keeps their corrections. Like the Illustrator it is support: it
+gathers when a person asks it (`onRequest`), and after other actors' turns only
+with its `automatic` setting on (off by default).
 
 ## Directors
 

@@ -1,6 +1,6 @@
 import type { DirectorCandidate } from '@virtuocity/contract-director';
 import type { Actor, DecisionQuestion, Message, SkillContext } from '@virtuocity/core';
-import { chosen, estimateTokens, fitNewest } from '@virtuocity/core';
+import { actorName, chosen, estimateTokens, fitNewest } from '@virtuocity/core';
 
 /** How much of the session a decision model reads; Jev takes about 32k tokens in all. */
 export const STORY_BUDGET = 20_000;
@@ -41,7 +41,7 @@ export function nextQuestion(
 
 /** The newest lines of the session that fit the budget, as "Name: text". */
 export function storyLines(transcript: readonly Message[], actors: readonly Actor[]): string[] {
-  const nameOf = (id: string) => actors.find((a) => a.id === id)?.personality.name ?? id;
+  const nameOf = (id: string) => actorName(actors, id);
   const lines = transcript
     .filter((m) => m.text.trim() !== '')
     .map((m) => `${nameOf(m.actorId)}: ${m.text}`);

@@ -1,5 +1,5 @@
 import type { Actor, ChatMessage, Message } from '@virtuocity/core';
-import { defineSettings, estimateTokens, fitNewest, z } from '@virtuocity/core';
+import { actorName, defineSettings, estimateTokens, fitNewest, z } from '@virtuocity/core';
 
 export const conversationSettings = defineSettings({
   length: z
@@ -70,7 +70,7 @@ export function buildPrompt(
   options: PromptOptions = {},
 ): ChatMessage[] {
   const settings = options.settings ?? conversationSettings.parse({});
-  const nameOf = (id: string) => actors.find((a) => a.id === id)?.personality.name ?? id;
+  const nameOf = (id: string) => actorName(actors, id);
   const others = (options.cast ?? actors).filter((a) => a.id !== actor.id);
   const system = systemPrompt(actor, others, settings, options.context);
   const turns = history

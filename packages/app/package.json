@@ -24,6 +24,7 @@
     "@virtuocity/skill-chronicler": "*",
     "@virtuocity/skill-conversation": "*",
     "@virtuocity/skill-dice": "*",
+    "@virtuocity/skill-fact-gatherer": "*",
     "@virtuocity/skill-director": "*",
     "@virtuocity/skill-illustrator": "*",
     "@virtuocity/skill-premise": "*",

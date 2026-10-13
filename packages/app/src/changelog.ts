@@ -9,6 +9,13 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 52,
+    date: '2026-10-13',
+    changes: [
+      'New skill "Fact gatherer": reads the whole session and keeps a list of the facts it has established (people, places, things, relationships, events, open threads) in its own space. Like the Illustrator it acts only when you click it under "or ask:", unless you turn on "automatic" to have it gather after every turn. Its prompt is editable in the actor\'s settings and starts with a sensible default. You can correct the list in its space, and the next gathering keeps your corrections.',
+    ],
+  },
+  {
     build: 51,
     date: '2026-10-13',
     changes: [
