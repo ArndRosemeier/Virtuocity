@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { Actor } from './actor';
+import type { Actor, OwnActor } from './actor';
 import type { ContextContributor } from './context-assembly';
 import { defineDocType } from './doc-type';
 import type { Operation } from './oplog';
@@ -14,7 +14,7 @@ import { profileValue } from './settings';
  * an older version.
  */
 export type CastOp =
-  | { readonly type: 'join'; readonly actor: Actor }
+  | { readonly type: 'join'; readonly actor: OwnActor }
   | { readonly type: 'include'; readonly actorId: string }
   | { readonly type: 'leave'; readonly actorId: string };
 

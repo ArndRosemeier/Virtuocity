@@ -9,6 +9,13 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 60,
+    date: '2026-10-13',
+    changes: [
+      'Behind the scenes: the "one name, one actor" rule is now guarded automatically. Every change to the app is checked for actor copies in sessions, so the rule cannot quietly break again.',
+    ],
+  },
+  {
     build: 59,
     date: '2026-10-13',
     changes: [

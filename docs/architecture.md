@@ -472,6 +472,11 @@ edits it, and does not list it as a cast member.
   library) changes it everywhere. A variation is an explicit copy with a new
   name. The only copies outside the library are in files, because a file must
   work in another browser; loading one moves them into the library at once.
+  Guarded twice: by type, a `LibraryActor` (what the library hands out) is not
+  an `OwnActor`, the only kind a cast `join` can keep; and by the app's
+  `oneActor.test.ts`, which runs the flows that touch actors (adding, editing,
+  retrying, templates, files, old sessions) and fails if any stored session
+  holds a copy of a library actor by id or name (`actorCopies`).
 - **Names are unique** (`nameKey` ignores case and extra spaces); `saveActor`
   throws `NameTakenError`. The id stays hidden underneath, so renaming is one edit.
 - **Adopting.** `adopt(actors, resolve)` makes the library hold incoming actors
