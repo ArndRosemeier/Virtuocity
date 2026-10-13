@@ -106,6 +106,7 @@ export function ActorDialog({
   onSave,
   takenNames,
   saveLabel = actor ? 'Save' : 'Create',
+  skillIds = [],
 }: {
   host: AppHost;
   actor?: Actor | undefined;
@@ -114,8 +115,12 @@ export function ActorDialog({
   onSave: (actor: Actor) => void;
   takenNames: readonly string[];
   saveLabel?: string;
+  /** The skills a new actor starts with, ticked. */
+  skillIds?: readonly string[];
 }) {
-  const [draft, setDraft] = useState<Draft>(() => draftOf(actor));
+  const [draft, setDraft] = useState<Draft>(() =>
+    actor ? draftOf(actor) : { ...EMPTY, skillIds: [...skillIds] },
+  );
   const problem = nameProblem(draft.name, takenNames);
   const transform = useTransform(aboutDraft(host, draft));
 

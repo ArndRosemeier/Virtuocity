@@ -42,7 +42,9 @@ const role = (label: string, more: Partial<SessionRole> = {}): SessionRole => ({
   hint: '',
   cast: false,
   needs: [],
-  optional: false,
+  importance: 'needed',
+  without: '',
+  question: '',
   ...more,
 });
 
@@ -72,7 +74,7 @@ describe('session types', () => {
   it('guide the cast: each actor fills the first open role it fits, cast by a cast contract', () => {
     const roles = [
       role('A narrator', { cast: true }),
-      role('A typist', { needs: ['session-type@3.0'], optional: true }),
+      role('A typist', { needs: ['session-type@4.0'], importance: 'optional' }),
       role('A painter', { needs: ['painter@1.0'] }),
       role('Broken', { needs: ['not a ref'] }),
     ];

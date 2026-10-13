@@ -10,6 +10,15 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 73,
+    date: '2026-10-13',
+    changes: [
+      'New session has a setup wizard ("Guide me", on by default). After the name and session type it asks one question per role, such as "Who tells the story?", says how much the role matters and what you miss without it, and lets you pick an actor from your Library, choose nobody, or make a new one with the right skills already ticked. Start opens the session with everyone you picked.',
+      'Session types say how much each role matters (needed, recommended, optional), what a session lacks without it, and what the wizard asks. Edit them in the actor editor. Roleplay, Book room, Image workflow and Guided illustrations come with all of it filled in.',
+      "A Library made before this build keeps its old Roleplay and other session types, without questions; clear this site's data for a fresh start to get the new ones.",
+    ],
+  },
+  {
     build: 72,
     date: '2026-10-13',
     changes: [

@@ -21,6 +21,15 @@ describe('the starter session types', () => {
     expect(missing).toEqual([]);
   });
 
+  it('guide the setup wizard: every role asks a question and says what is missing without it', () => {
+    const bare = types.flatMap((type) =>
+      describe_(type)
+        .roles.filter((r) => r.question.trim() === '' || r.without.trim() === '')
+        .map((r) => `${type.personality.name}: ${r.label}`),
+    );
+    expect(bare).toEqual([]);
+  });
+
   it('cast the Painter in an image workflow, so its guide ticks the illustrator', () => {
     const type = types.find((t) => t.id === 'image-workflow');
     const painter = starters.find((a) => a.id === 'painter');

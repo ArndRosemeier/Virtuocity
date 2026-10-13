@@ -45,6 +45,25 @@ function needOptions(
   return role.cast ? [castCapable(skills, castContracts), ...contracts] : contracts;
 }
 
+/** Whether an actor can fill a role: one of its skills does each thing the role needs. */
+export function roleFit(
+  role: SessionRole,
+  castContracts: readonly string[],
+  skills: readonly Skill[],
+): {
+  readonly fits: (actor: Actor) => boolean;
+  readonly available: boolean;
+  readonly skills: string[];
+} {
+  const options = needOptions(role, castContracts, skills);
+  return {
+    fits: (a) => options.every((o) => o.some((s) => a.skillIds.includes(s.id))),
+    available: options.every((o) => o.length > 0),
+    // A new actor for the role starts with the first skill able to do each thing it needs.
+    skills: [...new Set(options.flatMap((o) => (o[0] ? [o[0].id] : [])))],
+  };
+}
+
 /** A line of the setup guide: the role, whether it can be filled, and the actor filling it. */
 export interface GuideLine {
   readonly role: SessionRole;
@@ -61,11 +80,9 @@ export function guideLines(
 ): GuideLine[] {
   const used = new Set<string>();
   return roles.map((role) => {
-    const options = needOptions(role, castContracts, skills);
-    const fits = (a: Actor) => options.every((o) => o.some((s) => a.skillIds.includes(s.id)));
+    const { fits, available } = roleFit(role, castContracts, skills);
     const actor = actors.find((a) => !used.has(a.id) && fits(a));
     if (actor) used.add(actor.id);
-    const available = options.every((o) => o.length > 0);
     return actor ? { role, available, actor } : { role, available };
   });
 }

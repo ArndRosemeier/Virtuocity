@@ -1,6 +1,6 @@
 import { speakerContract } from '@virtuocity/contract-speaker';
 import type { SessionTypeDescription } from '@virtuocity/core';
-import { sessionTypeContract } from '@virtuocity/core';
+import { IMPORTANCE, sessionTypeContract } from '@virtuocity/core';
 import type { Skill, Starter, VirtuocityModule } from '@virtuocity/core';
 import { choice, defineSettings, implement, readSettings, z } from '@virtuocity/core';
 
@@ -17,7 +17,16 @@ const role = z.object({
     .array(choice('contracts'))
     .default([])
     .meta({ title: 'Must be able to', description: 'Contracts the actor must serve.' }),
-  optional: z.boolean().default(false).meta({ description: 'The session works without it.' }),
+  importance: z.enum(IMPORTANCE).default('needed').meta({
+    description: 'Needed: the session hardly works without it. Recommended: it works, but worse.',
+  }),
+  without: z.string().default('').meta({
+    title: 'Without it',
+    description: 'What the session lacks without it, shown by the setup wizard.',
+  }),
+  question: z.string().default('').meta({
+    description: 'What the setup wizard asks, e.g. "Who tells the story?". Empty uses the role.',
+  }),
 });
 
 /** Who is cast, the roles and the panels, as the person sets them in the actor editor. */

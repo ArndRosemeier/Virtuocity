@@ -17,8 +17,9 @@ A roleplay is one session type: a narrator, maybe AI players, a director, a prem
 1. **Connect a provider.** Open Settings (the gear) › Connection and paste an API key for OpenRouter, OpenAI or Anthropic. Keys stay in this browser and are never saved to files.
 2. **Pick default models.** Settings › Models sets one model per kind of output (text, image, decisions). Any actor can use a different one.
 3. **Start a session.** Press New session (the circular arrow in the header), name it and pick a session type such as Roleplay, Image workflow, or Open (every panel, no suggestions).
-4. **Add actors.** Use Add actor in the Cast panel. The session type's guide at the top of the Cast panel lists what it usually needs and ticks each role off as a matching actor joins.
-5. **Play.** Write in the box at the bottom. Who answers depends on the session (see Turns below).
+4. **Let the wizard set it up.** With "Guide me" ticked (the default), Next asks one question per role of the session type, such as "Who tells the story?". Each says how much it matters (needed, recommended or optional) and what you miss without it. Pick an actor from your Library, choose Nobody, or press Make a new one: the new-actor dialog opens with the skills that role needs already ticked. Start opens the session with everyone you picked.
+5. **Add actors later.** Use Add actor in the Cast panel. The session type's guide at the top of the Cast panel lists what it usually needs and ticks each role off as a matching actor joins.
+6. **Play.** Write in the box at the bottom. Who answers depends on the session (see Turns below).
 
 On a fresh start your Library already holds some ready-made actors: the Open, Roleplay, Book room, Image workflow and Guided illustrations session types and their usual cast (Narrator, Wren, Director, Ink, Chronicler, Premise, Quill, Marlow, Painter, Prompt refiner, Gallery). They are ordinary actors: edit them, copy them or delete them.
 
@@ -65,7 +66,7 @@ A session type is an actor with the Session type skill. Every session has exactl
 
 - **Cast contracts:** what an actor must be able to do to be part of the cast, in order, such as speaker or illustrator. An actor serving one of them takes turns and acts with the first one it serves. An illustrator that can also talk paints in an image workflow (cast contract illustrator) and talks in a roleplay (cast contract speaker). The cast is never picked by a skill's name, so any skill that can speak takes part wherever speakers are cast.
 - **Panels:** which panels the session shows, in which order. Book room shows the manuscript and no chat; Roleplay shows the spaces, the conversation and the input box. With no panels listed, a session shows everything.
-- **Roles:** what the setup guide suggests adding, such as "A narrator" or "An illustrator". A role says what an actor must be able to do ("In the cast": one of the cast contracts, or another contract such as director or reviewer), never which actor. Optional roles are listed as options.
+- **Roles:** what the setup wizard asks for and the guide suggests, such as "A narrator" or "An illustrator". A role says what an actor must be able to do ("In the cast": one of the cast contracts, or another contract such as director or reviewer), never which actor. Each role also has an importance (needed, recommended or optional), a line on what the session lacks without it ("Without it"), and the question the wizard asks. The wizard knows nothing else about the kind of session: everything it asks comes from these roles.
 
 A session type never adds actors itself; you do. To make your own, copy Roleplay under a new name and change its cast contracts, roles and panels in the actor editor. An actor either is a session type or isn't: to make one, create a new actor with the Session type skill. If your Library has no session type left, New session asks you to make one first. A roleplay with dice, one without a director, or one with only players is just a different session type. Like any actor, editing a session type changes every session of that type, and deleting it deletes those sessions after a warning.
 

@@ -27,7 +27,17 @@ describe('session type settings', () => {
     };
     expect(describeSettings(stored)).toEqual({
       castContracts: ['illustrator@1.0'],
-      roles: [{ label: 'A narrator', hint: '', cast: true, needs: [], optional: false }],
+      roles: [
+        {
+          label: 'A narrator',
+          hint: '',
+          cast: true,
+          needs: [],
+          importance: 'needed',
+          without: '',
+          question: '',
+        },
+      ],
       panels: ['story', 'composer'],
     });
   });
