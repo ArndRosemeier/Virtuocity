@@ -101,7 +101,6 @@ describe('ctx.context', () => {
     host.providers.register(scriptedProvider([]));
     const session = new SessionRuntime({
       host,
-      directorId: 'least-recent',
       modelDefaults: () => ({}),
     });
     await session.join(actor('a'));

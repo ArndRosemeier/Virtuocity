@@ -1,3 +1,4 @@
+import { directorContract } from '@virtuocity/contract-director';
 import { summarizerContract } from '@virtuocity/contract-memory';
 import { premiseContract } from '@virtuocity/contract-premise';
 import { illustratorContract } from '@virtuocity/contract-visual';
@@ -5,8 +6,9 @@ import type { VirtuocityModule } from '@virtuocity/core';
 import { defineBlueprint } from '@virtuocity/core';
 
 /**
- * A narrator tells a story with you. Options: AI players, a premise that opens
- * it, an illustrator that paints it and a chronicler that remembers it. The
+ * A narrator tells a story with you. Options: AI players, a director that
+ * picks who speaks, a premise that opens it, an illustrator that paints it and
+ * a chronicler that remembers it. The
  * personalities are the default actors offered in the library.
  */
 export const roleplayBlueprint = defineBlueprint({
@@ -33,6 +35,18 @@ export const roleplayBlueprint = defineBlueprint({
           'Describes the world, its people and what happens next, in second person. Never decides what the player does.',
       },
       speaks: true,
+    },
+    {
+      id: 'director',
+      label: 'A director',
+      hint: 'Picks who speaks after you act or pass. Without one, you click who speaks.',
+      personality: {
+        name: 'Director',
+        description:
+          'Keeps the story moving. After the player acts, the narrator usually answers; a character answers when addressed. Hands the turn back to the player when it is their move.',
+      },
+      needs: [directorContract],
+      optional: true,
     },
     {
       id: 'companion',
@@ -80,6 +94,7 @@ export const roleplayModule: VirtuocityModule = {
     host.contracts.register(illustratorContract);
     host.contracts.register(summarizerContract);
     host.contracts.register(premiseContract);
+    host.contracts.register(directorContract);
     host.blueprints.register(roleplayBlueprint);
   },
 };

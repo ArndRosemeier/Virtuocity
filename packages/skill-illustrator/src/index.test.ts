@@ -54,7 +54,6 @@ function session(reply: () => { media?: (typeof png)[] }) {
   host.providers.register(scriptedProvider(reply));
   const runtime = new SessionRuntime({
     host,
-    directorId: 'least-recent',
     modelDefaults: () => ({ image: 'scripted:image-model' }),
   });
   const ended = new Promise<string>((resolve) =>

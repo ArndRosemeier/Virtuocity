@@ -7,6 +7,7 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
+    "@virtuocity/contract-director": "*",
     "@virtuocity/contract-memory": "*",
     "@virtuocity/contract-premise": "*",
     "@virtuocity/contract-visual": "*",

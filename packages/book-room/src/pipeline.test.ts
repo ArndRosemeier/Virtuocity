@@ -65,7 +65,6 @@ async function setup(editorApproves: boolean[]) {
   host.skills.register(strictReviewer());
   const session = new SessionRuntime({
     host,
-    directorId: 'least-recent',
     modelDefaults: () => ({}),
   });
   await session.join(actor('ada', 'ai', ['fake-writer']));

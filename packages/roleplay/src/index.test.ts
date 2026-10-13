@@ -1,3 +1,4 @@
+import { directorContract } from '@virtuocity/contract-director';
 import { summarizerContract } from '@virtuocity/contract-memory';
 import { illustratorContract } from '@virtuocity/contract-visual';
 import type { Skill } from '@virtuocity/core';
@@ -34,6 +35,13 @@ const remember: Skill = {
   ],
 };
 
+const direct: Skill = {
+  id: 'direct',
+  name: 'Direct',
+  backing: 'code',
+  implements: [implement(directorContract, { next: () => Promise.resolve({ next: 'user' }) })],
+};
+
 describe('roleplay blueprint', () => {
   const host = loadModules(new ModuleHost(), [roleplayModule]);
   const blueprint = host.blueprints.get('roleplay');
@@ -49,6 +57,14 @@ describe('roleplay blueprint', () => {
     expect(defaultChoices(blueprint, [talk, paint]).illustrator).toEqual({
       included: true,
       skillIds: ['paint'],
+    });
+  });
+
+  it('adds a director only when a skill can direct', () => {
+    expect(defaultChoices(blueprint, [talk]).director?.included).toBe(false);
+    expect(defaultChoices(blueprint, [talk, direct]).director).toEqual({
+      included: true,
+      skillIds: ['direct'],
     });
   });
 

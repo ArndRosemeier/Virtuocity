@@ -21,7 +21,6 @@ function setup() {
   host.skills.register(counting);
   return new SessionRuntime({
     host,
-    directorId: 'least-recent',
     modelDefaults: () => ({}),
   });
 }

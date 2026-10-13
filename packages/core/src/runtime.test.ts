@@ -59,7 +59,6 @@ function setup() {
   host.providers.register(provider);
   return new SessionRuntime({
     host,
-    directorId: 'least-recent',
     modelDefaults: () => ({ text: 'fake:default-model' }),
   });
 }
@@ -72,11 +71,10 @@ const ai = (id: string, skillIds: string[]): Actor => ({
 });
 
 describe('SessionRuntime', () => {
-  it('runs one turn on pass, with the skill model override and stats', async () => {
+  it('runs a turn with the skill model override and stats', async () => {
     const session = setup();
     await session.join(ai('bard', ['echo']));
-    const result = await session.flows.run('turn-taking', { kind: 'pass' });
-    expect(result).toEqual({ outcome: 'paused', steps: 1 });
+    await session.runTurn('bard');
     const [message] = session.transcript();
     expect(message?.data).toBe('from skill-model');
     expect(message?.stats?.[0]?.model).toBe('skill-model');
@@ -86,20 +84,18 @@ describe('SessionRuntime', () => {
     const session = setup();
     await session.join(ai('scribe', ['listener']));
     expect(session.speakers()).toEqual([]);
-    expect(await session.pickNext()).toBeUndefined();
     counter.seen = 0;
     await session.post('user', textContent('hi'));
     expect(counter.seen).toBe(1);
   });
 
-  it('lets a person ask an on-request actor to act, which the director never picks', async () => {
+  it('lets a person ask an on-request actor to act', async () => {
     const session = setup();
     await session.join(ai('pen', ['sketcher']));
     expect(session.speakers()).toEqual([]);
     expect(session.cast()).toEqual([]);
     expect(session.askable().map((a) => a.id)).toEqual(['pen']);
-    expect(await session.pickNext()).toBeUndefined();
-    await session.flows.run('turn-taking', { kind: 'choose', actorId: 'pen' });
+    await session.runTurn('pen');
     expect(session.transcript().map((m) => m.text)).toEqual(['A sketch.']);
   });
 
@@ -186,7 +182,6 @@ describe('SessionRuntime transcript', () => {
     host.skills.register(peek);
     const other = new SessionRuntime({
       host,
-      directorId: 'least-recent',
       modelDefaults: () => ({}),
     });
     await other.join(ai('bard', ['peek']));

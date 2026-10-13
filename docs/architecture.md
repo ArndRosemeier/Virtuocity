@@ -22,6 +22,9 @@ vision behind this lives in [vision.md](vision.md).
 | `@virtuocity/contract-visual`    | `illustrator@1` contract.                                              |
 | `@virtuocity/skill-illustrator`  | Image-model skill implementing `illustrator@1`; illustrates turns.     |
 | `@virtuocity/book-room`          | Walking skeleton: `manuscript` document and `book-pipeline` flow.      |
+| `@virtuocity/contract-director`  | `director@1.0` contract: picks who takes the next turn.                |
+| `@virtuocity/skill-director`     | LLM skill implementing `director@1.0`.                                 |
+| `@virtuocity/turn-taking`        | `turn-taking` flow: pass (the director picks) or choose who speaks.    |
 | `@virtuocity/roleplay`           | `roleplay` blueprint: a narrator, plus optional players and support.   |
 | `@virtuocity/app`                | Vite + React web app. Decides which modules are installed.             |
 
@@ -53,7 +56,7 @@ app ──► any module ──► ui ──────────► core
   throw; `replace` swaps an entry on purpose.
 - **ModuleHost / VirtuocityModule** (`module.ts`): a module's `register(host)`
   adds things to the host's registries: `contracts`, `adapters`, `skills`,
-  `blueprints`, `providers`, `directors`, `renderers`, `panels` and more.
+  `blueprints`, `providers`, `flows`, `renderers`, `panels` and more.
   A panel contribution names a slot: `main` (views such as the story feed or
   the manuscript), `input` (controls such as the composer) or `side`.
 - **EventBus / defineEvent** (`events.ts`): everything that happens is an
@@ -96,13 +99,11 @@ app ──► any module ──► ui ──────────► core
   several parts and are migrated on load (`transcript-migrate.ts`).
 - **Renderers** (`output.ts`): every output kind has one active renderer,
   mostly plain code; skills can `replace` it.
-- **Director** (`turns.ts`): picks the next speaker when the human passes.
-  The default (`least-recent`) is registered by `coreModule`.
 - **Flows** (`flow.ts`, `flow-runner.ts`): see [Flows](#flows) below.
 - **SessionRuntime** (`runtime.ts`): a running session. Actors `join` and
   `leave` at any time (the app only lets an actor leave while `hasActed` in
-  `cast.ts` is false; removing one that acted deletes the session); `post` adds a message; `pass` lets the director pick one
-  AI turn; `runTurn` lets a chosen actor speak; `retryMessage` (`retry.ts`)
+  `cast.ts` is false; removing one that acted deletes the session); `post` adds a message;
+  `runTurn` lets a chosen actor speak; `retryMessage` (`retry.ts`)
   rewinds to before an actor's message and lets that actor speak again;
   `editMessage` rewrites one message in place (the app's pencil button, for
   text messages), leaving everything after it; `removeMessage` takes one
@@ -188,7 +189,7 @@ head, so all documents (transcript, outline, inventory, scene) move together.
 A flow (`defineFlow`, registered in `host.flows`) orchestrates a session:
 turn-taking, a writing pipeline, a game loop. `runtime.flows.run(flowId, input)`
 starts one run; the run does some steps through its `FlowContext` (`runTurn`,
-`invoke`, `state`, `pickNext`) and returns, which pauses the session.
+`invoke`, `state`, `cast`, `serves`) and returns, which pauses the session.
 
 - **Steps and limits.** Every turn and contract action is a step. A run stops
   with `step-limit` when it reaches `maxSteps` (default 20), so autonomous loops
@@ -201,8 +202,9 @@ starts one run; the run does some steps through its `FlowContext` (`runTurn`,
   (`SchemaField` in the UI kit) in the "Your tasks" panel.
 - **No hidden state.** Flows keep nothing between runs; they read documents to
   decide what comes next, so rewinding, branching and loading also move the flow.
-- **Turn-taking** (`turn-taking.ts`) is the default flow: pass (the director
-  picks) or choose a speaker, one turn, pause.
+- **Turn-taking** (`turn-taking` package) is the default flow: pass (the
+  director picks) or choose a speaker, one turn, pause. See [Directors](#directors).
+- Flows see the `cast()` and whether an actor `serves(actorId, contract)`.
 
 ## Model calls
 
@@ -325,6 +327,22 @@ marker (`marker@1.0`) after the last message its summary covers, and has an
 on-demand space showing the summary, which opens when the marker is clicked.
 Summaries have no length setting: the
 summarizer writes as much as it needs to keep every detail that may matter.
+
+## Directors
+
+Who speaks next is a contract like everything else. `contract-director`
+defines `director@1.0`: `next` gets the cast as candidates (id, name, whether
+it is a person) and returns the id of who takes the next turn. Picking a person
+hands the turn back, so the session waits for them. The turn-taking flow asks
+the first actor in the session that serves the contract; a human can direct
+too (they get a task). Without a director, passing picks nobody: people click
+who speaks, and the app shows Pass only when the session has a director.
+
+`skill-director` is the first implementation: it reads the whole session and
+what its actor knows, and asks the default text model to name the next speaker.
+The actor's personality says how it directs. The Roleplay blueprint lists a
+director as an optional role, so a "Director" actor is offered in the library
+on a fresh start.
 
 ## Premise
 

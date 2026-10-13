@@ -1,8 +1,10 @@
 import type { Actor } from './actor';
+import type { Contract } from './contract';
 import type { EventBus } from './events';
 import type { Flow, FlowContext, FlowResult } from './flow';
 import { FlowStop, flowEnded, flowStarted } from './flow';
 import type { HumanTaskQueue } from './human-tasks';
+import type { Implementation } from './implementation';
 import type { InvokeAction } from './skill-context';
 import type { Message } from './transcript';
 import type { Workspace } from './workspace';
@@ -16,7 +18,8 @@ export interface FlowHost {
   readonly invoke: InvokeAction;
   transcript(): readonly Message[];
   runTurn(actorId: string): Promise<void>;
-  pickNext(): Promise<Actor | undefined>;
+  cast(): readonly Actor[];
+  implementationFor(actorId: string, contract: Contract): Implementation | undefined;
 }
 
 export interface RunOptions {
@@ -99,7 +102,8 @@ export class FlowRunner {
       signal,
       state: host.workspace.view(`flow:${flowId}`),
       transcript: () => host.transcript(),
-      pickNext: () => host.pickNext(),
+      cast: () => host.cast(),
+      serves: (actorId, contract) => host.implementationFor(actorId, contract) !== undefined,
       emit: (event) => host.bus.emit(event),
       runTurn: (actorId) => step(() => host.runTurn(actorId)),
       invoke: (actorId, contract, action, input) =>

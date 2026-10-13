@@ -60,7 +60,6 @@ export function conformanceTarget<A>(
   if (setup.provider) host.providers.register(setup.provider);
   const runtime = new SessionRuntime({
     host,
-    directorId: 'least-recent',
     modelDefaults: () =>
       qualifyOverrides(setup.modelDefaults ?? { text: 'test-model' }, setup.provider?.id ?? 'none'),
   });

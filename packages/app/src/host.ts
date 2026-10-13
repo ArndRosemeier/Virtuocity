@@ -13,6 +13,8 @@ import { systemPromptModule } from '@virtuocity/skill-system-prompt';
 import { roleplayViewModule } from '@virtuocity/skill-roleplay-view';
 import { roleplayModule } from '@virtuocity/roleplay';
 import { reviewerModule } from '@virtuocity/skill-reviewer';
+import { directorModule } from '@virtuocity/skill-director';
+import { turnTakingModule } from '@virtuocity/turn-taking';
 import { writerModule } from '@virtuocity/skill-writer';
 import { bookPanelModule } from './BookPanel';
 import { castPanelModule } from './CastPanel';
@@ -34,6 +36,7 @@ const keyOf = (providerId: string) => ({ apiKey: () => readSetting(keySetting(pr
 export function createHost(): AppHost {
   return loadModules(new ModuleHost<ReactNode, ComponentType<PanelProps>>(), [
     coreModule as AppModule,
+    turnTakingModule as AppModule,
     defaultRenderersModule,
     feedModule,
     composerModule,
@@ -48,6 +51,7 @@ export function createHost(): AppHost {
     conversationModule as AppModule,
     diceModule as AppModule,
     reviewerModule as AppModule,
+    directorModule as AppModule,
     writerModule as AppModule,
     illustratorModule as AppModule,
     chroniclerModule as AppModule,

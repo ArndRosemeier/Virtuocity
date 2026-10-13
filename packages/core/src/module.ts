@@ -14,7 +14,6 @@ import { RendererRegistry } from './output';
 import type { ModelProvider } from './provider';
 import type { ProfileField } from './settings';
 import type { Skill } from './skill';
-import type { Director } from './turns';
 import type { WritePolicy } from './workspace';
 
 /**
@@ -38,7 +37,6 @@ export class ModuleHost<R = unknown, C = unknown> {
   readonly modalities = new Registry<ModalityInfo>('modality');
   readonly blueprints = new Registry<Blueprint>('blueprint');
   readonly providers = new Registry<ModelProvider>('model provider');
-  readonly directors = new Registry<Director>('director');
   readonly flows = new Registry<Flow>('flow');
   readonly renderers = new RendererRegistry<R>();
   readonly panels = new Registry<PanelContribution<C>>('panel');

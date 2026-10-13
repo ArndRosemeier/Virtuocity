@@ -34,7 +34,6 @@ export interface Actors {
 function createRuntime(host: AppHost, assets: AssetStore): SessionRuntime {
   return new SessionRuntime({
     host,
-    directorId: 'least-recent',
     modelDefaults: () => readModelDefaults(host.modalities.list()),
     assets,
   });

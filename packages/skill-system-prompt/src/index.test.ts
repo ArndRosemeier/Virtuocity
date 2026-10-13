@@ -32,7 +32,6 @@ function session() {
   host.providers.register({ id: 'fake', name: 'Fake', ready: () => true, complete });
   const runtime = new SessionRuntime({
     host,
-    directorId: 'least-recent',
     modelDefaults: () => ({ text: 'fake:m', image: 'fake:i' }),
   });
   return { runtime, complete };
