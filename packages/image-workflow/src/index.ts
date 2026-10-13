@@ -7,20 +7,24 @@ import type { Starter, VirtuocityModule } from '@virtuocity/core';
 /** Both image session types show the pictures, the session, the input and the side panels. */
 const PANELS = ['spaces', 'story', 'composer', 'cast', 'tasks', 'jobs'];
 
-/** The optional director role; `hint` says whom it lets act. */
-const director = (hint: string) => ({
+/** The director role; `hint` says whom it lets act, `without` what you do instead. */
+const director = (hint: string, without: string) => ({
   label: 'A director',
+  question: 'Who decides whose turn it is?',
   hint,
   needs: [directorContract.id],
-  optional: true,
+  importance: 'recommended',
+  without,
 });
 
 /** The optional gallery role: which picture is the current one. */
 const GALLERY = {
   label: 'A gallery',
+  question: 'Where do you browse the pictures?',
   hint: 'Shows every picture; the one in view is the one a talking model looks at and refines.',
   needs: [pictureSourceContract.id],
-  optional: true,
+  importance: 'optional',
+  without: 'Pictures stay in the conversation; talking models look at the newest.',
 };
 
 /**
@@ -42,11 +46,15 @@ export const imageWorkflowType: Starter = {
       roles: [
         {
           label: 'An illustrator',
+          question: 'Who paints your pictures?',
           hint: 'Paints what you describe. Add several to compare their pictures.',
           cast: true,
+          importance: 'needed',
+          without: 'Nothing gets painted.',
         },
         director(
-          'Lets an illustrator answer each prompt on its own. Without one, you click who paints.',
+          'Lets an illustrator answer each prompt on its own.',
+          'You click who paints after each prompt.',
         ),
         GALLERY,
       ],
@@ -74,15 +82,24 @@ export const guidedIllustrationsType: Starter = {
       roles: [
         {
           label: 'A prompt refiner',
+          question: 'Who turns your ideas into prompts?',
           hint: 'Talks. Turns your idea, and your feedback on the last picture, into one image prompt.',
           cast: true,
+          importance: 'needed',
+          without: 'Nobody writes the prompts, so nothing gets painted.',
         },
         {
           label: 'An illustrator',
+          question: 'Who paints the refined prompts?',
           hint: 'Paints each refined prompt. Needs "Paint on its own" on, like Ink.',
           needs: [illustratorContract.id],
+          importance: 'needed',
+          without: 'You get prompts, but no pictures.',
         },
-        director('Lets the refiner answer when you press Act. Without one, you click the refiner.'),
+        director(
+          'Lets the refiner answer when you press Act.',
+          'You click the refiner after each of your messages.',
+        ),
         GALLERY,
       ],
       panels: PANELS,

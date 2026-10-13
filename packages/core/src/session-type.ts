@@ -7,6 +7,10 @@ import { defineEvent } from './events';
 import type { Skill } from './skill';
 import { serves } from './skill';
 
+/** How much a session needs a role, from most to least. */
+export const IMPORTANCE = ['needed', 'recommended', 'optional'] as const;
+export type Importance = (typeof IMPORTANCE)[number];
+
 const role = z.object({
   label: z.string().min(1).describe('What the guide calls the role, e.g. "A narrator"'),
   hint: z.string().describe('One line on what the role adds; may be empty'),
@@ -16,7 +20,15 @@ const role = z.object({
   needs: z
     .array(z.string())
     .describe('Contracts the actor in this role must serve, as "name@major.minor"'),
-  optional: z.boolean().describe('The session works without this role'),
+  importance: z
+    .enum(IMPORTANCE)
+    .describe('How much the session suffers without this role: needed, recommended or optional'),
+  without: z.string().describe('What the session lacks without this role; may be empty'),
+  question: z
+    .string()
+    .describe(
+      'What the setup wizard asks for this role, e.g. "Who tells the story?"; may be empty',
+    ),
 });
 
 export type SessionRole = z.output<typeof role>;
@@ -44,7 +56,7 @@ export type SessionTypeDescription = z.output<typeof description>;
  */
 export const sessionTypeContract = defineContract({
   name: 'session-type',
-  version: '3.0',
+  version: '4.0',
   description: 'Says who is cast, how a session looks and which roles it suggests.',
   actions: {
     describe: action({
@@ -93,7 +105,7 @@ export function isSessionType(actor: Actor, skills: readonly Skill[]): boolean {
   return serves(actor, skills, sessionTypeContract);
 }
 
-/** The session's type: the one actor among `actors` serving `session-type@3`, if any. */
+/** The session's type: the one actor among `actors` serving `session-type@4`, if any. */
 export function sessionTypeOf(
   actors: readonly Actor[],
   skills: readonly Skill[],

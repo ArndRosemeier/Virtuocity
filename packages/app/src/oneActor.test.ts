@@ -24,6 +24,7 @@ import { SessionCatalog } from './sessions';
 import { OPEN_SESSION, SessionSwitcher, typeDeps } from './switcher';
 import { writeSetting } from './settings';
 import { testType, testTypeSkill } from './testTypes';
+import { startPicked } from './wizard';
 
 /**
  * The app's core rule, checked across the flows that touch actors: one name is
@@ -108,6 +109,13 @@ describe('one name, one actor', () => {
     await switcher.catalog.setTemplate(switcher.openId ?? '', true);
     await switcher.copy(switcher.openId ?? '', 'Second voyage');
     expect(shown.actors).toEqual([testType, described('A captain.')]);
+    await expectNoCopies(library, switcher);
+  });
+
+  it('keeps no copies when the setup wizard starts a session with library actors', async () => {
+    const { library, shown, switcher } = await setup();
+    await startPicked(switcher, 'Guided', testType, [marlow]);
+    expect(shown.actors).toEqual([testType, marlow]);
     await expectNoCopies(library, switcher);
   });
 

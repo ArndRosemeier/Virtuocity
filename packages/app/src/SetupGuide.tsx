@@ -40,8 +40,8 @@ export function SetupGuide({ host, session }: PanelProps) {
   const name = type.actor.personality.name;
   const actors = session.actors.filter((a) => isLibraryActor(a) && a.id !== type.actor.id);
   const lines = guideLines(type.description, host.skills.list(), actors);
-  const usual = lines.filter((l) => !l.role.optional);
-  const options = lines.filter((l) => l.role.optional);
+  const usual = lines.filter((l) => l.role.importance !== 'optional');
+  const options = lines.filter((l) => l.role.importance === 'optional');
   if (lines.length === 0) return null;
   return (
     <section className="guide" aria-label={`${name} guide`}>

@@ -23,13 +23,19 @@ export const bookRoomType: Starter = {
       roles: [
         {
           label: 'A writer',
+          question: 'Who writes the chapters?',
           hint: 'Drafts each chapter from your brief.',
           needs: [writerContract.id],
+          importance: 'needed',
+          without: 'Nothing gets written.',
         },
         {
           label: 'A reviewer',
+          question: 'Who reviews the drafts?',
           hint: 'Gives notes on every draft before it is revised.',
           needs: [reviewerContract.id],
+          importance: 'recommended',
+          without: 'Drafts come to you unrevised; you give every note yourself.',
         },
       ],
       panels: ['manuscript', 'book', 'tasks', 'cast', 'jobs'],
