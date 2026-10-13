@@ -6,7 +6,7 @@ export const chroniclerSettings = defineSettings({
     .int()
     .min(500)
     .max(100000)
-    .default(2000)
+    .default(8000)
     .describe(
       'Tokens of the newest story left out of the summary. Keep it below the memory of the actors reading it',
     ),
@@ -15,7 +15,7 @@ export const chroniclerSettings = defineSettings({
     .int()
     .min(200)
     .max(20000)
-    .default(1500)
+    .default(6000)
     .describe('Update the summary once this many tokens of older story are not in it yet'),
 });
 
