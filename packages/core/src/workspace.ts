@@ -1,4 +1,4 @@
-import type { DocType } from './doc-type';
+import type { Amendment, DocType } from './doc-type';
 import type { EventBus } from './events';
 import { defineEvent } from './events';
 import type { Operation, RewindOptions } from './oplog';
@@ -87,6 +87,8 @@ export class Workspace {
       const refusal = policy.check(proposed);
       if (refusal !== undefined) throw new Error(`Change refused by ${policy.id}: ${refusal}`);
     }
+    const amendment = docType.amends?.(payload);
+    if (amendment) return this.#amend(change, amendment);
     const op = this.log.append({
       docId,
       docType: docType.id,
@@ -96,6 +98,26 @@ export class Workspace {
       ...(audience ? { audience } : {}),
       ...(hiddenFrom ? { hiddenFrom } : {}),
     });
+    this.#redo = [];
+    await this.options.bus.emit(stateChanged.create({ docId, opId: op.id }, actorId));
+    return op;
+  }
+
+  /**
+   * Rewrites the earlier operation an amending change targets (or takes it
+   * out), so the history holds the corrected version in the original's place.
+   */
+  async #amend<O>({ actorId, docId, docType }: Change<O>, amendment: Amendment<O>) {
+    const target = this.log
+      .path()
+      .reverse()
+      .find((op) => op.docId === docId && amendment.targets(op.payload as O));
+    if (!target) throw new Error(`Nothing in "${docId}" to change`);
+    const next = amendment.rewrite(target.payload as O);
+    if (next === null) this.log.excise(target.id);
+    else docType.op.parse(next);
+    const op = next === null ? target : this.log.rewrite(target.id, next);
+    this.#cache.clear();
     this.#redo = [];
     await this.options.bus.emit(stateChanged.create({ docId, opId: op.id }, actorId));
     return op;

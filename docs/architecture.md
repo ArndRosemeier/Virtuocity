@@ -99,6 +99,10 @@ app ──► any module ──► ui ──────────► core
   `output.ts`). Messages carry optional `CallStats`; `runtime.allStats()` counts
   every AI call, including ones on discarded branches. Version 1 messages held
   several parts and are migrated on load (`transcript-migrate.ts`).
+  A message lives only in the operation that posted it: `edit` and `remove`
+  are amending operations (`DocType.amends`), so the workspace rewrites or
+  takes out that posting operation instead of appending a step. Rewinding past
+  later messages (a retry) therefore keeps edits and deletions.
 - **Renderers** (`output.ts`): every output kind has one active renderer,
   mostly plain code; skills can `replace` it.
 - **Flows** (`flow.ts`, `flow-runner.ts`): see [Flows](#flows) below.

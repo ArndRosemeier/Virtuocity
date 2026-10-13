@@ -9,6 +9,14 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 53,
+    date: '2026-10-13',
+    changes: [
+      'Editing a message keeps your change when you click elsewhere; there is no Save button any more. Revert (or Escape) drops the change.',
+      'Fixed: retrying an answer after editing or deleting an earlier message brought the old message back. An edit now changes the message itself instead of being a later step, so nothing can undo it by going back in time.',
+    ],
+  },
+  {
     build: 52,
     date: '2026-10-13',
     changes: [
