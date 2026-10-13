@@ -2,8 +2,8 @@
 
 Virtuocity is a small core plus modules. The core defines the concepts and the
 extension points; everything with behaviour (skills, session types, providers,
-renderers, panels) is a module that plugs in through a registry. The product
-vision behind this lives in [vision.md](vision.md).
+renderers, panels) is a module that plugs in through a registry. What the
+product is, and why that shapes every change, is in [vision.md](vision.md).
 
 ## Packages
 

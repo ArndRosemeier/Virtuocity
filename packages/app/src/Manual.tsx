@@ -6,7 +6,7 @@ import manual from './manual.md?raw';
 
 const MANUAL = richText(manual);
 
-/** Opens the user manual: how Virtuocity's less common ideas work, e.g. one name, one actor. */
+/** Opens the user manual: what Virtuocity is, how to use it, and its less common ideas. */
 export function Manual() {
   const [open, setOpen] = useState(false);
   return (

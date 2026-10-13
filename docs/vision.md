@@ -1,119 +1,85 @@
-# Virtuocity: first iteration brainstorm
+# What Virtuocity is
 
-Status: draft, from the brainstorm with Arnd on 2026-10-12.
+Read this before working on anything. Virtuocity is easy to mistake for a
+roleplay chat app, and code written with that picture in mind is wrong for it.
 
-## Fixed decisions
+## A collaboration framework
 
-- TypeScript web app.
-- Model access goes through providers the user holds keys for: OpenRouter, OpenAI and Anthropic.
-- Modular from day one: the core is small, and everything else plugs in through registries.
+Virtuocity is a platform where **zero or one human and any number of
+automated actors** work together in a **session**. An actor is anything that
+can keep a clear promise to the others: a language model playing a character,
+plain code (a dice roller, a director), an image model, later sound or 3D.
+Actors cooperate through **contracts**, so any actor that fulfils a contract
+can stand in for any other, and a human can fulfil one too.
 
-## Core concepts
+Everything a person experiences is an **application** of this framework, not
+part of it:
 
-### Actors
+- **Roleplay** (narrator, AI players, director, premise, illustrator,
+  chronicler) is one session type.
+- **Book room** (writer, reviewer, you as editor, a manuscript instead of a
+  chat) is another.
+- Planned or imagined: a pen-and-paper RPG with dice and a GM (or no GM, or
+  only players), an image refinement workflow, a 3D walk-through where a
+  renderer and some actors drive a scene. Each should take little more than
+  new skills, actors and a session type.
 
-An actor is a **personality** plus a set of **skills**. Actors can be human or AI. An actor with no conversation skill is **silent**: it never speaks, and only acts behind the scenes (scribe, rules keeper, visualizer, composer).
+The app grows in every direction at once through a growing number of
+contracts, skills and actors. A feature is good when every session type can
+use it; a feature that only makes sense for roleplay belongs in a skill or a
+session type, never in the core or the generic UI.
 
-### Skills
+## The building blocks
 
-- A skill is the single unit of capability. Even **conversation** is a skill.
-- One interface, three possible backings: an LLM, plain code, or a hybrid. The core treats them all the same.
-- A skill declares the events it listens to, the actions it can take, and the outputs it produces.
-- Examples:
-  - Conversation
-  - D&D GM narration
-  - D&D player
-  - Dice roller (code)
-  - Initiative tracker (code)
-  - Memory summarizer
-  - Lore lookup
-  - Visualizer
-  - Composer
+| Concept      | What it is                                                                                              | Who makes it           |
+| ------------ | ------------------------------------------------------------------------------------------------------- | ---------------------- |
+| Contract     | A versioned promise (`director@1.0`, `session-type@1.0`): actions with schemas and a conformance suite. | Code (packages)        |
+| Skill        | An implementation of contracts and/or turn-taking, backed by an LLM, code or both. Fixed.               | Code (packages)        |
+| Actor        | A name, a description or personality, skills and their settings. Mutable, lives in the Library.         | The person             |
+| Session type | An actor serving `session-type@1.0`: the panels a session shows, the roles its guide suggests.          | The person             |
+| Session      | What happened: messages, pictures, summaries, facts. Refers to Library actors by id.                    | The person             |
+| Renderer     | How an output kind or a whole session is drawn; replaceable.                                            | Code, chosen by person |
 
-### Seats and roles
+Starter actors (Roleplay, Book room, Narrator, Quill...) are offered once on a
+fresh start and are then the person's to change or delete. Nothing that
+looks like content is built in.
 
-- A session has seats (GM, player, support, and so on).
-- Roles are fully flexible: any actor, human or AI, can take any seat and switch during a session.
+## Principles (decided with Arnd)
 
-### Turns and the director
+- **Content neutral.** Contracts and the core assume nothing about text unless
+  a contract is inherently about text. A premise may be a picture; a space may
+  hold anything.
+- **No hardcoded specialties.** Never special-case a skill or actor in the app.
+  If one skill needs UI behaviour, add a contract (or an optional field) any
+  skill could use (markers, spaces and session types came about this way).
+- **One name, one actor.** An actor's name is its identity. No copy of an
+  actor exists anywhere but the Library; only exported files carry copies.
+- **Pure, simple state.** Prefer the model without exceptions, even when it
+  causes collateral damage after a warning (deleting an actor deletes the
+  sessions that use it).
+- **Everything is user editable.** Actors, and therefore session types, are
+  data the person shapes; code supplies skills, contracts and renderers.
+- **The browser is the runtime for now.** Keys stay in the browser, providers
+  must be callable from it, and the runtime stays location-agnostic so it can
+  move to a server for multiplayer later.
 
-- Speaking actors take turns, and the app pauses after each turn.
-- The user can act, pass, or name the next speaker.
-- When the user passes, a **director** picks the next speaker. The director is a skill too, so it can be swapped out.
-- Support and silent actors don't take turns. They react to events.
-- Status: this is still Arnd's idea to explore, not a fixed decision.
+## Where it stands
 
-### Event bus
+The base (contracts, the operation log, flows, providers, context assembly,
+the Library, session types) is built. Roleplay and Book room are the walking
+skeletons. Long memory (chronicler, fact gatherer), pictures and directors
+exist. Not built yet: audio providers, a pen-and-paper session type with
+rules, networked multiplayer, and the 3D walk-through (a real 3D world, not a
+text adventure).
 
-Everything that happens (a message, a dice roll, a state change, a scene change) is an event. Skills subscribe to events and emit new ones.
+## For agents
 
-### Output pipeline
-
-- Every output type (story text, images, audio, character sheets, dice logs) has a **default renderer**. Most renderers are plain code.
-- Any renderer can be swapped or decorated by a skill, for example a new text-rendering agent.
-
-### UI as slots
-
-- The layout is a story feed plus open panel areas.
-- Modules contribute panels, so support output (image gallery, music player, character sheet, map) never needs changes to the core UI.
-
-## Game modes
-
-A game mode is a module that bundles skills, state schemas (HP, inventory, and so on) and mechanics.
-
-- **Free form:** no rules engine.
-- **D&D 5e:** rules come from the SRD 5.1 (CC-BY). Branded content is excluded.
-- **Pathfinder 2e:** rules come under the ORC license. Branded content is excluded.
-
-## Engineering guardrails (anti vibe coding)
-
-- Strict TypeScript.
-- Lint rules enforce module boundaries, for example game modes can't import each other.
-- A duplication checker (such as jscpd) runs in CI and fails the build when it finds copied code.
-- Tests cover the core: event bus, turn loop and registries.
-- A short conventions file (CLAUDE.md) that every coding agent must follow.
-
-## Memory and knowledge
-
-All of these are optional skills.
-
-- **Summarizer**, in two variants:
-  - **Full:** re-summarizes everything from scratch.
-  - **Differential:** takes the last summary plus the new messages.
-- **Key facts:** a separate optional skill.
-- **Lore book:** a separate optional skill.
-
-## Joining and leaving
-
-- Actors can join or leave a session at any time.
-- Networked multiplayer over a server is a later goal, not part of the first iteration.
-
-## Model selection (layered)
-
-1. The core sets a default model for each modality (text, image, music, and so on).
-2. An actor can override the default.
-3. A skill can override it too, and a skill override wins over an actor override.
-
-The resolution order is: skill, then actor, then core default.
-
-## Sessions
-
-- Save and load sessions.
-- "Save all" to a file, using the browser's file picker where it's available.
-- Every message can be edited.
-- Branching: when you rewind, edit or regenerate, everything below that point is removed by default. You can choose to keep it as a branch instead.
-
-## Not in the first iteration
-
-- Character card import (Tavern/SillyTavern). Leaving it out avoids constraining our own format. Maybe later.
-- Networked multiplayer.
-
-## Cost and model stats
-
-- Every message produced with an AI call carries optional stats: the model used, token counts and cost (taken from the provider's usage data, where it reports cost).
-- Session totals are shown.
-- No built-in spending limits. Limits are left to whoever creates the provider keys.
-
-## Open questions
-
-- None left in the brainstorm. Next step: architecture and repo setup.
+- Before building, ask which framework concept the request belongs to: a new
+  contract, a new skill, a new starter actor or session type, a renderer, or
+  genuinely a core extension point. Most requests are not core changes.
+- When a request names a session type ("in the roleplay..."), check whether
+  the right change is generic first.
+- When a feature is underspecified, ask Arnd instead of inventing its meaning.
+- Technical details: [architecture.md](architecture.md). Coding rules:
+  [CLAUDE.md](../CLAUDE.md). The person-facing explanation is the in-app
+  Manual (`packages/app/src/manual.md`); keep both in step.
