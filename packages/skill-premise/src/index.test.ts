@@ -43,7 +43,6 @@ function session() {
   host.providers.register(provider());
   const runtime = new SessionRuntime({
     host,
-    directorId: 'least-recent',
     modelDefaults: () => ({ text: 'scripted:text-model' }),
   });
   const ended = new Promise((resolve) => runtime.bus.on(jobEnded, (e) => resolve(e.payload)));

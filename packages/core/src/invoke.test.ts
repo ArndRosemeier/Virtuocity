@@ -80,7 +80,6 @@ async function session(skills: Skill[], ...actors: Actor[]) {
   skills.forEach((s) => host.skills.register(s));
   const runtime = new SessionRuntime({
     host,
-    directorId: 'least-recent',
     modelDefaults: () => ({}),
   });
   for (const a of actors) await runtime.join(a);

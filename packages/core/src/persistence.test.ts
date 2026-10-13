@@ -15,7 +15,6 @@ function runtime(host = loadModules(new ModuleHost(), [coreModule])) {
   let n = 0;
   return new SessionRuntime({
     host,
-    directorId: 'least-recent',
     modelDefaults: () => ({}),
     newId: () => `id${++n}`,
     now: () => 1000,

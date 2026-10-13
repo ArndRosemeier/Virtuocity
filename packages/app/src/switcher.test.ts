@@ -8,7 +8,6 @@ const host = loadModules(new ModuleHost(), [coreModule]);
 const runtime = () =>
   new SessionRuntime({
     host,
-    directorId: 'least-recent',
     modelDefaults: () => ({}),
   });
 const bard = {

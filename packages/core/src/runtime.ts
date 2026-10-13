@@ -42,7 +42,6 @@ const TRANSCRIPT = { docId: MAIN_TRANSCRIPT, docType: transcriptDoc } as const;
 
 export interface SessionConfig {
   readonly host: ModuleHost<unknown, unknown>;
-  readonly directorId: string;
   /** Read on every call so settings changes apply immediately. */
   readonly modelDefaults: () => ModelOverrides;
   /** Where generated media is kept. Defaults to memory. */
@@ -203,7 +202,7 @@ export class SessionRuntime {
     return this.actors.filter((a) => a.controller === 'ai' && this.#turnSkill(a) !== undefined);
   }
 
-  /** AI support actors a person can ask to act (`onRequest`); the director never picks them. */
+  /** AI support actors a person can ask to act (`onRequest`); a director never picks them. */
   askable(): Actor[] {
     return this.actors.filter(
       (a) => a.controller === 'ai' && !this.#turnSkill(a) && this.#requestSkill(a) !== undefined,
@@ -238,12 +237,6 @@ export class SessionRuntime {
   async stop(): Promise<void> {
     this.#turn?.abort();
     await this.flows.interrupt();
-  }
-
-  /** Asks the session's director which AI actor should speak next. */
-  pickNext(): Promise<Actor | undefined> {
-    const director = this.config.host.directors.get(this.config.directorId);
-    return director.pickNext({ candidates: this.speakers(), transcript: this.transcript() });
   }
 
   /**

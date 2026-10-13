@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
-import type { Actor, SessionRuntime, TurnTakingInput } from '@virtuocity/core';
+import { directorContract } from '@virtuocity/contract-director';
+import type { Actor, SessionRuntime } from '@virtuocity/core';
 import { textContent } from '@virtuocity/core';
+import type { TurnTakingInput } from '@virtuocity/turn-taking';
 import { Avatar, Button, Icon } from '@virtuocity/ui';
 import { useActorTips } from './actorTips';
 import type { AppModule } from './types';
@@ -30,6 +32,11 @@ function useTurnRunner() {
     }
   };
   return { busy, error, run };
+}
+
+/** Whether someone in the session directs it, picking who speaks when a person acts or passes. */
+function hasDirector(session: SessionRuntime): boolean {
+  return session.actors.some((a) => session.implementationFor(a.id, directorContract));
 }
 
 /** Whether the person is typing somewhere else, e.g. editing a message or in a dialog. */
@@ -67,7 +74,10 @@ function ActorChip({
   );
 }
 
-/** Pass, pick exactly who speaks next, or ask a support actor (e.g. an illustrator) to act. */
+/**
+ * Pick exactly who speaks next, or ask a support actor (e.g. an illustrator) to
+ * act. With a director in the session, passing lets it pick.
+ */
 function TurnBar({
   session,
   busy,
@@ -79,24 +89,29 @@ function TurnBar({
 }) {
   const speakers = session.speakers();
   const askable = session.askable();
+  const directed = hasDirector(session);
   const pick = (actorId: string) => run(() => takeTurn(session, { kind: 'choose', actorId }));
   return (
     <div className="composer__turns">
-      <Button
-        size="sm"
-        variant="ghost"
-        icon="skip"
-        disabled={busy || speakers.length === 0}
-        onClick={() => void run(() => takeTurn(session, { kind: 'pass' }))}
-      >
-        Pass
-      </Button>
+      {directed && (
+        <Button
+          size="sm"
+          variant="ghost"
+          icon="skip"
+          disabled={busy || speakers.length === 0}
+          onClick={() => void run(() => takeTurn(session, { kind: 'pass' }))}
+        >
+          Pass
+        </Button>
+      )}
       {busy && session.flows.running && (
         <Button size="sm" variant="ghost" icon="close" onClick={() => void session.stop()}>
           Stop
         </Button>
       )}
-      {speakers.length > 0 && <span className="composer__label">or let speak:</span>}
+      {speakers.length > 0 && (
+        <span className="composer__label">{directed ? 'or let speak:' : 'Let speak:'}</span>
+      )}
       {speakers.map((a) => (
         <ActorChip key={a.id} actor={a} disabled={busy} onPick={() => void pick(a.id)} />
       ))}
@@ -105,15 +120,18 @@ function TurnBar({
         <ActorChip key={a.id} actor={a} disabled={busy} onPick={() => void pick(a.id)} />
       ))}
       <span className="composer__hint">
-        <Icon name="lantern" /> The session pauses after every turn.
+        <Icon name="lantern" />{' '}
+        {directed
+          ? 'The session pauses after every turn.'
+          : 'No director here: you pick who speaks.'}
       </span>
     </div>
   );
 }
 
 /**
- * The pause between turns. The human can act (and a director-picked actor
- * answers once), pass (an actor takes one turn), or pick who speaks next.
+ * The pause between turns. The person can act (and, if the session has a
+ * director, the actor it picks answers once), pass, or pick who speaks next.
  */
 export function Composer({ session }: { session: SessionRuntime }) {
   const [draft, setDraft] = useState('');

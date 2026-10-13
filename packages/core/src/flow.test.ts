@@ -92,6 +92,24 @@ const broken = defineFlow<Record<string, never>>({
   run: () => Promise.reject(new Error('boom')),
 });
 
+const seen: string[] = [];
+const survey = defineFlow<Record<string, never>>({
+  id: 'survey',
+  name: 'Survey',
+  description: 'Looks at who is here',
+  input: z.object({}),
+  run: (ctx) => {
+    seen.push(
+      ctx
+        .cast()
+        .map((a) => a.id)
+        .join(','),
+    );
+    seen.push(ctx.actors.filter((a) => ctx.serves(a.id, approval)).length.toString());
+    return Promise.resolve();
+  },
+});
+
 const person = (id: string, controller: Actor['controller'], skillIds: string[] = []): Actor => ({
   id,
   controller,
@@ -103,10 +121,9 @@ async function setup() {
   const host = loadModules(new ModuleHost(), [coreModule]);
   host.skills.register(talker);
   host.providers.register(provider);
-  for (const flow of [forever, ask, announce, broken]) host.flows.register(flow as Flow);
+  for (const flow of [forever, ask, announce, broken, survey]) host.flows.register(flow as Flow);
   const session = new SessionRuntime({
     host,
-    directorId: 'least-recent',
     modelDefaults: () => ({ text: 'fake:m' }),
   });
   await session.join(person('user', 'human'));
@@ -121,6 +138,12 @@ describe('FlowRunner', () => {
     session.bus.on(announced, (e) => void heard.push(e.payload.what));
     await session.flows.run('announce', {});
     expect(heard).toEqual(['news']);
+  });
+
+  it('tells a flow who is in the cast and who serves a contract', async () => {
+    const session = await setup();
+    await session.flows.run('survey', {});
+    expect(seen).toEqual(['user,bard', '0']);
   });
 
   it('stops a run at its step limit and announces the result', async () => {
@@ -171,15 +194,5 @@ describe('FlowRunner', () => {
     expect(result.outcome).toBe('failed');
     expect(String(result.error)).toMatch(/boom/);
     await expect(session.flows.run('forever', {})).rejects.toThrow(/Invalid input/);
-  });
-
-  it('runs turn-taking: the human passes or chooses who speaks', async () => {
-    const session = await setup();
-    expect(await session.flows.run('turn-taking', { kind: 'choose', actorId: 'bard' })).toEqual({
-      outcome: 'paused',
-      steps: 1,
-    });
-    await session.flows.run('turn-taking', { kind: 'pass' });
-    expect(session.transcript().map((m) => m.actorId)).toEqual(['bard', 'bard']);
   });
 });

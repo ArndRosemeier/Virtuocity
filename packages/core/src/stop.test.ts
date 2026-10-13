@@ -41,7 +41,6 @@ function setup() {
   host.providers.register(stuck);
   return new SessionRuntime({
     host,
-    directorId: 'least-recent',
     modelDefaults: () => ({ text: 'stuck:model' }),
   });
 }
@@ -58,15 +57,5 @@ describe('stopping a turn', () => {
     expect(session.speaking).toBeUndefined();
     expect(session.transcript()).toHaveLength(0);
     expect(session.calls.list()[0]?.status).toBe('cancelled');
-  });
-
-  it('stops a turn taken through the turn-taking flow', async () => {
-    const session = setup();
-    await session.join(bard);
-    const run = session.flows.run('turn-taking', { kind: 'choose', actorId: 'bard' });
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    await session.stop();
-    expect((await run).outcome).not.toBe('failed');
-    expect(session.transcript()).toHaveLength(0);
   });
 });

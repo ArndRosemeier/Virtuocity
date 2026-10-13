@@ -121,7 +121,6 @@ describe('model calls in a session', () => {
     );
     const session = new SessionRuntime({
       host,
-      directorId: 'least-recent',
       modelDefaults: () => ({ text: 'scripted:m' }),
     });
     const bard: Actor = {

@@ -1,5 +1,6 @@
 import type { z } from 'zod';
 import type { Actor } from './actor';
+import type { Contract } from './contract';
 import type { VEvent } from './events';
 import { defineEvent } from './events';
 import type { Identified } from './registry';
@@ -21,8 +22,10 @@ export interface FlowContext {
   runTurn(actorId: string): Promise<void>;
   /** Asks an actor for a contract action; human actors get a task. */
   readonly invoke: InvokeAction;
-  /** Asks the session's director who should speak next. */
-  pickNext(): Promise<Actor | undefined>;
+  /** The cast: people and the actors who take turns talking. */
+  cast(): readonly Actor[];
+  /** Whether an actor's skills serve a contract, e.g. whether it can direct. */
+  serves(actorId: string, contract: Contract): boolean;
   /** Tells everyone listening that something happened, e.g. that the scene changed. */
   emit(event: VEvent): Promise<void>;
   /** Aborted when the human interrupts the run. */

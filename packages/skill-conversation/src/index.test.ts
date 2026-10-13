@@ -47,7 +47,6 @@ describe('conversation skill', () => {
     );
     const session = new SessionRuntime({
       host,
-      directorId: 'least-recent',
       modelDefaults: () => ({ text: 'scripted:m' }),
     });
     await session.join({
