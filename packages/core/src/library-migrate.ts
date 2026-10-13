@@ -24,7 +24,6 @@ export const setupBaseSchema = z.object({
   savedAt: z.number(),
   name: z.string(),
   description: z.string(),
-  blueprintId: z.string().optional(),
 });
 
 /** A setup saved by an older version: it held copies of its actors. */

@@ -1,6 +1,5 @@
 import type { Actor } from './actor';
 import type { ContractAdapter } from './adapter';
-import type { Blueprint } from './blueprint';
 import type { Channel } from './channels';
 import type { ContextContributor } from './context-assembly';
 import { ContractRegistry } from './contract-registry';
@@ -14,6 +13,7 @@ import { RendererRegistry } from './output';
 import type { ModelProvider } from './provider';
 import type { ProfileField } from './settings';
 import type { Skill } from './skill';
+import type { Starter } from './starter';
 import type { WritePolicy } from './workspace';
 
 /**
@@ -35,7 +35,8 @@ export class ModuleHost<R = unknown, C = unknown> {
   readonly policies = new Registry<WritePolicy>('write policy');
   readonly skills = new Registry<Skill>('skill');
   readonly modalities = new Registry<ModalityInfo>('modality');
-  readonly blueprints = new Registry<Blueprint>('blueprint');
+  /** Actors offered for the library on a fresh start, in order. */
+  readonly starters = new Registry<Starter>('starter actor');
   readonly providers = new Registry<ModelProvider>('model provider');
   readonly flows = new Registry<Flow>('flow');
   readonly renderers = new RendererRegistry<R>();
@@ -44,7 +45,7 @@ export class ModuleHost<R = unknown, C = unknown> {
   readonly channels = new Registry<Channel>('channel');
   readonly contextContributors = new Registry<ContextContributor>('context contributor');
   readonly instructions = new Registry<InstructionSource>('instruction source');
-  /** Ready-made actors modules offer outside any blueprint, e.g. story views. */
+  /** Ready-made actors a session owns rather than the library, e.g. story views. */
   readonly actors = new Registry<Actor>('ready-made actor');
 }
 

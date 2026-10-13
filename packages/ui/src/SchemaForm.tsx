@@ -1,10 +1,45 @@
+import { createContext, useContext } from 'react';
 import type { JsonSchema } from '@virtuocity/core';
 import { Button, IconButton } from './Button';
 import { Field, TextArea } from './Field';
 import type { TextField } from './LongText';
 import { LongText } from './LongText';
 import { NumberField } from './NumberField';
-import { defaultValue, itemSchema, kindOf, labelFor, propertiesOf } from './schemaFields';
+import {
+  choicesOf,
+  defaultValue,
+  itemSchema,
+  kindOf,
+  labelFor,
+  propertiesOf,
+} from './schemaFields';
+
+/** One thing a choice field offers: the stored value and what the person reads. */
+export interface ListChoice {
+  readonly value: string;
+  readonly label: string;
+}
+
+/** The app's lists that choice fields pick from, by source name (`contracts`, `panels`). */
+export const ChoicesContext = createContext<(source: string) => readonly ListChoice[]>(() => []);
+
+/** A pick from one of the app's lists; a stored value no longer listed stays selectable. */
+function ChoiceField({ schema, id, value, onChange }: FieldProps) {
+  const listed = useContext(ChoicesContext)(choicesOf(schema) ?? '');
+  const current = typeof value === 'string' ? value : '';
+  const missing = current !== '' && !listed.some((c) => c.value === current);
+  const options = missing ? [...listed, { value: current, label: current }] : listed;
+  return (
+    <select id={id} className="v-input" value={current} onChange={(e) => onChange(e.target.value)}>
+      <option value="">Pick one…</option>
+      {options.map((c) => (
+        <option key={c.value} value={c.value}>
+          {c.label}
+        </option>
+      ))}
+    </select>
+  );
+}
 
 interface FieldProps {
   readonly schema: JsonSchema;
@@ -87,6 +122,8 @@ export function SchemaField({ schema, id, value, onChange, field }: FieldProps) 
           onChange={(e) => onChange(e.target.checked)}
         />
       );
+    case 'choice':
+      return <ChoiceField id={id} schema={schema} value={value} onChange={onChange} />;
     case 'number':
       return <NumberField id={id} schema={schema} value={value} onChange={onChange} />;
     case 'enum':

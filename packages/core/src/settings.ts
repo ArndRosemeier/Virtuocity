@@ -23,6 +23,17 @@ export function defineSettings<S extends z.ZodRawShape>(shape: S): z.ZodObject<S
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === 'object' && !Array.isArray(value);
 
+/** Lists of the app's that a settings field can pick from instead of free text. */
+export type ChoiceSource = 'contracts' | 'panels';
+
+/**
+ * A text setting the app offers as a pick from one of its lists: an installed
+ * contract (`name@major.minor`) or a panel id. Stored as the plain string.
+ */
+export function choice(source: ChoiceSource): z.ZodString {
+  return z.string().meta({ choices: source });
+}
+
 /** Stored settings, with defaults for anything missing and invalid values dropped. */
 export function readSettings<S extends SettingsSchema>(schema: S, stored: unknown): z.output<S> {
   const whole = schema.safeParse(isRecord(stored) ? stored : {});

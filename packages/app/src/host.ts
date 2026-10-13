@@ -15,6 +15,7 @@ import { roleplayViewModule } from '@virtuocity/skill-roleplay-view';
 import { roleplayModule } from '@virtuocity/roleplay';
 import { reviewerModule } from '@virtuocity/skill-reviewer';
 import { directorModule } from '@virtuocity/skill-director';
+import { sessionTypeModule } from '@virtuocity/skill-session-type';
 import { turnTakingModule } from '@virtuocity/turn-taking';
 import { writerModule } from '@virtuocity/skill-writer';
 import { bookPanelModule } from './BookPanel';
@@ -53,6 +54,7 @@ export function createHost(): AppHost {
     diceModule as AppModule,
     reviewerModule as AppModule,
     directorModule as AppModule,
+    sessionTypeModule as AppModule,
     writerModule as AppModule,
     illustratorModule as AppModule,
     chroniclerModule as AppModule,

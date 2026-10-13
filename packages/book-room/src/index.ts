@@ -1,10 +1,11 @@
 import type { Flow, VirtuocityModule } from '@virtuocity/core';
-import { bookRoomBlueprint } from './blueprint';
+import { sessionTypeContract } from '@virtuocity/contract-session-type';
+import { bookRoomStarters, bookRoomType } from './starters';
 import { bookPipelineFlow } from './pipeline';
 import { manuscriptContributor } from './context';
 import { manuscriptDoc } from './manuscript';
 
-export * from './blueprint';
+export * from './starters';
 export * from './context';
 export * from './manuscript';
 export * from './pipeline';
@@ -16,6 +17,7 @@ export const bookRoomModule: VirtuocityModule = {
     host.docTypes.register(manuscriptDoc);
     host.flows.register(bookPipelineFlow as Flow);
     host.contextContributors.register(manuscriptContributor);
-    host.blueprints.register(bookRoomBlueprint);
+    host.contracts.register(sessionTypeContract);
+    [bookRoomType, ...bookRoomStarters].forEach((s) => host.starters.register(s));
   },
 };

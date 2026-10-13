@@ -1,7 +1,7 @@
 import type { AppActions } from './actions';
 import { useAppActions } from './actions';
 import { ActorDialog } from './ActorDialog';
-import { BlueprintDialog } from './BlueprintDialog';
+import { NewSessionDialog } from './NewSessionDialog';
 import { LibraryDialog } from './LibraryDialog';
 import { runSafely } from './LibraryActors';
 import { isLibraryActor, saveEverywhere, useLibrary, useLibraryItems } from './library';
@@ -73,7 +73,7 @@ export function Dialogs({
     case 'actor':
       return <EditSessionActor {...props} actorId={dialog.actorId} />;
     case 'new-session':
-      return <BlueprintDialog {...props} />;
+      return <NewSessionDialog {...props} />;
     case 'sessions':
       return <SessionsDialog onNew={openNewSession} onClose={onClose} />;
     case 'library':

@@ -15,15 +15,13 @@ export interface SavedActor {
   readonly actor: LibraryActor;
 }
 
-/** A cast kept for reuse: library actors started together, like a blueprint. */
+/** A cast kept for reuse: library actors started together (its session type among them). */
 export interface SavedSetup {
   readonly kind: 'setup';
   readonly id: string;
   readonly savedAt: number;
   readonly name: string;
   readonly description: string;
-  /** The blueprint the cast came from; its layout and guide are used when starting. */
-  readonly blueprintId?: string;
   readonly actorIds: readonly string[];
 }
 
@@ -58,7 +56,6 @@ export interface LibraryOptions {
 export interface SetupDraft {
   readonly name: string;
   readonly description: string;
-  readonly blueprintId?: string | undefined;
   readonly actorIds: readonly string[];
 }
 
@@ -133,9 +130,7 @@ export class Library {
   }
 
   saveSetup(draft: SetupDraft): Promise<SavedSetup> {
-    const { blueprintId, ...rest } = draft;
-    const base = { kind: 'setup' as const, id: this.#newId(), savedAt: this.#now(), ...rest };
-    return this.#put(blueprintId === undefined ? base : { ...base, blueprintId });
+    return this.#put({ kind: 'setup', id: this.#newId(), savedAt: this.#now(), ...draft });
   }
 
   /** Removes an item; a removed actor also leaves every setup. */

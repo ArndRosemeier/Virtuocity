@@ -1,12 +1,14 @@
 import type { JsonSchema } from '@virtuocity/core';
 
-export type FieldKind = 'object' | 'array' | 'string' | 'enum' | 'number' | 'boolean' | 'json';
+export type FieldKind =
+  'object' | 'array' | 'string' | 'choice' | 'enum' | 'number' | 'boolean' | 'json';
 
 type Schema = JsonSchema;
 
 /** Which control renders a schema. Unknown shapes fall back to raw JSON. */
 export function kindOf(schema: Schema): FieldKind {
   if (Array.isArray(schema.enum)) return 'enum';
+  if (schema.type === 'string' && choicesOf(schema) !== undefined) return 'choice';
   switch (schema.type) {
     case 'object':
       return 'object';
@@ -22,6 +24,11 @@ export function kindOf(schema: Schema): FieldKind {
     default:
       return 'json';
   }
+}
+
+/** The app list a text field picks from (see `choice` in core), if it picks from one. */
+export function choicesOf(schema: Schema): string | undefined {
+  return typeof schema.choices === 'string' ? schema.choices : undefined;
 }
 
 export function propertiesOf(schema: Schema): [string, Schema][] {
@@ -56,6 +63,7 @@ export function defaultValue(schema: Schema): unknown {
     case 'boolean':
       return false;
     case 'string':
+    case 'choice':
       return '';
     default:
       return null;

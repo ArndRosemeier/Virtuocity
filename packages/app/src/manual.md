@@ -31,6 +31,14 @@ Skills are what actors can do: talk, draw pictures, summarize, direct who speaks
 
 An actor without a talking skill is a support actor (an illustrator, a chronicler). It works beside the conversation and never speaks in it.
 
+## Session types
+
+Roleplay and Book room are not built into the app: each is a **session type**, an actor in your Library with the Session type skill. A session type decides which panels a session shows and which roles its guide suggests (a narrator, a director, a reviewer...). It never adds anyone; you add actors yourself.
+
+- **New session** lists the session types in your Library. The one you pick joins the session as a support actor; a session has at most one.
+- **Make your own** like any actor: copy Roleplay under a new name and change its roles and panels in the actor editor, or create an actor with the Session type skill. A roleplay with dice, without a director, or only players is just a different session type.
+- **Editing a session type changes every session of that type**, and deleting it deletes those sessions, after a warning, as with any actor.
+
 ## Sessions and templates
 
 - Every session has a unique name. Open the session list from the session name in the header to switch, rename or delete sessions.

@@ -13,6 +13,8 @@
     "@virtuocity/book-room": "*",
     "@virtuocity/contract-critique": "*",
     "@virtuocity/contract-director": "*",
+    "@virtuocity/contract-session-type": "*",
+    "@virtuocity/skill-session-type": "*",
     "@virtuocity/contract-render": "*",
     "@virtuocity/contract-space": "*",
     "@virtuocity/contract-writing": "*",

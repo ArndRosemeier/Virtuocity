@@ -1,19 +1,19 @@
 import { useState } from 'react';
-import { arrangeSlot, currentBlueprint } from '@virtuocity/core';
 import { ResizeHandle } from './ResizeHandle';
+import { slotItems } from './sessionType';
 import type { AppHost, PanelProps } from './types';
+import { useSessionType } from './useSessionType';
 
 type Contribution = ReturnType<AppHost['panels']['list']>[number];
 
-/** What a slot shows: what the session's blueprint lays out there, or everything. */
-export function contributions({ host, session }: PanelProps, slot: string): Contribution[] {
-  const layout = currentBlueprint(session, host.blueprints)?.layout;
-  return arrangeSlot(host.panels.list(), slot, layout);
+/** What a slot shows: the panels the session's type names there, or everything without a type. */
+export function useContributions(host: AppHost, slot: string): Contribution[] {
+  return slotItems(host.panels.list(), slot, useSessionType());
 }
 
 /** Side panels, stacked with their titles, with a resize edge; nothing at all when the slot is empty. */
 export function Slot({ name, host, session }: PanelProps & { name: string }) {
-  const items = contributions({ host, session }, name);
+  const items = useContributions(host, name);
   if (items.length === 0) return null;
   return (
     <>
@@ -32,7 +32,7 @@ export function Slot({ name, host, session }: PanelProps & { name: string }) {
 
 /** Views or controls that fill an area; with several, tabs switch between them. */
 export function Area({ name, host, session }: PanelProps & { name: string }) {
-  const items = contributions({ host, session }, name);
+  const items = useContributions(host, name);
   const [picked, setPicked] = useState<string>();
   const current = items.find((i) => i.id === picked) ?? items[0];
   return (

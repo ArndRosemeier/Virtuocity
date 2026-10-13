@@ -1,78 +1,45 @@
-import { directorContract } from '@virtuocity/contract-director';
-import { summarizerContract } from '@virtuocity/contract-memory';
-import { illustratorContract } from '@virtuocity/contract-visual';
+import { premiseContract } from '@virtuocity/contract-premise';
+import { sessionTypeContract } from '@virtuocity/contract-session-type';
 import type { Skill } from '@virtuocity/core';
-import {
-  ModuleHost,
-  blueprintProblems,
-  defaultChoices,
-  implement,
-  loadModules,
-} from '@virtuocity/core';
+import { ModuleHost, castStarter, implement, loadModules, parseRef } from '@virtuocity/core';
 import { describe, expect, it } from 'vitest';
-import { roleplayModule } from './index';
+import { roleplayModule, roleplayType } from './index';
 
 const talk: Skill = { id: 'talk', name: 'Talk', backing: 'llm', takeTurn: () => Promise.resolve() };
-const paint: Skill = {
-  id: 'paint',
-  name: 'Paint',
-  backing: 'llm',
-  implements: [
-    implement(illustratorContract, {
-      illustrate: () => Promise.resolve({ assetId: 'a', mime: 'image/png', alt: 'A picture' }),
-    }),
-  ],
-};
-
-const remember: Skill = {
-  id: 'remember',
-  name: 'Remember',
-  backing: 'llm',
-  implements: [
-    implement(summarizerContract, {
-      summarize: () => Promise.resolve({ summary: 'So far, so good.' }),
-    }),
-  ],
-};
-
-const direct: Skill = {
-  id: 'direct',
-  name: 'Direct',
+const typed: Skill = {
+  id: 'session-type',
+  name: 'Session type',
   backing: 'code',
-  implements: [implement(directorContract, { next: () => Promise.resolve({ next: 'user' }) })],
+  implements: [
+    implement(sessionTypeContract, {
+      describe: () => Promise.resolve({ roles: [], panels: [] }),
+    }),
+  ],
 };
 
-describe('roleplay blueprint', () => {
+describe('roleplay starters', () => {
   const host = loadModules(new ModuleHost(), [roleplayModule]);
-  const blueprint = host.blueprints.get('roleplay');
+  const cast = (id: string, skills: Skill[]) => castStarter(host.starters.get(id), skills);
 
-  it('needs a skill that takes turns', () => {
-    expect(blueprintProblems(blueprint, [paint])).toHaveLength(1);
-    expect(defaultChoices(blueprint, [talk]).premise?.included).toBe(false);
-    expect(blueprintProblems(blueprint, [talk])).toEqual([]);
-  });
-
-  it('adds the illustrator only when a skill can paint', () => {
-    expect(defaultChoices(blueprint, [talk]).illustrator?.included).toBe(false);
-    expect(defaultChoices(blueprint, [talk, paint]).illustrator).toEqual({
-      included: true,
-      skillIds: ['paint'],
+  it('offer the Roleplay session type when a skill can describe it', () => {
+    expect(cast('roleplay', [talk])).toBeUndefined();
+    expect(cast('roleplay', [typed])).toMatchObject({
+      personality: { name: 'Roleplay' },
+      skillIds: ['session-type'],
     });
   });
 
-  it('adds a director only when a skill can direct', () => {
-    expect(defaultChoices(blueprint, [talk]).director?.included).toBe(false);
-    expect(defaultChoices(blueprint, [talk, direct]).director).toEqual({
-      included: true,
-      skillIds: ['direct'],
-    });
+  it('offer a narrator who talks, and a premise only when a skill can open a story', () => {
+    expect(cast('narrator', [talk])?.skillIds).toEqual(['talk']);
+    expect(cast('premise', [talk])).toBeUndefined();
   });
 
-  it('adds a chronicler only when a skill can summarize', () => {
-    expect(defaultChoices(blueprint, [talk]).chronicler?.included).toBe(false);
-    expect(defaultChoices(blueprint, [talk, remember]).chronicler).toEqual({
-      included: true,
-      skillIds: ['remember'],
-    });
+  it('name every need of the roleplay roles as a contract reference', () => {
+    const { roles } = roleplayType.settings?.['session-type'] as {
+      roles: { needs?: string[] }[];
+    };
+    const needs = roles.flatMap((r) => r.needs ?? []);
+    expect(needs).toContain(premiseContract.id);
+    for (const need of needs) expect(() => parseRef(need)).not.toThrow();
   });
 });

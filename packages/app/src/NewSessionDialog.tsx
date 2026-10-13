@@ -1,14 +1,15 @@
 import { useState } from 'react';
-import type { SavedSetup } from '@virtuocity/core';
-import { startBlueprint, startSavedSetup } from '@virtuocity/core';
+import type { Actor, SavedSetup } from '@virtuocity/core';
+import { startSavedSetup, startSession } from '@virtuocity/core';
 import { Modal } from '@virtuocity/ui';
 import { setupNames, useLibrary, useLibraryItems } from './library';
 import type { PanelProps } from './types';
 import { runSafely } from './LibraryActors';
+import { isSessionType } from './sessionType';
 import { StartFooter, useSessionName } from './SessionName';
 import { useSwitcher } from './switcher';
 
-/** Starting without a setup: just you, adding actors yourself. */
+/** Starting without a session type: just you, adding actors yourself. */
 const EMPTY = '';
 
 function Choice({
@@ -26,7 +27,7 @@ function Choice({
 }) {
   return (
     <label className="blueprint" data-selected={selected}>
-      <input type="radio" name="blueprint" checked={selected} onChange={() => onSelect(id)} />
+      <input type="radio" name="session-type" checked={selected} onChange={() => onSelect(id)} />
       <span className="blueprint__text">
         <strong>{name}</strong>
         <span className="muted">{description}</span>
@@ -35,28 +36,29 @@ function Choice({
   );
 }
 
-/** Every installed setup, the casts saved in the library, and starting empty. */
+/** The session types in the library, the casts saved there, and starting empty. */
 function Choices({
-  host,
+  types,
   setups,
+  all,
   selected,
   onSelect,
-}: Pick<PanelProps, 'host'> & {
+}: {
+  types: readonly Actor[];
   setups: readonly SavedSetup[];
+  all: readonly Actor[];
   selected: string;
   onSelect: (id: string) => void;
 }) {
-  const { actors } = useLibraryItems();
-  const all = actors.map((i) => i.actor);
   return (
-    <div className="blueprints" role="radiogroup" aria-label="Setup">
-      {host.blueprints.list().map((b) => (
+    <div className="blueprints" role="radiogroup" aria-label="Session type">
+      {types.map((t) => (
         <Choice
-          key={b.id}
-          id={b.id}
-          name={b.name}
-          description={`${b.description} A guide shows what you can add.`}
-          selected={selected === b.id}
+          key={t.id}
+          id={t.id}
+          name={t.personality.name}
+          description={`${t.personality.description} A guide shows what you can add.`}
+          selected={selected === t.id}
           onSelect={onSelect}
         />
       ))}
@@ -83,18 +85,21 @@ function Choices({
 
 /**
  * Starts a new, named session; the one that was open stays in the session
- * list. A setup brings its layout and a guide but no actors; a saved cast
- * brings its actors from the library.
+ * list. A session type joins the new session and brings its layout and a
+ * guide, but no other actors; a saved cast brings its actors from the library.
  */
-export function BlueprintDialog({
+export function NewSessionDialog({
   host,
   open,
   onClose,
 }: PanelProps & { open: boolean; onClose: () => void }) {
   const library = useLibrary();
-  const [selected, setSelected] = useState(host.blueprints.list()[0]?.id ?? EMPTY);
-  const blueprint = host.blueprints.find(selected);
-  const { setups } = useLibraryItems();
+  const { actors, setups } = useLibraryItems();
+  const all = actors.map((i) => i.actor);
+  const types = all.filter((a) => isSessionType(a, host.skills.list()));
+  const [picked, setSelected] = useState<string>();
+  const selected = picked ?? types[0]?.id ?? EMPTY;
+  const type = types.find((t) => t.id === selected);
   const saved = setups.find((s) => s.id === selected);
   const switcher = useSwitcher();
   const { name, ok, field } = useSessionName();
@@ -104,9 +109,8 @@ export function BlueprintDialog({
     onClose();
     runSafely(() =>
       switcher.startNew(name, async (session) => {
-        if (blueprint) await startBlueprint(session, blueprint);
-        else if (saved)
-          await startSavedSetup(session, saved, await library.actors(), host.blueprints);
+        if (type) await startSession(session, [type]);
+        else if (saved) await startSavedSetup(session, saved, await library.actors());
       }),
     );
   };
@@ -116,7 +120,13 @@ export function BlueprintDialog({
     <Modal open={open} title="New session" onClose={onClose} footer={footer}>
       <div className="stack">
         {field}
-        <Choices host={host} setups={setups} selected={selected} onSelect={setSelected} />
+        <Choices
+          types={types}
+          setups={setups}
+          all={all}
+          selected={selected}
+          onSelect={setSelected}
+        />
       </div>
     </Modal>
   );

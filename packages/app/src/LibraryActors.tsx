@@ -6,7 +6,7 @@ import { useActorTips } from './actorTips';
 import { CopyActorDialog } from './LibraryActorDialogs';
 import { saveEverywhere, useLibrary } from './library';
 import { SessionGoesDialog } from './SessionGoesDialog';
-import { assertCanJoin, joinProblem } from './oneDirector';
+import { assertCanJoin, joinProblem } from './onePerSession';
 import type { PanelProps } from './types';
 import type { SessionEntry } from './sessions';
 import { useSwitcher } from './switcher';
@@ -63,7 +63,7 @@ function ActorButtons({
 }: {
   actor: Actor;
   inSession: boolean;
-  /** Why the actor cannot be added to the session, e.g. it would be a second director. */
+  /** Why the actor cannot be added to the session, e.g. it would be a second director or type. */
   blocked: string | undefined;
   onAdd: () => void;
   onOpen: (open: Open) => void;
@@ -74,7 +74,7 @@ function ActorButtons({
       {inSession ? (
         <Pill tone="accent">in the session</Pill>
       ) : blocked ? (
-        <Pill title={blocked}>a director is here</Pill>
+        <Pill title={blocked}>one per session</Pill>
       ) : (
         <Button size="sm" icon="plus" onClick={onAdd}>
           Add

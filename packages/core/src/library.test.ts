@@ -46,7 +46,6 @@ describe('library', () => {
     await lib.saveSetup({
       name: 'Gate',
       description: '',
-      blueprintId: 'roleplay',
       actorIds: ['mira'],
     });
     const [setup, actor] = await lib.list();
