@@ -38,3 +38,8 @@ export function sameActor(a: Actor, b: Actor): boolean {
     JSON.stringify(canonical({ ...a, id: '' })) === JSON.stringify(canonical({ ...b, id: '' }))
   );
 }
+
+/** The name of the actor with this id, or the id itself when it is not among them. */
+export function actorName(actors: readonly Actor[], id: string): string {
+  return actors.find((a) => a.id === id)?.personality.name ?? id;
+}

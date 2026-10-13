@@ -1,11 +1,11 @@
 import type { StoryLine } from '@virtuocity/contract-memory';
 import type { Actor, Message } from '@virtuocity/core';
-import { estimateTokens, fitNewest } from '@virtuocity/core';
+import { actorName, estimateTokens, fitNewest } from '@virtuocity/core';
 import type { ChroniclerSettings } from './settings';
 
 /** The story as lines of text, with speaker names, read through each message's text form. */
 export function storyLines(transcript: readonly Message[], actors: readonly Actor[]): StoryLine[] {
-  const nameOf = (id: string) => actors.find((a) => a.id === id)?.personality.name ?? id;
+  const nameOf = (id: string) => actorName(actors, id);
   return transcript.flatMap((m) => {
     const text = m.text.trim();
     return text ? [{ id: m.id, speaker: nameOf(m.actorId), text }] : [];

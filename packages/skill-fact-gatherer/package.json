@@ -1,0 +1,14 @@
+{
+  "name": "@virtuocity/skill-fact-gatherer",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@virtuocity/contract-facts": "*",
+    "@virtuocity/contract-space": "*",
+    "@virtuocity/core": "*"
+  }
+}
