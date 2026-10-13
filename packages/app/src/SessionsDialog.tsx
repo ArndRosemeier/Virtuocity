@@ -32,16 +32,32 @@ function DeleteSession({ entry, onClose }: { entry: SessionEntry; onClose: () =>
   );
 }
 
-/** One session: open it (a template starts a copy), mark it as a template, or delete it. */
+/** Asks for a session's new name. */
+function RenameSession({ entry, onClose }: { entry: SessionEntry; onClose: () => void }) {
+  const switcher = useSwitcher();
+  return (
+    <SessionNameDialog
+      title={`Rename ${entry.name}`}
+      note="Only the name changes; the session stays as it is."
+      renaming={entry}
+      onStart={(name) => runSafely(() => switcher.catalog.rename(entry.id, name))}
+      onClose={onClose}
+    />
+  );
+}
+
+/** One session: open it (a template starts a copy), mark it as a template, rename or delete it. */
 function SessionRow({
   entry,
   open,
   onPick,
+  onRename,
   onDelete,
 }: {
   entry: SessionEntry;
   open: boolean;
   onPick: () => void;
+  onRename: () => void;
   onDelete: () => void;
 }) {
   const switcher = useSwitcher();
@@ -69,17 +85,19 @@ function SessionRow({
           </Button>
         )
       )}
+      <IconButton size="sm" icon="edit" label={`Rename ${entry.name}`} onClick={onRename} />
       <IconButton size="sm" icon="trash" label={`Delete ${entry.name}`} onClick={onDelete} />
     </Row>
   );
 }
 
-/** Every saved session and template: switch between them, start from a template, delete. */
+/** Every saved session and template: switch between them, start from a template, rename, delete. */
 export function SessionsDialog({ onNew, onClose }: { onNew: () => void; onClose: () => void }) {
   const switcher = useSwitcher();
   const { entries, openId } = useSessions();
   const [copying, setCopying] = useState<SessionEntry | null>(null);
   const [deleting, setDeleting] = useState<SessionEntry | null>(null);
+  const [renaming, setRenaming] = useState<SessionEntry | null>(null);
   const pick = (entry: SessionEntry) => {
     if (entry.template) return setCopying(entry);
     runSafely(() => switcher.open(entry.id));
@@ -95,6 +113,7 @@ export function SessionsDialog({ onNew, onClose }: { onNew: () => void; onClose:
             entry={entry}
             open={entry.id === openId}
             onPick={() => pick(entry)}
+            onRename={() => setRenaming(entry)}
             onDelete={() => setDeleting(entry)}
           />
         ))}
@@ -126,6 +145,7 @@ export function SessionsDialog({ onNew, onClose }: { onNew: () => void; onClose:
           onClose={() => setCopying(null)}
         />
       )}
+      {renaming && <RenameSession entry={renaming} onClose={() => setRenaming(null)} />}
       {deleting && <DeleteSession entry={deleting} onClose={() => setDeleting(null)} />}
     </Modal>
   );
