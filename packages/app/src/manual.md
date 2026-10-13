@@ -1,6 +1,36 @@
 # Virtuocity manual
 
-Virtuocity lets several actors, AI and human, work together in a session. A roleplay is one kind of session; a book with an outliner, an editor and a writer is another. A few ideas here work differently from other apps, so they are explained first.
+## What Virtuocity is
+
+Virtuocity is a place where you and a cast of automated **actors** work together in a **session**. An actor can be a language model playing a character, a piece of plain code (a dice roller, a director that picks who speaks), an image model that paints, or anything else that can keep a clear promise to the others. You can be part of the session or just watch it run.
+
+The app itself knows nothing about stories, books or games. Everything it does is built from three parts that you combine:
+
+- **Skills** are what an actor can do: talk, paint, summarize, review, roll dice, direct. Skills come with the app.
+- **Actors** are yours. You make an actor, give it skills and describe it. Actors live in your **Library** and can take part in any session.
+- **Session types** say what kind of session it is: which panels it shows and which roles its guide suggests. A session type is itself an actor, so you can copy it and change it.
+
+A roleplay is one session type: a narrator, maybe AI players, a director, a premise, an illustrator and a chronicler. A book room is another: a writer, a reviewer and you as editor. A pen-and-paper game with dice, an image workflow or, later, a 3D world are further session types made from the same parts. When a new skill arrives, every session type can use it.
+
+## Getting started
+
+1. **Connect a provider.** Open Settings (the gear) › Connection and paste an API key for OpenRouter, OpenAI or Anthropic. Keys stay in this browser and are never saved to files.
+2. **Pick default models.** Settings › Models sets one model per kind of output (text, image, decisions). Any actor can use a different one.
+3. **Start a session.** Press New session (the circular arrow in the header), name it and pick a session type such as Roleplay, or Empty.
+4. **Add actors.** Use Add actor in the Cast panel. The session type's guide at the top of the Cast panel lists what it usually needs and ticks each role off as a matching actor joins.
+5. **Play.** Write in the box at the bottom. Who answers depends on the session (see Turns below).
+
+On a fresh start your Library already holds some ready-made actors: the Roleplay and Book room session types and their usual cast (Narrator, Wren, Director, Ink, Chronicler, Premise, Quill, Marlow). They are ordinary actors: edit them, copy them or delete them.
+
+## The screen
+
+- **Header:** the version and What's new, this Manual, and the open session's name, which opens the session list. On the right are the cost so far, the model calls (for a look under the hood), the Library (bookmark), saving and loading a session file, New session, and Settings.
+- **Main area:** what the session is about, such as the conversation or a manuscript. With several views you switch with tabs.
+- **Input:** where you write, act or pass, and pick who speaks next.
+- **Left sidebar (Spaces):** actors that show something beside the conversation, like a picture, a canvas, a list of facts or a summary.
+- **Right sidebar:** the Cast, your tasks, background jobs and other panels.
+
+Which of these a session shows is decided by its session type.
 
 ## Actors: one name, one actor
 
@@ -13,6 +43,12 @@ This is the most important idea in Virtuocity.
 - **Deleting an actor deletes the sessions that use it.** Virtuocity warns you first and lists those sessions. Nothing is left referring to an actor that no longer exists.
 - **Removing an actor from a session** is only possible before it has done anything there. Once it has acted, the session is part of its history.
 
+### Making an actor
+
+Open the Library and press New actor, or Copy on an existing one. Give it a name, tick its skills, and fill in what those skills ask for: a personality for actors that talk, settings for each skill (an illustrator's style, a premise's text), and models if it should not use the defaults. A new actor starts with no skills, so the editor only asks for what you pick. "Transform by AI" on long text fields turns a few words into a full description.
+
+An actor without a talking skill is a **support** actor (an illustrator, a chronicler, a session type). It works beside the conversation and never speaks in it.
+
 ### Sessions from a file
 
 A session saved to a file carries its actors with it, because the file has to work in another browser or for another person. When you load such a file:
@@ -21,32 +57,18 @@ A session saved to a file carries its actors with it, because the file has to wo
 - An actor that is exactly the same as yours is simply yours. Nothing is asked.
 - An actor whose name you already have, but with different details, makes Virtuocity ask which version to keep: yours or the loaded one. Since a name is one actor, your choice applies everywhere, in every session.
 
-### What belongs to a session
-
-You (the person writing) and the session's view (how it is drawn, e.g. Chat view or Roleplay renderer) belong to the session itself, not to the Library. Changing the view of one session changes only that session.
-
-## Skills and actors
-
-Skills are what actors can do: talk, draw pictures, summarize, direct who speaks next. Skills are fixed and come with the app. Actors are yours: you make an actor, give it skills and describe it. A new actor starts with no skills.
-
-An actor without a talking skill is a support actor (an illustrator, a chronicler). It works beside the conversation and never speaks in it.
-
 ## Session types
 
-Roleplay and Book room are not built into the app: each is a **session type**, an actor in your Library with the Session type skill. A session type decides which panels a session shows and which roles its guide suggests (a narrator, a director, a reviewer...). It never adds anyone; you add actors yourself.
+A session type is an actor with the Session type skill. It sits in the session as a support actor (a session has at most one) and decides two things:
 
-- **New session** lists the session types in your Library. The one you pick joins the session as a support actor; a session has at most one.
-- **Make your own** like any actor: copy Roleplay under a new name and change its roles and panels in the actor editor, or create an actor with the Session type skill. A roleplay with dice, without a director, or only players is just a different session type.
-- **Editing a session type changes every session of that type**, and deleting it deletes those sessions, after a warning, as with any actor.
+- **Panels:** which panels the session shows, in which order. Book room shows the manuscript and no chat; Roleplay shows the spaces, the conversation and the input box. With no panels listed, a session shows everything.
+- **Roles:** what the setup guide suggests adding, such as "A narrator" or "An illustrator". A role says what an actor must be able to do (talk, or a contract such as director or reviewer), never which actor. Optional roles are listed as options.
 
-## Sessions and templates
-
-- Every session has a unique name. Open the session list from the session name in the header to switch, rename or delete sessions.
-- Tick **Template** on a session to list it under Templates. Using a template asks for a name and starts a new session from a copy of it; the template itself stays as it is.
+A session type never adds actors itself; you do. To make your own, copy Roleplay under a new name and change its roles and panels in the actor editor. A roleplay with dice, one without a director, or one with only players is just a different session type. Like any actor, editing a session type changes every session of that type, and deleting it deletes those sessions after a warning.
 
 ## Turns and directors
 
-Without a director, nobody speaks on their own: you pick who speaks next under "Let speak". A session can have one director, an actor that picks the next speaker for you.
+After every turn the session pauses. Without a director, nobody speaks on their own: you pick who speaks next under "Let speak". A session can have one **director**, an actor that picks the next speaker. With a director you can **Act** (write, then the director picks who answers) or **Pass** (the director picks without you writing). Support actors that can be asked, like an illustrator, appear under "or ask".
 
 ## Retry, versions and editing
 
@@ -56,7 +78,17 @@ Without a director, nobody speaks on their own: you pick who speaks next under "
 
 ## Spaces
 
-Some actors have a space in the left sidebar: a picture, a canvas, a list of facts, a summary. Every space can be resized, closed and brought back, and its content can be deleted.
+Some actors have a space in the left sidebar: a picture, a canvas, a list of facts, a summary. Every space can be resized, closed and brought back, and its content can be deleted. Some spaces stay hidden until a marker in the conversation (like a chronicler's "summarized" line) opens them.
+
+## Sessions, templates and setups
+
+- Every session has a unique name. Open the session list from the session name in the header to switch, rename or delete sessions.
+- Tick **Template** on a session to list it under Templates. Using a template asks for a name and starts a new session from a copy of it, with everything it already holds; the template itself stays as it is.
+- A **setup** in the Library is a saved cast: the AI actors of a session, its session type among them. New session can start one.
+
+## What belongs to a session
+
+The session holds what happened in it: messages, pictures, summaries, facts. You (the person writing) and the session's view (how it is drawn, for example Chat view or Roleplay view) belong to the session itself, not to the Library. Everything else, including every actor's settings, lives on the actors.
 
 ## Saving
 

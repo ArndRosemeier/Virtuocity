@@ -9,6 +9,13 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 62,
+    date: '2026-10-13',
+    changes: [
+      'The Manual now starts with what Virtuocity is: you and a cast of actors (language models, code, image models) working together, with roleplay and the book room as two session types among many. It then walks through getting started, the screen, making actors and session types, turns, and saving.',
+    ],
+  },
+  {
     build: 61,
     date: '2026-10-13',
     changes: [

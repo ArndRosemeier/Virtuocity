@@ -1,6 +1,10 @@
 # Working on Virtuocity
 
-Read `docs/architecture.md` before changing code. These rules exist to keep the
+Virtuocity is a collaboration framework (zero or one human plus any number of
+automated actors working through contracts), not a roleplay app: roleplay and
+the book room are just session types built on it. Read `docs/vision.md` first
+for what that means for every change, then `docs/architecture.md` before
+changing code. These rules exist to keep the
 codebase modular and free of duplication; CI enforces most of them.
 
 ## Rules
