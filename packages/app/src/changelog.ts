@@ -10,6 +10,14 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 76,
+    date: '2026-10-13',
+    changes: [
+      "Tabletop games. New skills PF2E GM, PF2E Player, D&D 5 classic GM and D&D 5 classic Player (2014 rules): give one to a talking actor and it knows that system's rules and its part at the table, and rolls real checks with the outcome by the rules (Pathfinder's degrees of success, D&D advantage and critical hits), finds DCs and works out proficiency. Each has a House rules field.",
+      'New session types Pathfinder 2e and D&D 5e, with ready-made actors: a Game Master and the fighter Kira for Pathfinder, a Dungeon Master and the rogue Bram for D&D. They appear in your Library on the next load.',
+    ],
+  },
+  {
     build: 75,
     date: '2026-10-13',
     changes: [

@@ -1,0 +1,18 @@
+{
+  "name": "@virtuocity/tabletop",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@virtuocity/contract-director": "*",
+    "@virtuocity/contract-memory": "*",
+    "@virtuocity/contract-premise": "*",
+    "@virtuocity/contract-speaker": "*",
+    "@virtuocity/contract-tabletop": "*",
+    "@virtuocity/contract-visual": "*",
+    "@virtuocity/core": "*"
+  }
+}

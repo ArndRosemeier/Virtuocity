@@ -20,6 +20,8 @@ import { directorModule } from '@virtuocity/skill-director';
 import { sessionTypeModule } from '@virtuocity/skill-session-type';
 import { turnTakingModule } from '@virtuocity/turn-taking';
 import { writerModule } from '@virtuocity/skill-writer';
+import { tabletopModule as tabletopSkillsModule } from '@virtuocity/skill-tabletop';
+import { tabletopModule } from '@virtuocity/tabletop';
 import { bookPanelModule } from './BookPanel';
 import { castPanelModule } from './CastPanel';
 import { channelsPanelModule } from './ChannelsPanel';
@@ -70,6 +72,8 @@ export function createHost(): AppHost {
     roleplayModule as AppModule,
     bookRoomModule as AppModule,
     imageWorkflowModule as AppModule,
+    tabletopSkillsModule as AppModule,
+    tabletopModule as AppModule,
     bookPanelModule,
   ]);
 }
