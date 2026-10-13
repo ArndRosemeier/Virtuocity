@@ -1,5 +1,5 @@
 {
-  "name": "@virtuocity/contract-session-type",
+  "name": "@virtuocity/image-workflow",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -7,6 +7,8 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
+    "@virtuocity/contract-director": "*",
+    "@virtuocity/contract-visual": "*",
     "@virtuocity/core": "*"
   }
 }

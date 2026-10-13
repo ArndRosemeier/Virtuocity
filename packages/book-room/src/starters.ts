@@ -1,5 +1,5 @@
 import { reviewerContract } from '@virtuocity/contract-critique';
-import { sessionTypeContract } from '@virtuocity/contract-session-type';
+import { sessionTypeContract } from '@virtuocity/core';
 import { writerContract } from '@virtuocity/contract-writing';
 import type { Starter } from '@virtuocity/core';
 
@@ -18,6 +18,7 @@ export const bookRoomType: Starter = {
   needs: [sessionTypeContract],
   settings: {
     'session-type': {
+      castSkills: ['conversation'],
       roles: [
         {
           label: 'A writer',

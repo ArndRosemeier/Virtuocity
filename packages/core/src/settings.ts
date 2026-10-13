@@ -24,11 +24,12 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === 'object' && !Array.isArray(value);
 
 /** Lists of the app's that a settings field can pick from instead of free text. */
-export type ChoiceSource = 'contracts' | 'panels';
+export type ChoiceSource = 'contracts' | 'panels' | 'cast-skills';
 
 /**
  * A text setting the app offers as a pick from one of its lists: an installed
- * contract (`name@major.minor`) or a panel id. Stored as the plain string.
+ * contract (`name@major.minor`), a panel id, or the id of a skill that can act
+ * on its turn. Stored as the plain string.
  */
 export function choice(source: ChoiceSource): z.ZodString {
   return z.string().meta({ choices: source });

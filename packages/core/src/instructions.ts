@@ -34,3 +34,15 @@ export function withInstructions(
   }
   return [{ role: 'system', content: text }, ...messages];
 }
+
+/** A call's messages with the standing instructions of every source added, for `who`. */
+export function instructedMessages(
+  messages: readonly ChatMessage[],
+  sources: readonly InstructionSource[],
+  who: InstructionRequest,
+): readonly ChatMessage[] {
+  return withInstructions(
+    messages,
+    sources.flatMap((s) => s.instructions(who)),
+  );
+}

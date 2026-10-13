@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import type { Actor } from './actor';
 import { freeName } from './actor-names';
-import { actorSchema } from './cast';
 
 const record = z.record(z.string(), z.unknown());
 
@@ -16,18 +15,6 @@ export function migrateItem(key: string, value: unknown): unknown {
   if (!actor.success || actor.data.id === key) return value;
   return { ...item.data, id: key, actor: { ...actor.data, id: key } };
 }
-
-/** What every version of a saved setup has. */
-export const setupBaseSchema = z.object({
-  kind: z.literal('setup'),
-  id: z.string(),
-  savedAt: z.number(),
-  name: z.string(),
-  description: z.string(),
-});
-
-/** A setup saved by an older version: it held copies of its actors. */
-export const legacySetupSchema = setupBaseSchema.extend({ actors: z.array(actorSchema) });
 
 /** Renames actors that share a name with an older one ("Wren", "Wren 2"), oldest first. */
 export function uniqueNames(actors: readonly Actor[]): Actor[] {

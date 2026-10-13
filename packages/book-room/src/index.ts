@@ -1,5 +1,5 @@
 import type { Flow, VirtuocityModule } from '@virtuocity/core';
-import { sessionTypeContract } from '@virtuocity/contract-session-type';
+import { sessionTypeContract } from '@virtuocity/core';
 import { bookRoomStarters, bookRoomType } from './starters';
 import { bookPipelineFlow } from './pipeline';
 import { manuscriptContributor } from './context';

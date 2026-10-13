@@ -38,6 +38,7 @@ export * from './runtime';
 export * from './settings';
 export * from './setup';
 export * from './starter';
+export * from './session-type';
 export * from './layout';
 export * from './skill';
 export * from './skill-upgrade';

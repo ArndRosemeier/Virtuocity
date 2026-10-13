@@ -19,8 +19,10 @@ part of it:
   chronicler) is one session type.
 - **Book room** (writer, reviewer, you as editor, a manuscript instead of a
   chat) is another.
+- **Image workflow** (you describe, illustrators paint; illustrators are its
+  cast) and **Open** (every panel, no suggestions) are two more.
 - Planned or imagined: a pen-and-paper RPG with dice and a GM (or no GM, or
-  only players), an image refinement workflow, a 3D walk-through where a
+  only players), a 3D walk-through where a
   renderer and some actors drive a scene. Each should take little more than
   new skills, actors and a session type.
 
@@ -31,14 +33,14 @@ session type, never in the core or the generic UI.
 
 ## The building blocks
 
-| Concept      | What it is                                                                                              | Who makes it           |
-| ------------ | ------------------------------------------------------------------------------------------------------- | ---------------------- |
-| Contract     | A versioned promise (`director@1.0`, `session-type@1.0`): actions with schemas and a conformance suite. | Code (packages)        |
-| Skill        | An implementation of contracts and/or turn-taking, backed by an LLM, code or both. Fixed.               | Code (packages)        |
-| Actor        | A name, a description or personality, skills and their settings. Mutable, lives in the Library.         | The person             |
-| Session type | An actor serving `session-type@1.0`: the panels a session shows, the roles its guide suggests.          | The person             |
-| Session      | What happened: messages, pictures, summaries, facts. Refers to Library actors by id.                    | The person             |
-| Renderer     | How an output kind or a whole session is drawn; replaceable.                                            | Code, chosen by person |
+| Concept      | What it is                                                                                                                         | Who makes it           |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
+| Contract     | A versioned promise (`director@1.0`, `session-type@2.0`): actions with schemas and a conformance suite.                            | Code (packages)        |
+| Skill        | An implementation of contracts and/or turn-taking, backed by an LLM, code or both. Fixed.                                          | Code (packages)        |
+| Actor        | A name, a description or personality, skills and their settings. Mutable, lives in the Library.                                    | The person             |
+| Session type | An actor serving `session-type@2.0`: who is cast, the panels a session shows, the roles its guide suggests. Every session has one. | The person             |
+| Session      | What happened: messages, pictures, summaries, facts. Refers to Library actors by id.                                               | The person             |
+| Renderer     | How an output kind or a whole session is drawn; replaceable.                                                                       | Code, chosen by person |
 
 Starter actors (Roleplay, Book room, Narrator, Quill...) are offered once on a
 fresh start and are then the person's to change or delete. Nothing that

@@ -7,30 +7,30 @@ product is, and why that shapes every change, is in [vision.md](vision.md).
 
 ## Packages
 
-| Package                             | Role                                                                      |
-| ----------------------------------- | ------------------------------------------------------------------------- |
-| `@virtuocity/core`                  | Concepts and extension points. No UI, no network, no other packages.      |
-| `@virtuocity/contract-dice`         | `dice-roller@1` contract.                                                 |
-| `@virtuocity/contract-critique`     | `critic@1` and `reviewer@1` (extends `critic@1`) contracts.               |
-| `@virtuocity/openai-api`            | `ModelProvider`s for OpenRouter and OpenAI (same chat API).               |
-| `@virtuocity/anthropic`             | `ModelProvider` for Anthropic's Messages API (Claude).                    |
-| `@virtuocity/skill-conversation`    | Conversation skill: lets an actor speak in character via a text model.    |
-| `@virtuocity/skill-dice`            | Code-only skill implementing `dice-roller@1`.                             |
-| `@virtuocity/skill-reviewer`        | LLM skill implementing `reviewer@1` (and so `critic@1`).                  |
-| `@virtuocity/contract-writing`      | `writer@1` contract.                                                      |
-| `@virtuocity/skill-writer`          | LLM skill implementing `writer@1`.                                        |
-| `@virtuocity/contract-visual`       | `illustrator@1` contract.                                                 |
-| `@virtuocity/skill-illustrator`     | Image-model skill implementing `illustrator@1`; illustrates turns.        |
-| `@virtuocity/contract-facts`        | `fact-gatherer@1.0` contract: the facts a session has established.        |
-| `@virtuocity/skill-fact-gatherer`   | LLM skill implementing `fact-gatherer@1.0`; shows facts in its space.     |
-| `@virtuocity/book-room`             | Walking skeleton: `manuscript` document and `book-pipeline` flow.         |
-| `@virtuocity/contract-director`     | `director@1.0` contract: picks who takes the next turn.                   |
-| `@virtuocity/contract-session-type` | `session-type@1.0`: the panels a session shows and the roles it suggests. |
-| `@virtuocity/skill-session-type`    | "Session type": roles and panels written in the actor's settings.         |
-| `@virtuocity/skill-director`        | Code and decision-model skills implementing `director@1.0`.               |
-| `@virtuocity/turn-taking`           | `turn-taking` flow: pass (the director picks) or choose who speaks.       |
-| `@virtuocity/roleplay`              | Roleplay session type and its starter actors (narrator, players...).      |
-| `@virtuocity/app`                   | Vite + React web app. Decides which modules are installed.                |
+| Package                           | Role                                                                                  |
+| --------------------------------- | ------------------------------------------------------------------------------------- |
+| `@virtuocity/core`                | Concepts and extension points. No UI, no network, no other packages.                  |
+| `@virtuocity/contract-dice`       | `dice-roller@1` contract.                                                             |
+| `@virtuocity/contract-critique`   | `critic@1` and `reviewer@1` (extends `critic@1`) contracts.                           |
+| `@virtuocity/openai-api`          | `ModelProvider`s for OpenRouter and OpenAI (same chat API).                           |
+| `@virtuocity/anthropic`           | `ModelProvider` for Anthropic's Messages API (Claude).                                |
+| `@virtuocity/skill-conversation`  | Conversation skill: lets an actor speak in character via a text model.                |
+| `@virtuocity/skill-dice`          | Code-only skill implementing `dice-roller@1`.                                         |
+| `@virtuocity/skill-reviewer`      | LLM skill implementing `reviewer@1` (and so `critic@1`).                              |
+| `@virtuocity/contract-writing`    | `writer@1` contract.                                                                  |
+| `@virtuocity/skill-writer`        | LLM skill implementing `writer@1`.                                                    |
+| `@virtuocity/contract-visual`     | `illustrator@1` contract.                                                             |
+| `@virtuocity/skill-illustrator`   | Image-model skill implementing `illustrator@1`; illustrates turns.                    |
+| `@virtuocity/contract-facts`      | `fact-gatherer@1.0` contract: the facts a session has established.                    |
+| `@virtuocity/skill-fact-gatherer` | LLM skill implementing `fact-gatherer@1.0`; shows facts in its space.                 |
+| `@virtuocity/book-room`           | Walking skeleton: `manuscript` document and `book-pipeline` flow.                     |
+| `@virtuocity/contract-director`   | `director@1.0` contract: picks who takes the next turn.                               |
+| `@virtuocity/skill-session-type`  | "Session type": cast skills, roles and panels in the actor's settings; the Open type. |
+| `@virtuocity/skill-director`      | Code and decision-model skills implementing `director@1.0`.                           |
+| `@virtuocity/turn-taking`         | `turn-taking` flow: pass (the director picks) or choose who speaks.                   |
+| `@virtuocity/roleplay`            | Roleplay session type and its starter actors (narrator, players...).                  |
+| `@virtuocity/image-workflow`      | Image workflow session type (illustrators are its cast) and a Painter.                |
+| `@virtuocity/app`                 | Vite + React web app. Decides which modules are installed.                            |
 
 New skills, session types and providers are new packages under `packages/`. New
 contracts are `contract-*` packages.
@@ -192,8 +192,10 @@ head, so all documents (transcript, outline, inventory, scene) move together.
   file, or a session saved before 0.059) into includes; `withActorsWritten`
   does the reverse for a file, which has to stand alone. `runtime.cast()` (and
   `ctx.cast`, `ContextRequest.cast`) is the cast proper: people and the actors
-  with a turn-taking skill. Everyone else is support (an illustrator, a
-  chronicler, the story view); prompts name only the cast as being in the scene.
+  holding one of the session type's cast skills (`SessionCast`, see
+  [Session types](#session-types)). Everyone else is support (an illustrator
+  in a roleplay, a chronicler, the story view); prompts name only the cast as
+  being in the scene.
 - **Persistence** (`persistence.ts`, `storage.ts`, `assets.ts`, `bundle.ts`):
   `runtime.save()` returns the whole log (every branch), the head and the cost
   ledger; `runtime.load(data)` validates it and upgrades operations of older
@@ -306,19 +308,34 @@ request, schema)` asks for JSON matching a zod schema, then shows the model
 
 ## Session types
 
-A session type (Roleplay, Book room, an image workflow) is not built into the
-app: it is an **actor** whose skill serves `session-type@1.0`
-(`contract-session-type`). It sits in the session's cast like any support
-actor, at most one per session (like the director), and its `describe` action
-returns:
+A session type (Roleplay, Book room, Image workflow, Open) is not built into
+the app: it is an **actor** whose skill serves `session-type@2.0`
+(`sessionTypeContract` in `core/src/session-type.ts`; in core because the
+runtime's cast depends on it). **Every session the app keeps has exactly
+one**: New session requires one, the type can't be removed from a session or
+swapped (`rivalFor` blocks a second), stored sessions without one are deleted
+when they would open, and files without one are refused (`switcher.ts`,
+`UntypedSessionError`). An actor's session-type status is fixed: an edit that
+adds or removes the skill is refused, so no session loses its type by an
+edit. Its `describe` action returns:
 
+- `castSkills`: skill ids, in order. AI actors holding one are **cast**; all
+  others are support. On its turn an actor acts with the first of these it
+  has (`takeTurn`, or `onRequest` for a skill like the illustrator). So an
+  illustrator that can also talk paints in an image workflow
+  (`['illustrator']`) and talks in a roleplay (`['conversation']`). Nothing is
+  tied to what a model can output; the order decides. The runtime keeps the
+  type's last description (`TypeTracker`), settled after every join, leave
+  and load and refreshed when the type actor changes, so `cast()` stays
+  synchronous; `sessionTypeDescribed` tells views to redraw. A bare runtime
+  without a type (tests) casts actors with `takeTurn`.
 - `panels`: the panel contributions the session shows, in order, across all
   slots (`arrangeSlot` in core; empty shows everything). The app shows several
   `main` views as tabs. Book room shows only the manuscript and no composer;
   Roleplay shows the spaces, the session and the composer.
 - `roles`: what the setup guide suggests adding. A role names what an actor
-  must be able to do (`speaks`, and `needs` as contract references), never a
-  skill. The app's guide (`guideLines` in `app/src/sessionType.ts`) matches
+  must be able to do (`cast`: one of the cast skills, and `needs` as contract
+  references), never a skill. The app's guide (`guideLines` in `app/src/sessionType.ts`) matches
   the cast to the roles, each actor filling the first open role it fits, and
   shows it at the top of the Cast panel until it is hidden (`hideGuide`, kept
   in the `setup` document) or turned off.
@@ -326,18 +343,20 @@ returns:
 `skill-session-type` ships the plain implementation, "Session type": roles
 and panels written in the actor's settings, so people make or change a
 session type in the actor editor (copy Roleplay, drop the director role, add
-a dice roller). Its settings use `choice('contracts')` and `choice('panels')`
-(core `settings.ts`), which the app's settings form shows as pickers
+a dice roller). Its settings use `choice('cast-skills')`, `choice('contracts')` and
+`choice('panels')` (core `settings.ts`), which the app's settings form shows as pickers
 (`ChoicesContext` in `ui`). Other skills can serve the contract differently,
-e.g. one that proposes roles with a model. Without a session type a session
-shows every panel and no guide. New session lists the library's session types;
-starting one (`startSession`) joins only that actor, the person adds the rest.
+e.g. one that proposes roles with a model. The Open type (in `skill-session-type`)
+shows every panel, casts talking actors and suggests nothing. New session lists
+the library's session types; starting one (`startSession`) joins only that
+actor, the person adds the rest. Saved setups are gone; session templates
+cover them.
 
 ## Starters
 
 Modules offer ready-made actors through `host.starters` (`Starter` in
-`core/src/starter.ts`): the Roleplay and Book room session types and their
-usual casts (Narrator, Wren, Quill, Marlow...). A starter says what the actor
+`core/src/starter.ts`): the Open, Roleplay, Book room and Image workflow
+session types and their usual casts (Narrator, Wren, Quill, Marlow...). A starter says what the actor
 needs (`speaks`, `needs`) and never which skill; `castStarter` gives it the
 first installed skill for every need. The app (`seed.ts`) adds each starter
 to the library once, remembering offered starter ids, so deleted actors never
@@ -409,7 +428,7 @@ it directs. The Roleplay session type lists a director as an optional role, and 
 ## Premise
 
 `sessionStarted` (core) fires once when a session is started (`startSession`,
-from a session type or saved setup) and its cast has joined, never when a saved session loads
+with its session type) and its cast has joined, never when a saved session loads
 (`isStarting` tells whether that cast is still joining).
 `contract-premise` defines `premise@2.0`, which returns messages of any
 kind, so a premise may be text, a picture or sound. `skill-premise` listens for
@@ -479,14 +498,14 @@ edits it, and does not list it as a cast member.
 
 ## Library
 
-`Library` keeps the actors and setups, in an injected `KeyValueStore`
+`Library` keeps the actors, in an injected `KeyValueStore`
 (IndexedDB in the app). Items are validated on read, so a bad entry is skipped.
 
 - **One name, one actor.** This is the core rule (Arnd), and it is unusual, so
   it is also in the user manual (`packages/app/src/manual.md`). An actor's name
   is its identity; the id underneath only lets renaming be one edit. Nowhere
-  (no session, no template, no setup) is there a second actor or a copy with
-  that name: sessions and setups refer to library actors by id (see Cast in
+  (no session, no template) is there a second actor or a copy with
+  that name: sessions refer to library actors by id (see Cast in
   [State](#state)), and editing an actor (`saveEverywhere` only saves to the
   library) changes it everywhere. A variation is an explicit copy with a new
   name. The only copies outside the library are in files, because a file must
@@ -508,10 +527,8 @@ edits it, and does not list it as a cast member.
   then refers to its actors like any other.
 - **Deleting** an actor the session uses deletes that session too, after a
   warning, so nothing refers to a deleted actor.
-- A saved setup lists actor ids (its session type among them);
-  `startSavedSetup` joins those actors.
-- `migrate` brings older libraries up to date (matching ids, unique names,
-  setups that refer to actors instead of holding copies).
+- `migrate` brings older libraries up to date (matching ids, unique names) and
+  deletes items that are no longer actors (the saved setups of older versions).
 
 ## Turn flow in the app
 

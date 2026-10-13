@@ -9,6 +9,16 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 63,
+    date: '2026-10-13',
+    changes: [
+      'Session types now decide who is in the cast. Each lists its cast skills: actors with one of them take turns, everyone else is support. An actor acts with the first cast skill it has, so an illustrator that can also talk paints in an image workflow and talks in a roleplay.',
+      'New session type Image workflow: describe what you want to see and an illustrator paints it. A ready-made Painter, which paints only when it is its turn, comes with it. Add a director to have it answer every prompt on its own.',
+      'Every session now has exactly one session type, chosen when you start it and kept for good. The new Open type (every panel, no suggestions) replaces Empty. Sessions from older versions without a type are deleted, and files without one are refused.',
+      'Saved setups are gone from the Library; session templates do the same job.',
+    ],
+  },
+  {
     build: 62,
     date: '2026-10-13',
     changes: [

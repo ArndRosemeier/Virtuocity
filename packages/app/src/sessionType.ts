@@ -1,26 +1,18 @@
-import type { SessionRole, SessionTypeDescription } from '@virtuocity/contract-session-type';
-import { sessionTypeContract } from '@virtuocity/contract-session-type';
-import type { Actor, ContractRef, Identified, Skill } from '@virtuocity/core';
-import { arrangeSlot, implementersOf, parseRef, serves } from '@virtuocity/core';
-
-/** Whether the actor is a session type (Roleplay, Book room...). */
-export function isSessionType(actor: Actor, skills: readonly Skill[]): boolean {
-  return serves(actor, skills, sessionTypeContract);
-}
-
-/** The session's type: the one actor in its cast serving `session-type@1`, if any. */
-export function sessionTypeOf(
-  actors: readonly Actor[],
-  skills: readonly Skill[],
-): Actor | undefined {
-  return actors.find((a) => isSessionType(a, skills));
-}
+import type {
+  Actor,
+  ContractRef,
+  Identified,
+  SessionRole,
+  SessionTypeDescription,
+  Skill,
+} from '@virtuocity/core';
+import { arrangeSlot, implementersOf, parseRef } from '@virtuocity/core';
 
 /**
- * What a session shows of its type while it is being asked: `none` without a
- * type (every panel), `asking` until the first answer (nothing yet, so the
- * screen does not flash every panel), then its description, or every panel
- * again when it failed.
+ * What a session shows of its type: `asking` until the type first answers
+ * (nothing yet, so the screen does not flash every panel), then its
+ * description. `none` (every panel) is only seen while a session is being
+ * swapped in, since every session the app keeps has a type.
  */
 export type TypeState =
   | { readonly kind: 'none' }
@@ -50,18 +42,16 @@ const refOf = (text: string): ContractRef | undefined => {
 };
 
 /** The installed skills that can do each thing the role needs; a need nobody can do has none. */
-function needOptions(role: SessionRole, skills: readonly Skill[]): Skill[][] {
+function needOptions(
+  role: SessionRole,
+  castSkills: readonly string[],
+  skills: readonly Skill[],
+): Skill[][] {
   const contracts = role.needs.map((need) => {
     const ref = refOf(need);
     return ref ? implementersOf(skills, ref) : [];
   });
-  return role.speaks ? [skills.filter((s) => s.takeTurn), ...contracts] : contracts;
-}
-
-function fits(role: SessionRole, actor: Actor, skills: readonly Skill[]): boolean {
-  return needOptions(role, skills).every((options) =>
-    options.some((skill) => actor.skillIds.includes(skill.id)),
-  );
+  return role.cast ? [skills.filter((s) => castSkills.includes(s.id)), ...contracts] : contracts;
 }
 
 /** A line of the setup guide: the role, whether it can be filled, and the actor filling it. */
@@ -74,15 +64,17 @@ export interface GuideLine {
 
 /** Matches the cast to the roles: each actor fills the first open role it fits, in order. */
 export function guideLines(
-  roles: readonly SessionRole[],
+  { roles, castSkills }: Pick<SessionTypeDescription, 'roles' | 'castSkills'>,
   skills: readonly Skill[],
   actors: readonly Actor[],
 ): GuideLine[] {
   const used = new Set<string>();
   return roles.map((role) => {
-    const actor = actors.find((a) => !used.has(a.id) && fits(role, a, skills));
+    const options = needOptions(role, castSkills, skills);
+    const fits = (a: Actor) => options.every((o) => o.some((s) => a.skillIds.includes(s.id)));
+    const actor = actors.find((a) => !used.has(a.id) && fits(a));
     if (actor) used.add(actor.id);
-    const available = needOptions(role, skills).every((options) => options.length > 0);
+    const available = options.every((o) => o.length > 0);
     return actor ? { role, available, actor } : { role, available };
   });
 }
