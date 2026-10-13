@@ -21,8 +21,8 @@ export interface SwitcherDeps {
   /**
    * Brings a freshly loaded session's cast in line with the library and the app.
    * `fromFile` is set for a session loaded from a file: only its actors may
-   * clash with the library. A stored session's actors are the library's, so the
-   * library's current version of each simply replaces the copy it was saved with.
+   * clash with the library. A stored session refers to library actors (one saved
+   * by an older version may still hold copies; the library's version wins).
    */
   readonly prepare: (runtime: SessionRuntime, fromFile: boolean) => Promise<void>;
   /** A runtime that is never shown, for reading a stored session's cast. */

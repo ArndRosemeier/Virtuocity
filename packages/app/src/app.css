@@ -167,6 +167,10 @@
   font-size: var(--text-sm);
   font-weight: 700;
 }
+/* The manual reads at body size, not story size. */
+.manual {
+  --text-lg: var(--text-md);
+}
 /* "‹ 2/3 ›" on a retried message. */
 .message__versions {
   display: inline-flex;

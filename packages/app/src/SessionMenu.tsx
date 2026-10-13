@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { AssetStore, SessionRuntime } from '@virtuocity/core';
-import { exportBundle, importBundle } from '@virtuocity/core';
+import { exportBundle, importBundle, withActorsWritten } from '@virtuocity/core';
 import { IconButton } from '@virtuocity/ui';
 import { useAppActions } from './actions';
 import { openTextFile, saveTextFile } from './files';
@@ -24,7 +24,12 @@ export function SessionMenu({ session, assets }: SessionMenuProps) {
     void action().catch((error: unknown) => alert(`Something went wrong: ${String(error)}`));
 
   const exportFile = () =>
-    run(async () => saveTextFile(fileName(), await exportBundle(session.save(), assets)));
+    run(async () =>
+      saveTextFile(
+        fileName(),
+        await exportBundle(withActorsWritten(session.save(), session.lookup), assets),
+      ),
+    );
 
   const importFile = () =>
     run(async () => {

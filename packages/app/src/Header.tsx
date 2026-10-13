@@ -5,6 +5,7 @@ import { Calls } from './Calls';
 import { SessionMenu } from './SessionMenu';
 import { StatsBadge } from './StatsBadge';
 import { WhatsNew } from './WhatsNew';
+import { Manual } from './Manual';
 import { useSessions } from './switcher';
 
 export function Header({ session, assets }: { session: SessionRuntime; assets: AssetStore }) {
@@ -19,6 +20,7 @@ export function Header({ session, assets }: { session: SessionRuntime; assets: A
         </span>
         <span className="brand__name">Virtuocity</span>
         <WhatsNew />
+        <Manual />
         <Button variant="ghost" icon="folder" title="Sessions" onClick={openSessions}>
           {open?.name ?? 'Sessions'}
         </Button>

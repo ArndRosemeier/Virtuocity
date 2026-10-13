@@ -75,6 +75,8 @@ export class Library {
   readonly #newId: () => string;
   readonly #now: () => number;
   readonly #upgrade: (actor: Actor) => Actor;
+  /** Every actor as of the last change or `load`, for looking actors up without waiting. */
+  #known = new Map<string, Actor>();
 
   constructor(
     private readonly store: KeyValueStore<unknown>,
@@ -94,6 +96,17 @@ export class Library {
       if (parsed.success) items.push(parsed.data as LibraryItem);
     }
     return items.sort((a, b) => b.savedAt - a.savedAt);
+  }
+
+  /**
+   * The actor with this id, right away, as of the last change or `load`. Sessions
+   * look their library actors up with it (see `SessionConfig.actors`).
+   */
+  readonly actor = (id: string): Actor | undefined => this.#known.get(id);
+
+  /** Reads the stored actors so `actor` finds them, e.g. on start. */
+  load(): Promise<void> {
+    return this.#changed();
   }
 
   async actors(): Promise<Actor[]> {
@@ -126,7 +139,7 @@ export class Library {
   async remove(id: string): Promise<void> {
     await this.store.delete(id);
     await this.#replaceInSetups(id, undefined);
-    this.#changed();
+    await this.#changed();
   }
 
   /**
@@ -148,7 +161,7 @@ export class Library {
       await this.store.set(actor.id, { kind: 'actor', id: actor.id, savedAt: this.#now(), actor });
       result.push(actor);
     }
-    if (steps.length > 0) this.#changed();
+    if (steps.length > 0) await this.#changed();
     return result;
   }
 
@@ -168,7 +181,7 @@ export class Library {
       const adopted = await this.adopt(actors as Actor[], () => Promise.resolve({}));
       await this.store.set(key, { ...setup, actorIds: adopted.map((a) => a.id) });
     }
-    this.#changed();
+    await this.#changed();
   }
 
   /** The whole library as one JSON text. */
@@ -190,7 +203,7 @@ export class Library {
       resolve,
     );
     for (const setup of items.filter(isSetup)) await this.store.set(setup.id, setup);
-    this.#changed();
+    await this.#changed();
     return items.length;
   }
 
@@ -224,11 +237,12 @@ export class Library {
 
   async #put<T extends LibraryItem>(item: T): Promise<T> {
     await this.store.set(item.id, item);
-    this.#changed();
+    await this.#changed();
     return item;
   }
 
-  #changed(): void {
+  async #changed(): Promise<void> {
+    this.#known = new Map((await this.actors()).map((a) => [a.id, a]));
     for (const listener of this.#listeners) listener();
   }
 }
