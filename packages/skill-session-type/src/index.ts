@@ -1,6 +1,6 @@
-import type { SessionTypeDescription } from '@virtuocity/contract-session-type';
-import { sessionTypeContract } from '@virtuocity/contract-session-type';
-import type { Skill, VirtuocityModule } from '@virtuocity/core';
+import type { SessionTypeDescription } from '@virtuocity/core';
+import { sessionTypeContract } from '@virtuocity/core';
+import type { Skill, Starter, VirtuocityModule } from '@virtuocity/core';
 import { choice, defineSettings, implement, readSettings, z } from '@virtuocity/core';
 
 const role = z.object({
@@ -8,10 +8,10 @@ const role = z.object({
     .string()
     .meta({ title: 'Role', description: 'What the guide calls it, e.g. "A narrator".' }),
   hint: z.string().default('').meta({ description: 'One line on what the role adds.' }),
-  speaks: z
+  cast: z
     .boolean()
     .default(false)
-    .meta({ title: 'Talks', description: 'Takes turns in the conversation.' }),
+    .meta({ title: 'In the cast', description: 'Has one of the cast skills above.' }),
   needs: z
     .array(choice('contracts'))
     .default([])
@@ -19,8 +19,13 @@ const role = z.object({
   optional: z.boolean().default(false).meta({ description: 'The session works without it.' }),
 });
 
-/** The roles and panels, as the person sets them in the actor editor. */
+/** Who is cast, the roles and the panels, as the person sets them in the actor editor. */
 export const sessionTypeSettings = defineSettings({
+  castSkills: z.array(choice('cast-skills')).default(['conversation']).meta({
+    title: 'Cast skills',
+    description:
+      'Actors with one of these skills are cast and act on their turn, with the first they have. Everyone else is support.',
+  }),
   roles: z
     .array(role)
     .default([])
@@ -33,13 +38,13 @@ export const sessionTypeSettings = defineSettings({
 
 /** The settings as a description; roles still without a name are left out. */
 export function describeSettings(stored: unknown): SessionTypeDescription {
-  const { roles, panels } = readSettings(sessionTypeSettings, stored);
-  return { roles: roles.filter((r) => r.label.trim() !== ''), panels };
+  const { castSkills, roles, panels } = readSettings(sessionTypeSettings, stored);
+  return { castSkills, roles: roles.filter((r) => r.label.trim() !== ''), panels };
 }
 
 /**
- * A session type written down by hand: a fixed list of roles and panels, set
- * per actor. Roleplay and Book room are actors with this skill.
+ * A session type written down by hand: its cast skills, roles and panels, set
+ * per actor. Roleplay, Book room, Image workflow and Open are actors with this skill.
  */
 export const sessionTypeSkill: Skill = {
   id: 'session-type',
@@ -53,10 +58,23 @@ export const sessionTypeSkill: Skill = {
   ],
 };
 
+/** The plainest session type: every panel, everyone who talks is cast, no suggested roles. */
+export const openType: Starter = {
+  id: 'open',
+  personality: {
+    name: 'Open',
+    description:
+      'Every panel, no suggestions. Add whatever actors you like; those who talk are cast.',
+  },
+  needs: [sessionTypeContract],
+  settings: { 'session-type': { castSkills: ['conversation'], roles: [], panels: [] } },
+};
+
 export const sessionTypeModule: VirtuocityModule = {
   id: 'skill-session-type',
   register: (host) => {
     host.contracts.register(sessionTypeContract);
     host.skills.register(sessionTypeSkill);
+    host.starters.register(openType);
   },
 };

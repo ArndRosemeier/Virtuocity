@@ -6,7 +6,7 @@ import { implement } from './implementation';
 import { arrangeSlot } from './layout';
 import { ModuleHost, loadModules } from './module';
 import { SessionRuntime } from './runtime';
-import { SETUP, hideGuide, sessionStarted, setupDoc, startSavedSetup, startSession } from './setup';
+import { SETUP, hideGuide, sessionStarted, setupDoc, startSession } from './setup';
 import type { Skill } from './skill';
 import { rivalFor, serves } from './skill';
 import type { Starter } from './starter';
@@ -109,21 +109,6 @@ describe('starting sessions', () => {
     expect(started).toEqual([{}]);
     await session.load(session.save());
     expect(started).toHaveLength(1);
-  });
-
-  it('starts a saved setup with the library actors still there', async () => {
-    const session = stageSession();
-    const cast = castStarter(narrator, [talk]);
-    const setup = {
-      kind: 'setup',
-      id: 's',
-      savedAt: 0,
-      name: 'Mine',
-      description: '',
-      actorIds: ['narrator', 'deleted'],
-    } as const;
-    await startSavedSetup(session, setup, cast ? [cast] : []);
-    expect(session.actors.map((a) => a.id)).toEqual(['narrator']);
   });
 
   it('remembers a hidden guide, and ignores blueprints recorded by older versions', async () => {

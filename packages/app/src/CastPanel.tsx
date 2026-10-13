@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Actor } from '@virtuocity/core';
-import { hasActed } from '@virtuocity/core';
+import { hasActed, isSessionType } from '@virtuocity/core';
 import { Avatar, Button, IconButton, Pill } from '@virtuocity/ui';
 import { useAppActions } from './actions';
 import { useActorTips } from './actorTips';
@@ -15,7 +15,8 @@ import { useSwitcher } from './switcher';
 interface CastRowProps {
   readonly actor: Actor;
   readonly speaking: boolean;
-  readonly onLeave: () => void;
+  /** Unset for the session type, which stays as long as the session. */
+  readonly onLeave?: () => void;
 }
 
 /** One actor in the scene, with edit and remove. Editing changes the actor in the library too. */
@@ -42,12 +43,14 @@ function CastRow({ actor: a, speaking, onLeave }: CastRowProps) {
         label={`Edit ${a.personality.name}`}
         onClick={() => openEditActor(a.id)}
       />
-      <IconButton
-        size="sm"
-        icon="trash"
-        label={`Remove ${a.personality.name} from the session`}
-        onClick={onLeave}
-      />
+      {onLeave && (
+        <IconButton
+          size="sm"
+          icon="trash"
+          label={`Remove ${a.personality.name} from the session`}
+          onClick={onLeave}
+        />
+      )}
     </li>
   );
 }
@@ -79,14 +82,21 @@ function useRemove({ session }: PanelProps) {
 }
 
 /**
- * Who is in the scene: the cast (actors who talk) and, apart from it, support
- * actors who work behind the scenes. Actors can join and leave at any time.
+ * Who is in the session: the cast (actors with one of the session type's cast
+ * skills) and, apart from it, support actors. Actors can join and leave at any
+ * time, except the session type, which the session keeps for good.
  */
 function CastPanel({ host, session }: PanelProps) {
   const { openAddActor } = useAppActions();
   const [remove, removeDialog] = useRemove({ host, session });
+  const fixed = (a: Actor) => isSessionType(a, host.skills.list());
   const row = (a: Actor) => (
-    <CastRow key={a.id} actor={a} speaking={session.speaking === a.id} onLeave={() => remove(a)} />
+    <CastRow
+      key={a.id}
+      actor={a}
+      speaking={session.speaking === a.id}
+      {...(fixed(a) ? {} : { onLeave: () => remove(a) })}
+    />
   );
   const cast = session.cast().filter((a) => a.controller === 'ai');
   const support = session.actors.filter(

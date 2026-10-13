@@ -40,17 +40,10 @@ describe('names', () => {
 });
 
 describe('library', () => {
-  it('keeps actors under their own ids, and setups that refer to them', async () => {
+  it('keeps actors under their own ids', async () => {
     const lib = library();
     await lib.saveActor(mira);
-    await lib.saveSetup({
-      name: 'Gate',
-      description: '',
-      actorIds: ['mira'],
-    });
-    const [setup, actor] = await lib.list();
-    expect(setup).toMatchObject({ kind: 'setup', id: 'item-1', actorIds: ['mira'] });
-    expect(actor).toEqual({ kind: 'actor', id: 'mira', savedAt: 100, actor: mira });
+    expect(await lib.list()).toEqual([{ kind: 'actor', id: 'mira', savedAt: 100, actor: mira }]);
   });
 
   it('refuses a name another actor has, but saves edits under the same name', async () => {
@@ -63,18 +56,17 @@ describe('library', () => {
     expect(await lib.nameTaken('Mira', 'mira')).toBe(false);
   });
 
-  it('removes actors from setups, and tells listeners about every change', async () => {
+  it('removes actors, and tells listeners about every change', async () => {
     const lib = library();
     const listener = vi.fn();
     const stop = lib.subscribe(listener);
     await lib.saveActor(mira);
-    await lib.saveSetup({ name: 'Gate', description: '', actorIds: ['mira'] });
     await lib.remove('mira');
-    expect(await lib.list()).toMatchObject([{ kind: 'setup', actorIds: [] }]);
-    expect(listener).toHaveBeenCalledTimes(3);
+    expect(await lib.list()).toEqual([]);
+    expect(listener).toHaveBeenCalledTimes(2);
     stop();
     await lib.saveActor(mira);
-    expect(listener).toHaveBeenCalledTimes(3);
+    expect(listener).toHaveBeenCalledTimes(2);
   });
 
   it('skips stored items that are not valid', async () => {
@@ -90,12 +82,10 @@ describe('adopting actors', () => {
   it('adds new names and links the same actor under the incoming id', async () => {
     const lib = library();
     await lib.saveActor(mira);
-    await lib.saveSetup({ name: 'Gate', description: '', actorIds: ['mira'] });
     const wren = renamed(mira, 'Wren', 'wren');
     const adopted = await lib.adopt([{ ...mira, id: 'mira-2' }, wren], keep);
     expect(adopted.map((a) => a.id)).toEqual(['mira-2', 'wren']);
     expect((await lib.actors()).map((a) => a.id).sort()).toEqual(['mira-2', 'wren']);
-    expect(await lib.list()).toContainEqual(expect.objectContaining({ actorIds: ['mira-2'] }));
   });
 
   it('asks about a taken name with different details, and keeps or replaces', async () => {
@@ -127,32 +117,27 @@ describe('adopting actors', () => {
 });
 
 describe('older libraries', () => {
-  it('get unique names, actor ids that match, and setups that refer to actors', async () => {
+  it('get unique names and actor ids that match, and lose their saved setups', async () => {
     const store = memoryStore<unknown>();
     await store.set('a', { kind: 'actor', id: 'a', savedAt: 1, actor: mira });
     await store.set('b', { kind: 'actor', id: 'b', savedAt: 2, actor: mira });
-    const legacy = { kind: 'setup', id: 's', savedAt: 3, name: 'Gate', description: '' };
-    await store.set('s', { ...legacy, actors: [renamed(mira, 'Wren', 'wren')] });
+    await store.set('s', { kind: 'setup', id: 's', savedAt: 3, actorIds: ['a'] });
     const lib = library(store);
     await lib.migrate();
     const actors = await lib.actors();
     expect(actors.map((a) => [a.id, a.personality.name]).sort()).toEqual([
       ['a', 'Mira'],
       ['b', 'Mira 2'],
-      ['wren', 'Wren'],
     ]);
-    expect(await lib.list()).toContainEqual(
-      expect.objectContaining({ id: 's', actorIds: ['wren'] }),
-    );
+    expect(await store.get('s')).toBeUndefined();
   });
 
   it('export and import with the same rules', async () => {
     const source = library();
     await source.saveActor(mira);
-    await source.saveSetup({ name: 'Solo', description: '', actorIds: ['mira'] });
     const target = library();
-    expect(await target.importText(await source.exportText(), keep)).toBe(2);
-    expect((await target.list()).map((i) => i.id).sort()).toEqual(['item-1', 'mira']);
+    expect(await target.importText(await source.exportText(), keep)).toBe(1);
+    expect((await target.list()).map((i) => i.id)).toEqual(['mira']);
     await expect(target.importText('{"format":"other"}', keep)).rejects.toThrow(
       'Not a Virtuocity library',
     );

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useReducer } from 'react';
 import type { Actor, AssetStore, KeyValueStore, Library, ResolveConflicts } from '@virtuocity/core';
 import { SessionRuntime } from '@virtuocity/core';
 import { SessionCatalog } from './sessions';
-import { SessionSwitcher } from './switcher';
+import { SessionSwitcher, typeDeps } from './switcher';
 import type { AppHost } from './types';
 import { readModelDefaults } from './settings';
 import { ensureStoryView } from './storyView';
@@ -61,6 +61,10 @@ export function useSession(
           await ensureCast(host, runtime);
         },
         scratch: () => createRuntime(host, assets, library),
+        ...typeDeps(
+          () => host.skills.list(),
+          () => library.actors(),
+        ),
       }),
     [host, session, store, assets, library, resolve],
   );

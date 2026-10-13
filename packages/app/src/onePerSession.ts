@@ -1,7 +1,7 @@
 import type { Actor, SessionRuntime } from '@virtuocity/core';
 import { rivalFor } from '@virtuocity/core';
 import { directorContract } from '@virtuocity/contract-director';
-import { sessionTypeContract } from '@virtuocity/contract-session-type';
+import { sessionTypeContract } from '@virtuocity/core';
 import type { AppHost } from './types';
 
 /** Contracts a session has at most one of, and what the one actor serving it does there. */

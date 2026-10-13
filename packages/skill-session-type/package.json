@@ -7,7 +7,6 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@virtuocity/contract-session-type": "*",
     "@virtuocity/core": "*"
   }
 }

@@ -1,6 +1,13 @@
 import { createContext, useContext, useEffect, useState, useSyncExternalStore } from 'react';
 import type { Actor, SessionRuntime } from '@virtuocity/core';
-import { headMoved, stateChanged } from '@virtuocity/core';
+import type { Skill } from '@virtuocity/core';
+import {
+  headMoved,
+  isSessionType,
+  sessionTypeOf,
+  startSession,
+  stateChanged,
+} from '@virtuocity/core';
 import { listenerSet } from './listeners';
 import type { SessionCatalog, SessionEntry } from './sessions';
 import type { Setting } from './settings';
@@ -27,6 +34,33 @@ export interface SwitcherDeps {
   readonly prepare: (runtime: SessionRuntime, fromFile: boolean) => Promise<void>;
   /** A runtime that is never shown, for reading a stored session's cast. */
   readonly scratch: () => SessionRuntime;
+  /** Whether the runtime's session has its session type; a session without one is not kept. */
+  readonly typed: (runtime: SessionRuntime) => boolean;
+  /** The session type a session the app starts on its own gets, if the library has one. */
+  readonly firstType: () => Promise<Actor | undefined>;
+}
+
+/**
+ * The switcher's session-type deps: a session is typed by an actor serving
+ * session-type; one the app starts on its own gets the library's oldest type
+ * (on a fresh start the first one offered, Open).
+ */
+export function typeDeps(
+  skills: () => readonly Skill[],
+  library: () => Promise<readonly Actor[]>,
+): Pick<SwitcherDeps, 'typed' | 'firstType'> {
+  return {
+    typed: (runtime) => sessionTypeOf(runtime.actors, skills()) !== undefined,
+    firstType: async () => (await library()).filter((a) => isSessionType(a, skills())).at(-1),
+  };
+}
+
+/** A session loaded from a file that has no session type. */
+export class UntypedSessionError extends Error {
+  constructor() {
+    super('This session has no session type (or cannot be read), so it cannot be opened.');
+    this.name = 'UntypedSessionError';
+  }
 }
 
 /**
@@ -69,30 +103,53 @@ export class SessionSwitcher {
     if (this.#id) await this.catalog.saveState(this.#id, this.#deps.runtime.save());
   }
 
-  /** Opens the session that was open last, else the first one, else a new empty one. */
+  /**
+   * Opens the session that was open last, else the first one, else a new one
+   * of the library's first session type. Sessions without a type (and ones
+   * that cannot be read) are deleted on the way. With no session type at all,
+   * nothing is kept open until the person makes one.
+   */
   async restore(): Promise<void> {
-    const entries = await this.catalog.list();
-    const last = entries.find((e) => e.id === readSetting(OPEN_SESSION) && !e.template);
-    const next = last ?? entries.find((e) => !e.template);
-    if (next) await this.open(next.id);
-    else await this.startNew(await this.catalog.freeName(FIRST_SESSION));
+    for (;;) {
+      const entries = (await this.catalog.list()).filter((e) => !e.template);
+      const next = entries.find((e) => e.id === readSetting(OPEN_SESSION)) ?? entries[0];
+      if (!next) break;
+      if (await this.#tryOpen(next.id)) return;
+      await this.catalog.remove(next.id);
+    }
+    const type = await this.#deps.firstType();
+    if (type) {
+      const name = await this.catalog.freeName(FIRST_SESSION);
+      await this.startNew(name, (runtime) => startSession(runtime, [type]));
+    } else await this.#swap((runtime) => runtime.workspace.load([], null));
   }
 
+  /** Opens a stored session. One that cannot be read or has no type is deleted, and another opens. */
   async open(id: string): Promise<void> {
+    if (await this.#tryOpen(id)) return;
+    await this.catalog.remove(id);
+    await this.restore();
+    throw new UntypedSessionError();
+  }
+
+  async #tryOpen(id: string): Promise<boolean> {
     const stored = await this.catalog.get(id);
-    if (!stored) return;
+    if (!stored) return false;
+    let readable = true;
     await this.#swap(async (runtime) => {
       try {
         await runtime.load(stored.state);
       } catch (error) {
-        console.error('Could not load the session; it starts empty.', error);
-        await runtime.workspace.load([], null);
+        console.error('Could not load the session.', error);
+        readable = false;
       }
     });
+    if (!readable || !this.#deps.typed(this.#deps.runtime)) return false;
     this.#show(id);
+    return true;
   }
 
-  /** Starts an empty session, which `fill` may set up (e.g. from a blueprint). */
+  /** Starts an empty session, which `fill` sets up with its session type. */
   async startNew(name: string, fill: Load = async () => {}) {
     await this.#startAs(name, async (runtime) => {
       await runtime.workspace.load([], null);
@@ -101,7 +158,7 @@ export class SessionSwitcher {
     });
   }
 
-  /** Starts a new session from a session loaded from a file. */
+  /** Starts a new session from a session loaded from a file; refuses one without a type. */
   async startFrom(name: string, state: unknown): Promise<void> {
     await this.#startAs(name, (runtime) => runtime.load(state), true);
   }
@@ -150,6 +207,10 @@ export class SessionSwitcher {
 
   async #startAs(name: string, load: Load, fromFile = false): Promise<void> {
     await this.#swap(load, fromFile);
+    if (!this.#deps.typed(this.#deps.runtime)) {
+      await this.restore();
+      throw new UntypedSessionError();
+    }
     this.#show(await this.catalog.create(name, this.#deps.runtime.save()));
   }
 

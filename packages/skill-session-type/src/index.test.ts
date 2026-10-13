@@ -1,7 +1,7 @@
-import { sessionTypeContract } from '@virtuocity/contract-session-type';
-import { conformanceSuite, conformanceTarget } from '@virtuocity/core';
+import { sessionTypeContract } from '@virtuocity/core';
+import { castStarter, conformanceSuite, conformanceTarget } from '@virtuocity/core';
 import { describe, expect, it } from 'vitest';
-import { describeSettings, sessionTypeSkill } from './index';
+import { describeSettings, openType, sessionTypeSkill } from './index';
 
 describe('session type skill conforms to session-type', () => {
   const target = conformanceTarget(sessionTypeContract, { skills: [sessionTypeSkill] });
@@ -11,18 +11,36 @@ describe('session type skill conforms to session-type', () => {
 });
 
 describe('session type settings', () => {
-  it('describe nothing by default: no roles, every panel', () => {
-    expect(describeSettings(undefined)).toEqual({ roles: [], panels: [] });
+  it('cast talking actors by default, with no roles and every panel', () => {
+    expect(describeSettings(undefined)).toEqual({
+      castSkills: ['conversation'],
+      roles: [],
+      panels: [],
+    });
   });
 
   it('fill in defaults and leave out roles without a name', () => {
     const stored = {
-      roles: [{ label: 'A narrator', speaks: true }, { label: ' ' }],
+      castSkills: ['illustrator'],
+      roles: [{ label: 'A narrator', cast: true }, { label: ' ' }],
       panels: ['story', 'composer'],
     };
     expect(describeSettings(stored)).toEqual({
-      roles: [{ label: 'A narrator', hint: '', speaks: true, needs: [], optional: false }],
+      castSkills: ['illustrator'],
+      roles: [{ label: 'A narrator', hint: '', cast: true, needs: [], optional: false }],
       panels: ['story', 'composer'],
+    });
+  });
+});
+
+describe('the Open session type', () => {
+  it('shows every panel, casts talking actors and suggests nothing', () => {
+    const open = castStarter(openType, [sessionTypeSkill]);
+    expect(open?.skillIds).toEqual(['session-type']);
+    expect(describeSettings(open?.settings?.['session-type'])).toEqual({
+      castSkills: ['conversation'],
+      roles: [],
+      panels: [],
     });
   });
 });

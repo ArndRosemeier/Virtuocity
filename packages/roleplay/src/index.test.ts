@@ -1,5 +1,5 @@
 import { premiseContract } from '@virtuocity/contract-premise';
-import { sessionTypeContract } from '@virtuocity/contract-session-type';
+import { sessionTypeContract } from '@virtuocity/core';
 import type { Skill } from '@virtuocity/core';
 import { ModuleHost, castStarter, implement, loadModules, parseRef } from '@virtuocity/core';
 import { describe, expect, it } from 'vitest';
@@ -12,7 +12,7 @@ const typed: Skill = {
   backing: 'code',
   implements: [
     implement(sessionTypeContract, {
-      describe: () => Promise.resolve({ roles: [], panels: [] }),
+      describe: () => Promise.resolve({ castSkills: [], roles: [], panels: [] }),
     }),
   ],
 };

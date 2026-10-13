@@ -5,10 +5,9 @@ import type {
   LibraryItem,
   ResolveConflicts,
   SavedActor,
-  SavedSetup,
   SessionRuntime,
 } from '@virtuocity/core';
-import { CAST, castDoc, includeKnownActors } from '@virtuocity/core';
+import { CAST, castDoc, includeKnownActors, isSessionType } from '@virtuocity/core';
 import { assertCanJoin } from './onePerSession';
 import { STORY_VIEW } from './storyView';
 import type { AppHost } from './types';
@@ -23,7 +22,6 @@ export function useLibrary(): Library {
 
 export interface LibraryItems {
   readonly actors: readonly SavedActor[];
-  readonly setups: readonly SavedSetup[];
 }
 
 /** The library's items, reloaded after every change. */
@@ -40,10 +38,7 @@ export function useLibraryItems(): LibraryItems {
       stop();
     };
   }, [library]);
-  return {
-    actors: items.filter((i): i is SavedActor => i.kind === 'actor'),
-    setups: items.filter((i): i is SavedSetup => i.kind === 'setup'),
-  };
+  return { actors: items };
 }
 
 /** Actors that live in the library: every AI actor but the story view, which the app manages. */
@@ -53,12 +48,23 @@ export function isLibraryActor(actor: Actor): boolean {
 
 /**
  * Saves an actor in the library; every session that includes it has the change.
- * Refuses, saving nothing, when the change would give the open session a second director.
+ * Refuses, saving nothing, when the change would give the open session a second
+ * director, or would make a session type an ordinary actor or the other way round:
+ * sessions rely on their type staying one.
  */
 export async function saveEverywhere(
   { host, library, session }: { host: AppHost; library: Library; session: SessionRuntime },
   actor: Actor,
 ): Promise<void> {
+  const before = library.actor(actor.id);
+  const skills = host.skills.list();
+  if (before && isSessionType(before, skills) !== isSessionType(actor, skills)) {
+    throw new Error(
+      isSessionType(before, skills)
+        ? `${before.personality.name} is a session type and keeps the Session type skill. Copy it to make another actor.`
+        : `${before.personality.name} cannot become a session type. Create a new actor with the Session type skill instead.`,
+    );
+  }
   if (session.actors.some((a) => a.id === actor.id)) assertCanJoin(host, session, actor);
   await library.saveActor(actor);
 }
@@ -85,7 +91,3 @@ export async function syncCast(
   if (copies.length > 0) await library.adopt(copies, resolve);
   await includeKnownActors(session);
 }
-
-/** The names of a setup's actors that are still in the library. */
-export const setupNames = (setup: SavedSetup, actors: readonly Actor[]) =>
-  setup.actorIds.flatMap((id) => actors.find((a) => a.id === id)?.personality.name ?? []);

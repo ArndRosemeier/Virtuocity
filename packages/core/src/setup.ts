@@ -3,7 +3,6 @@ import type { Actor } from './actor';
 import { defineDocType } from './doc-type';
 import type { EventBus } from './events';
 import { defineEvent } from './events';
-import type { SavedSetup } from './library';
 import type { SessionRuntime } from './runtime';
 
 export interface Setup {
@@ -70,16 +69,4 @@ export function hideGuide(session: Pick<SessionRuntime, 'workspace'>): Promise<u
     docType: setupDoc,
     payload: { type: 'hide-guide' },
   });
-}
-
-/** Starts a saved setup with its actors, as the library holds them. */
-export function startSavedSetup(
-  session: Session,
-  setup: SavedSetup,
-  library: readonly Actor[],
-): Promise<void> {
-  return startSession(
-    session,
-    setup.actorIds.flatMap((id) => library.find((a) => a.id === id) ?? []),
-  );
 }

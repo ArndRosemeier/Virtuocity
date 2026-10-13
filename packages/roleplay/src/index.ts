@@ -2,7 +2,7 @@ import { directorContract } from '@virtuocity/contract-director';
 import { summarizerContract } from '@virtuocity/contract-memory';
 import { premiseContract } from '@virtuocity/contract-premise';
 import { illustratorContract } from '@virtuocity/contract-visual';
-import { sessionTypeContract } from '@virtuocity/contract-session-type';
+import { sessionTypeContract } from '@virtuocity/core';
 import type { Starter, VirtuocityModule } from '@virtuocity/core';
 
 /** The Roleplay session type: how such a session looks and which roles its guide suggests. */
@@ -16,6 +16,7 @@ export const roleplayType: Starter = {
   needs: [sessionTypeContract],
   settings: {
     'session-type': {
+      castSkills: ['conversation'],
       roles: [
         {
           label: 'A premise',
@@ -26,7 +27,7 @@ export const roleplayType: Starter = {
         {
           label: 'A narrator',
           hint: 'Talks. Describes the world and what happens; the usual start.',
-          speaks: true,
+          cast: true,
         },
         {
           label: 'A director',
@@ -37,7 +38,7 @@ export const roleplayType: Starter = {
         {
           label: 'AI players',
           hint: 'Talk. Characters who play along with you; add one, several or none.',
-          speaks: true,
+          cast: true,
           optional: true,
         },
         {

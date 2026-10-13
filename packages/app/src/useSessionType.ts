@@ -1,30 +1,19 @@
 import { createContext, useContext } from 'react';
-import type { SessionTypeDescription } from '@virtuocity/contract-session-type';
-import { sessionTypeContract } from '@virtuocity/contract-session-type';
+import { sessionTypeOf } from '@virtuocity/core';
 import type { TypeState } from './sessionType';
-import { sessionTypeOf } from './sessionType';
 import type { PanelProps } from './types';
-import { useAnswer } from './useParts';
 
-const NONE: SessionTypeDescription = { roles: [], panels: [] };
-
-/** Asks the session's type how the session looks, again whenever the session changes. */
+/**
+ * How the session's type describes it, as the runtime last heard. The app
+ * redraws on every session event, including the type's new descriptions.
+ */
 export function useTypeState({ host, session }: PanelProps): TypeState {
-  const actor = sessionTypeOf(session.actors, host.skills.list());
-  const shown = useAnswer(
-    session,
-    () =>
-      actor ? session.invoke(actor.id, sessionTypeContract, 'describe', {}) : Promise.resolve(NONE),
-    actor ? `${actor.id} ${JSON.stringify(actor.settings ?? {})} ${actor.skillIds.join()}` : '',
-  );
-  if (!actor) return { kind: 'none' };
-  if (!shown) return { kind: 'asking' };
-  // A type that cannot describe itself shows every panel rather than none.
-  if ('error' in shown) return { kind: 'none' };
-  return { kind: 'described', actor, description: shown };
+  if (!sessionTypeOf(session.actors, host.skills.list())) return { kind: 'none' };
+  const described = session.sessionType();
+  return described ? { kind: 'described', ...described } : { kind: 'asking' };
 }
 
-/** The open session's type, as the app asked it once for every slot and the guide. */
+/** The open session's type, as the app read it once for every slot and the guide. */
 export const TypeStateContext = createContext<TypeState>({ kind: 'none' });
 
 export const useSessionType = (): TypeState => useContext(TypeStateContext);

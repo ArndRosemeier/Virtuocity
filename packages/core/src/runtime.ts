@@ -14,10 +14,13 @@ import { EventBus, defineEvent } from './events';
 import { FlowRunner } from './flow-runner';
 import type { VEvent } from './events';
 import { HumanTaskQueue } from './human-tasks';
-import { withInstructions } from './instructions';
+import { instructedMessages } from './instructions';
 import { JobQueue } from './jobs';
 import type { Implementation } from './implementation';
 import { ContractError, invokeAction } from './implementation';
+import type { DescribedType } from './session-type';
+import { sessionTypeContract, sessionTypeDescribed } from './session-type';
+import { SessionCast } from './session-cast';
 import type { ModelOverrides } from './models';
 import { parseModelRef, resolveModel } from './models';
 import type { ModuleHost } from './module';
@@ -77,6 +80,13 @@ export class SessionRuntime {
   readonly #now: () => number;
   readonly #spent: CallStats[] = [];
   #speaking: string | undefined;
+  readonly #cast = new SessionCast({
+    actors: () => this.actors,
+    skills: () => this.config.host.skills.list(),
+    skillsOf: (actor) => this.#skills(actor),
+    ask: (type) => this.invoke(type.id, sessionTypeContract, 'describe', {}),
+    announce: (type) => this.bus.emit(sessionTypeDescribed.create({ actorId: type.id })),
+  });
   /** Aborts the model calls of the turn being taken. */
   #turn: AbortController | undefined;
 
@@ -111,6 +121,7 @@ export class SessionRuntime {
   async join(actor: Actor): Promise<void> {
     const payload = joinOp(actor, this.lookup);
     await this.workspace.change({ actorId: actor.id, docId: CAST, docType: castDoc, payload });
+    await this.#cast.settle();
     await this.bus.emit(actorJoined.create({ actorId: actor.id }));
   }
 
@@ -118,6 +129,7 @@ export class SessionRuntime {
     if (!this.actors.some((a) => a.id === actorId)) return;
     const payload = { type: 'leave', actorId } as const;
     await this.workspace.change({ actorId, docId: CAST, docType: castDoc, payload });
+    await this.#cast.settle();
     await this.bus.emit(actorLeft.create({ actorId }));
   }
 
@@ -190,6 +202,7 @@ export class SessionRuntime {
     const operations = migrateOperations(saved.operations, docTypes);
     this.#spent.splice(0, this.#spent.length, ...saved.spent);
     await this.workspace.load(operations, saved.head);
+    await this.#cast.settle();
   }
 
   /** Stats of every AI call in the session, including ones on discarded branches. */
@@ -198,23 +211,26 @@ export class SessionRuntime {
   }
 
   /**
-   * The cast: people and the AI actors that take turns in the conversation.
-   * Everyone else (an illustrator, a chronicler, the story view) is support.
+   * The session's type (see `sessionTypeContract`) as it last described
+   * itself; undefined without a type, or until it first answers.
    */
-  cast(): Actor[] {
-    return this.actors.filter((a) => a.controller === 'human' || this.#turnSkill(a) !== undefined);
+  sessionType(): DescribedType | undefined {
+    return this.#cast.type();
   }
 
-  /** AI actors that hold a turn-taking skill. */
+  /** People, and the AI actors the session type casts (see `SessionCast`). */
+  cast(): Actor[] {
+    return this.#cast.cast();
+  }
+
+  /** AI actors in the cast. */
   speakers(): Actor[] {
-    return this.actors.filter((a) => a.controller === 'ai' && this.#turnSkill(a) !== undefined);
+    return this.#cast.speakers();
   }
 
   /** AI support actors a person can ask to act (`onRequest`); a director never picks them. */
   askable(): Actor[] {
-    return this.actors.filter(
-      (a) => a.controller === 'ai' && !this.#turnSkill(a) && this.#requestSkill(a) !== undefined,
-    );
+    return this.#cast.askable();
   }
 
   /**
@@ -223,7 +239,7 @@ export class SessionRuntime {
    */
   async runTurn(actorId: string): Promise<void> {
     const actor = this.actors.find((a) => a.id === actorId);
-    const skill = actor && (this.#turnSkill(actor) ?? this.#requestSkill(actor));
+    const skill = actor && this.#cast.actingSkill(actor);
     const act = skill?.takeTurn ?? skill?.onRequest;
     if (!actor || !skill || !act) throw new Error(`"${actorId}" cannot take a turn`);
     const turn = new AbortController();
@@ -290,35 +306,24 @@ export class SessionRuntime {
     return actor;
   }
 
-  #turnSkill(actor: Actor): Skill | undefined {
-    return this.#skills(actor).find((s) => s.takeTurn);
-  }
-
-  #requestSkill(actor: Actor): Skill | undefined {
-    return this.#skills(actor).find((s) => s.onRequest);
-  }
-
   #context(actor: Actor, skill: Skill): SkillContext {
     const complete = (request: ModelRequest) => this.#complete(actor, skill, request);
     const decide = (request: Omit<DecisionRequest, 'model'>) => this.#decide(actor, skill, request);
+    const skills = this.#skills(actor);
     const contributors = this.config.host.contextContributors.list();
-    return createSkillContext(this, actor, skill, {
-      complete,
-      decide,
-      skills: this.#skills(actor),
-      contributors,
-    });
+    return createSkillContext(this, actor, skill, { complete, decide, skills, contributors });
   }
 
   /** Runs one model call for a skill: picks the model, traces the call, records its cost. */
   #complete(actor: Actor, skill: Skill, request: ModelRequest): Promise<CompletionResult> {
-    const model = resolveModel(request.modality, {
-      defaults: this.config.modelDefaults(),
-      actor: actor.models,
-      skill: skill.models,
-    });
+    const model = resolveModel(request.modality, this.#models(actor, skill));
     const messages = this.#instructed(actor, request);
     return this.#call({ actorId: actor.id, skillId: skill.id }, { ...request, messages, model });
+  }
+
+  /** The model choices that apply to a skill's calls, from the defaults to the skill's own. */
+  #models(actor: Actor, skill: Skill) {
+    return { defaults: this.config.modelDefaults(), actor: actor.models, skill: skill.models };
   }
 
   /** Runs one decision call for a skill, traced and counted like any model call. */
@@ -327,12 +332,7 @@ export class SessionRuntime {
     skill: Skill,
     request: Omit<DecisionRequest, 'model'>,
   ): Promise<DecisionResult> {
-    const layers = {
-      defaults: this.config.modelDefaults(),
-      actor: actor.models,
-      skill: skill.models,
-    };
-    const model = resolveModel(DECISIONS_MODALITY.id, layers);
+    const model = resolveModel(DECISIONS_MODALITY.id, this.#models(actor, skill));
     const providers = (id: string) => this.config.host.providers.get(id);
     const call = decisionCall(model, request, providers);
     await this.#call({ actorId: actor.id, skillId: skill.id }, call.traced, call.run);
@@ -374,11 +374,7 @@ export class SessionRuntime {
   #instructed(actor: Actor, request: ModelRequest): ModelRequest['messages'] {
     if (request.modality !== 'text') return request.messages;
     const who = { actor, actors: this.actors, cast: this.cast() };
-    const sources = this.config.host.instructions.list();
-    return withInstructions(
-      request.messages,
-      sources.flatMap((s) => s.instructions(who)),
-    );
+    return instructedMessages(request.messages, this.config.host.instructions.list(), who);
   }
 
   /** Delivers events to every skill of every actor that listens for them. */

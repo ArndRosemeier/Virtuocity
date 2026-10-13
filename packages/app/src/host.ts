@@ -1,5 +1,6 @@
 import { bookRoomModule } from '@virtuocity/book-room';
 import { ModuleHost, coreModule, loadModules } from '@virtuocity/core';
+import { imageWorkflowModule } from '@virtuocity/image-workflow';
 import { anthropicModule } from '@virtuocity/anthropic';
 import { openAIModule, openRouterModule } from '@virtuocity/openai-api';
 import { conversationModule } from '@virtuocity/skill-conversation';
@@ -66,6 +67,7 @@ export function createHost(): AppHost {
     roleplayViewModule as AppModule,
     roleplayModule as AppModule,
     bookRoomModule as AppModule,
+    imageWorkflowModule as AppModule,
     bookPanelModule,
   ]);
 }

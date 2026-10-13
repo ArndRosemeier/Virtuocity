@@ -4,7 +4,7 @@ import { nameKey } from './actor-names';
 import { actorSchema } from './cast';
 import type { ResolveConflicts } from './library-import';
 import { planImport, settle } from './library-import';
-import { legacySetupSchema, migrateItem, setupBaseSchema, uniqueNames } from './library-migrate';
+import { migrateItem, uniqueNames } from './library-migrate';
 import type { KeyValueStore } from './storage';
 
 /** An actor kept for reuse in any session; its library id is the actor's id. */
@@ -15,27 +15,21 @@ export interface SavedActor {
   readonly actor: LibraryActor;
 }
 
-/** A cast kept for reuse: library actors started together (its session type among them). */
-export interface SavedSetup {
-  readonly kind: 'setup';
-  readonly id: string;
-  readonly savedAt: number;
-  readonly name: string;
-  readonly description: string;
-  readonly actorIds: readonly string[];
-}
+/** What the library keeps: actors only (saved setups were dropped for session types and templates). */
+export type LibraryItem = SavedActor;
 
-export type LibraryItem = SavedActor | SavedSetup;
+export const libraryItemSchema = z.object({
+  kind: z.literal('actor'),
+  id: z.string(),
+  savedAt: z.number(),
+  actor: actorSchema,
+});
 
-export const libraryItemSchema = z.discriminatedUnion('kind', [
-  z.object({ kind: z.literal('actor'), id: z.string(), savedAt: z.number(), actor: actorSchema }),
-  setupBaseSchema.extend({ actorIds: z.array(z.string()) }),
-]);
-
+/** Older files may still list setups; they are skipped. */
 const fileSchema = z.object({
   format: z.literal('virtuocity.library'),
   formatVersion: z.literal(2),
-  items: z.array(libraryItemSchema),
+  items: z.array(z.unknown()),
 });
 
 /** Saving an actor under a name another actor already has. */
@@ -53,20 +47,11 @@ export interface LibraryOptions {
   readonly upgrade?: (actor: Actor) => Actor;
 }
 
-export interface SetupDraft {
-  readonly name: string;
-  readonly description: string;
-  readonly actorIds: readonly string[];
-}
-
 /** Marks an actor as the library's own; only the library does this. */
 const held = (actor: Actor) => actor as LibraryActor;
 
-const isActor = (i: LibraryItem): i is SavedActor => i.kind === 'actor';
-const isSetup = (i: LibraryItem): i is SavedSetup => i.kind === 'setup';
-
 /**
- * The actors and setups you keep. Every actor in a session is one of these:
+ * The actors you keep. Every actor in a session is one of these:
  * sessions refer to library actors by id, and names are unique. Items that
  * fail validation are skipped, never thrown.
  */
@@ -93,7 +78,7 @@ export class Library {
     for (const key of await this.store.keys()) {
       const parsed = libraryItemSchema.safeParse(migrateItem(key, await this.store.get(key)));
       // Zod types optional fields as `T | undefined`; parsed data never holds an explicit undefined.
-      if (parsed.success) items.push(parsed.data as LibraryItem);
+      if (parsed.success) items.push({ ...parsed.data, actor: held(parsed.data.actor as Actor) });
     }
     return items.sort((a, b) => b.savedAt - a.savedAt);
   }
@@ -110,7 +95,7 @@ export class Library {
   }
 
   async actors(): Promise<LibraryActor[]> {
-    return (await this.list()).filter(isActor).map((i) => i.actor);
+    return (await this.list()).map((i) => i.actor);
   }
 
   /** Whether another actor than `exceptId` has this name. */
@@ -129,14 +114,9 @@ export class Library {
     return this.#put({ kind: 'actor', id: actor.id, savedAt: this.#now(), actor: held(actor) });
   }
 
-  saveSetup(draft: SetupDraft): Promise<SavedSetup> {
-    return this.#put({ kind: 'setup', id: this.#newId(), savedAt: this.#now(), ...draft });
-  }
-
-  /** Removes an item; a removed actor also leaves every setup. */
+  /** Removes an actor. */
   async remove(id: string): Promise<void> {
     await this.store.delete(id);
-    await this.#replaceInSetups(id, undefined);
     await this.#changed();
   }
 
@@ -163,21 +143,17 @@ export class Library {
     return result;
   }
 
-  /** Brings a library saved by an older version up to date: current skills, unique names, setups that refer to actors. */
+  /** Brings a library saved by an older version up to date: current skills, unique names, no setups. */
   async migrate(): Promise<void> {
-    const saved = (await this.list()).filter(isActor).sort((a, b) => a.savedAt - b.savedAt);
+    const saved = (await this.list()).sort((a, b) => a.savedAt - b.savedAt);
     const renamed = uniqueNames(saved.map((i) => this.#upgrade(i.actor)));
     for (const [i, item] of saved.entries()) {
       const actor = renamed[i];
       if (actor && actor !== item.actor) await this.store.set(item.id, { ...item, actor });
     }
     for (const key of await this.store.keys()) {
-      const legacy = legacySetupSchema.safeParse(await this.store.get(key));
-      if (!legacy.success) continue;
-      const { actors, ...setup } = legacy.data;
-      // Zod types optional fields as `T | undefined`; parsed data never holds an explicit undefined.
-      const adopted = await this.adopt(actors as Actor[], () => Promise.resolve({}));
-      await this.store.set(key, { ...setup, actorIds: adopted.map((a) => a.id) });
+      const item = migrateItem(key, await this.store.get(key));
+      if (!libraryItemSchema.safeParse(item).success) await this.store.delete(key);
     }
     await this.#changed();
   }
@@ -191,18 +167,18 @@ export class Library {
     });
   }
 
-  /** Adds an exported library: actors as `adopt` does, setups as they are. Returns the item count. */
+  /** Adds the actors of an exported library as `adopt` does. Returns how many there were. */
   async importText(text: string, resolve: ResolveConflicts): Promise<number> {
     const parsed = fileSchema.safeParse(JSON.parse(text));
     if (!parsed.success) throw new Error(`Not a Virtuocity library: ${parsed.error.message}`);
-    const items = parsed.data.items as LibraryItem[];
-    await this.adopt(
-      items.filter(isActor).map((i) => i.actor),
-      resolve,
-    );
-    for (const setup of items.filter(isSetup)) await this.store.set(setup.id, setup);
+    const actors = parsed.data.items.flatMap((item) => {
+      const valid = libraryItemSchema.safeParse(item);
+      // Zod types optional fields as `T | undefined`; parsed data never holds an explicit undefined.
+      return valid.success ? [valid.data.actor as Actor] : [];
+    });
+    await this.adopt(actors, resolve);
     await this.#changed();
-    return items.length;
+    return actors.length;
   }
 
   /** Calls `listener` after every change; returns a function that stops it. */
@@ -219,18 +195,9 @@ export class Library {
 
   async #rekey(fromId: string, toId: string): Promise<void> {
     const item = (await this.list()).find((i) => i.id === fromId);
-    if (!item || !isActor(item)) return;
+    if (!item) return;
     await this.store.delete(fromId);
     await this.store.set(toId, { ...item, id: toId, actor: { ...item.actor, id: toId } });
-    await this.#replaceInSetups(fromId, toId);
-  }
-
-  async #replaceInSetups(fromId: string, toId: string | undefined): Promise<void> {
-    for (const setup of (await this.list()).filter(isSetup)) {
-      if (!setup.actorIds.includes(fromId)) continue;
-      const actorIds = setup.actorIds.flatMap((id) => (id !== fromId ? [id] : toId ? [toId] : []));
-      await this.store.set(setup.id, { ...setup, actorIds });
-    }
   }
 
   async #put<T extends LibraryItem>(item: T): Promise<T> {
