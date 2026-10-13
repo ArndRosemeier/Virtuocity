@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import type { Actor } from './actor';
+import type { Actor, LibraryActor } from './actor';
+import type { CastOp } from './cast';
 import { CAST } from './cast';
-import { includeKnownActors, withActorsWritten } from './cast-refs';
+import { actorCopies, includeKnownActors, withActorsWritten } from './cast-refs';
 import { coreModule } from './core-module';
 import { ModuleHost, loadModules } from './module';
 import { textContent } from './output';
@@ -76,5 +77,20 @@ describe('library actors in a session', () => {
     await session.join(wren);
     const saved = withActorsWritten(session.save(), session.lookup);
     expect(saved.operations.map((op) => op.payload)).toEqual([{ type: 'join', actor: wren }]);
+  });
+
+  it('finds copies of library actors, by id or by name', async () => {
+    const { session } = setup();
+    const namesake = { ...wren, id: 'other' };
+    await session.join(namesake);
+    await session.join(you);
+    expect(actorCopies(session.save().operations, [wren])).toEqual([namesake]);
+  });
+
+  it("cannot store a library actor as a session's own, by type", () => {
+    const held = wren as LibraryActor;
+    // @ts-expect-error A library actor is included by id, never kept as a copy.
+    const op: CastOp = { type: 'join', actor: held };
+    expect(op.type).toBe('join');
   });
 });
