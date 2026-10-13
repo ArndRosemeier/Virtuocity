@@ -43,7 +43,7 @@ export function systemPrompt(
   actor: Actor,
   others: readonly Actor[],
   settings: ConversationSettings = conversationSettings.parse({}),
-  context = '',
+  { context = '', secrets = false }: { readonly context?: string; readonly secrets?: boolean } = {},
 ): string {
   const cast = others.map((a) => a.personality.name).join(', ') || 'nobody else yet';
   return [
@@ -52,11 +52,24 @@ export function systemPrompt(
     `Others in the scene: ${cast}.`,
     `Stay in character. Write only ${actor.personality.name}'s next contribution, without a name prefix, and never speak or act for other characters.`,
     LENGTH[settings.length],
+    secrets && SECRETS,
     context && `What you know:\n\n${context}`,
   ]
     .filter(Boolean)
     .join('\n\n');
 }
+
+/** The speaker's name, and whom the line was hidden from, if anyone. */
+function speaker(m: Message, nameOf: (id: string) => string): string {
+  const hidden = m.hiddenFrom?.map(nameOf) ?? [];
+  return hidden.length > 0
+    ? `${nameOf(m.actorId)} (hidden from ${hidden.join(', ')})`
+    : nameOf(m.actorId);
+}
+
+/** Lines marked hidden reached this actor but not the others named: use them, keep them secret. */
+export const SECRETS =
+  'Lines marked "hidden from" someone are known to you but were kept from them. Build on them, and never reveal them to those they were hidden from.';
 
 export interface PromptOptions {
   readonly settings?: ConversationSettings;
@@ -82,7 +95,11 @@ export function buildPrompt(
   const settings = options.settings ?? conversationSettings.parse({});
   const nameOf = (id: string) => actorName(actors, id);
   const others = (options.cast ?? actors).filter((a) => a.id !== actor.id);
-  const system = systemPrompt(actor, others, settings, options.context);
+  const secrets = history.some((m) => m.actorId !== actor.id && m.hiddenFrom?.length);
+  const system = systemPrompt(actor, others, settings, {
+    context: options.context ?? '',
+    secrets,
+  });
   const labels = pictureLabels(history);
   const said = (m: Message) => labels.get(m.id) ?? m.text;
   const turns = history
@@ -90,7 +107,7 @@ export function buildPrompt(
     .map((m): ChatMessage =>
       m.actorId === actor.id
         ? { role: 'assistant', content: said(m) }
-        : { role: 'user', content: `${nameOf(m.actorId)}: ${said(m)}` },
+        : { role: 'user', content: `${speaker(m, nameOf)}: ${said(m)}` },
     );
   const kept =
     settings.memory === undefined

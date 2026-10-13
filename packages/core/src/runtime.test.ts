@@ -203,6 +203,13 @@ describe('SessionRuntime transcript', () => {
     expect(seen).toEqual([]);
   });
 
+  it('tells those who see a hidden message whom it was hidden from', async () => {
+    const session = setup();
+    await session.post('gm', textContent('the heir did it'), undefined, { hiddenFrom: ['user'] });
+    expect(text(session, 'user')).toEqual([]);
+    expect(session.transcript('bard')[0]?.hiddenFrom).toEqual(['user']);
+  });
+
   it('counts every AI call, even on branches that were thrown away', async () => {
     const session = setup();
     await session.join(ai('bard', ['echo']));

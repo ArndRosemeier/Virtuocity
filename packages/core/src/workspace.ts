@@ -132,7 +132,13 @@ export class Workspace {
     let state =
       start > 0 ? (this.#cache.get(key(visible[start - 1] as Operation)) as S) : docType.initial();
     for (const op of visible.slice(start)) {
-      state = docType.apply(state, op.payload, { opId: op.id, actorId: op.actorId, at: op.at });
+      const { id: opId, actorId, at, hiddenFrom } = op;
+      state = docType.apply(state, op.payload, {
+        opId,
+        actorId,
+        at,
+        ...(hiddenFrom && { hiddenFrom }),
+      });
       this.#cache.set(key(op), state);
     }
     return state;
