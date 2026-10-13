@@ -102,6 +102,17 @@ export class SessionCatalog {
     if (stored) await this.#store.set(id, { ...stored, state });
   }
 
+  /** Gives a session another name; throws if it is empty or another session's. */
+  async rename(id: string, name: string): Promise<void> {
+    const stored = await this.get(id);
+    if (!stored) return;
+    const others = (await this.list()).filter((e) => e.id !== id).map((e) => e.name);
+    const problem = sessionNameProblem(name, others);
+    if (problem) throw new Error(problem);
+    await this.#store.set(id, { ...stored, name: name.trim() });
+    this.#changes.notify();
+  }
+
   async setTemplate(id: string, template: boolean): Promise<void> {
     const stored = await this.get(id);
     if (!stored) return;

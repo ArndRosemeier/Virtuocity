@@ -3,13 +3,16 @@ import { Button, Field, Modal, TextInput } from '@virtuocity/ui';
 import { sessionNameProblem } from './sessions';
 import { useSessions } from './switcher';
 
-/** A name for a new session, with what is wrong with it while it cannot be used. */
-export function useSessionName() {
+/**
+ * A name for a session, with what is wrong with it while it cannot be used.
+ * `renaming` is the id of a session being renamed: its own name is not taken.
+ */
+export function useSessionName(initial = '', renaming?: string) {
   const { entries } = useSessions();
-  const [name, setName] = useState('');
+  const [name, setName] = useState(initial);
   const problem = sessionNameProblem(
     name,
-    entries.map((e) => e.name),
+    entries.filter((e) => e.id !== renaming).map((e) => e.name),
   );
   const field = (
     <Field
@@ -24,15 +27,17 @@ export function useSessionName() {
   return { name: name.trim(), ok: problem === undefined, field };
 }
 
-/** Cancel, and Start once the new session's name can be used. */
+/** Cancel, and Start (or another action) once the session's name can be used. */
 export function StartFooter({
   ok,
   onStart,
   onClose,
+  label = 'Start',
 }: {
   ok: boolean;
   onStart: () => void;
   onClose: () => void;
+  label?: string;
 }) {
   return (
     <>
@@ -40,31 +45,36 @@ export function StartFooter({
         Cancel
       </Button>
       <Button variant="primary" icon="sparkles" disabled={!ok} onClick={onStart}>
-        Start
+        {label}
       </Button>
     </>
   );
 }
 
-/** Asks for the name of a session that starts from a copy (of a template, or a file). */
+/** Asks for a session's name: one that starts from a copy (of a template, or a file), or a new name. */
 export function SessionNameDialog({
   title,
   note,
   onStart,
   onClose,
+  renaming,
 }: {
   title: string;
   note: string;
   onStart: (name: string) => void;
   onClose: () => void;
+  /** The session being renamed: its name is filled in and the button says Rename. */
+  renaming?: { readonly id: string; readonly name: string } | undefined;
 }) {
-  const { name, ok, field } = useSessionName();
+  const { name, ok, field } = useSessionName(renaming?.name, renaming?.id);
   const start = () => {
     if (!ok) return;
     onStart(name);
     onClose();
   };
-  const footer = <StartFooter ok={ok} onStart={start} onClose={onClose} />;
+  const footer = (
+    <StartFooter ok={ok} onStart={start} onClose={onClose} label={renaming ? 'Rename' : 'Start'} />
+  );
   return (
     <Modal open size="sm" title={title} onClose={onClose} footer={footer}>
       <form

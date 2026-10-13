@@ -34,6 +34,18 @@ describe('session catalog', () => {
     expect(await sessions.get(id)).toEqual({ name: 'Quest', template: true, state: 2 });
   });
 
+  it('renames a session, keeping names unique', async () => {
+    const sessions = catalog();
+    const id = await sessions.create('Quest', 1);
+    await sessions.create('Wren', 2);
+    await sessions.rename(id, ' QUEST ');
+    expect(await sessions.get(id)).toEqual({ name: 'QUEST', template: false, state: 1 });
+    await expect(sessions.rename(id, 'wren')).rejects.toThrow('already a session called Wren');
+    await expect(sessions.rename(id, '')).rejects.toThrow('needs a name');
+    await sessions.rename(id, 'Saga');
+    expect((await sessions.list()).map((e) => e.name)).toEqual(['Saga', 'Wren']);
+  });
+
   it('explains what is wrong with a name', () => {
     expect(sessionNameProblem('Quest', ['quest'])).toBe('There is already a session called quest.');
     expect(sessionNameProblem('New', ['Quest'])).toBeUndefined();
