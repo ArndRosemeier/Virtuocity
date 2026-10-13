@@ -1,14 +1,13 @@
 import { directorContract } from '@virtuocity/contract-director';
 import type { Actor, Flow, FlowContext, Skill, VirtuocityModule } from '@virtuocity/core';
-import { defineFlow, implementersOf, z } from '@virtuocity/core';
+import { defineFlow, rivalFor, serves, z } from '@virtuocity/core';
 
 export type TurnTakingInput =
   { readonly kind: 'pass' } | { readonly kind: 'choose'; readonly actorId: string };
 
 /** Whether one of the actor's skills serves `director@1`. */
 export function directs(actor: Actor, skills: readonly Skill[]): boolean {
-  const directing = implementersOf(skills, directorContract).map((s) => s.id);
-  return actor.skillIds.some((id) => directing.includes(id));
+  return serves(actor, skills, directorContract);
 }
 
 /**
@@ -20,8 +19,7 @@ export function rivalDirector(
   actors: readonly Actor[],
   skills: readonly Skill[],
 ): Actor | undefined {
-  if (!directs(actor, skills)) return undefined;
-  return actors.find((a) => a.id !== actor.id && directs(a, skills));
+  return rivalFor(directorContract, actor, actors, skills);
 }
 
 /**

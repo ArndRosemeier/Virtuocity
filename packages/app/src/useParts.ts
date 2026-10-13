@@ -6,7 +6,7 @@ import { headMoved, stateChanged } from '@virtuocity/core';
 type Answer = { readonly parts: readonly OutputPart[] };
 
 /** What a view shows: the contract's answer, or why it could not get one. */
-export type Shown<T extends Answer = Answer> = T | { readonly error: string };
+export type Shown<T extends object = Answer> = T | { readonly error: string };
 
 /**
  * Output parts an actor provides through a contract (a space's contents, the
@@ -14,6 +14,15 @@ export type Shown<T extends Answer = Answer> = T | { readonly error: string };
  * answer stays on screen until the next one arrives.
  */
 export function useParts<T extends Answer>(
+  session: SessionRuntime,
+  ask: () => Promise<T>,
+  key: string,
+): Shown<T> | undefined {
+  return useAnswer(session, ask, key);
+}
+
+/** Any contract answer, asked for again whenever the session's state moves, like `useParts`. */
+export function useAnswer<T extends object>(
   session: SessionRuntime,
   ask: () => Promise<T>,
   key: string,

@@ -1,7 +1,5 @@
 import { useState } from 'react';
-import type { Actor, Blueprint, SavedSetup } from '@virtuocity/core';
-import { currentBlueprint } from '@virtuocity/core';
-import { Pill } from '@virtuocity/ui';
+import type { Actor, SavedSetup } from '@virtuocity/core';
 import { Button, Field, IconButton, Modal, Section, TagPicker, TextInput } from '@virtuocity/ui';
 import { openTextFile, saveTextFile } from './files';
 import { isLibraryActor, setupNames, useLibrary, useLibraryItems } from './library';
@@ -11,27 +9,11 @@ import { hasSkills, parseTags, skillTags } from './libraryTags';
 import { LIBRARY_TAGS, useSetting } from './settings';
 import type { PanelProps } from './types';
 
-/**
- * Built-in setups (a layout and a guide; they bring no actors), then the casts
- * you saved. Both start from New session.
- */
-function Setups({
-  blueprints,
-  setups,
-  actors,
-}: {
-  blueprints: readonly Blueprint[];
-  setups: readonly SavedSetup[];
-  actors: readonly Actor[];
-}) {
+/** The casts you saved; they start from New session. */
+function Setups({ setups, actors }: { setups: readonly SavedSetup[]; actors: readonly Actor[] }) {
   const library = useLibrary();
   return (
     <ul className="cast__list">
-      {blueprints.map((b) => (
-        <Row key={b.id} name={b.name} detail={b.description}>
-          <Pill>built-in</Pill>
-        </Row>
-      ))}
       {setups.map((setup) => (
         <Row key={setup.id} name={setup.name} detail={setupNames(setup, actors).join(', ')}>
           <IconButton
@@ -46,17 +28,16 @@ function Setups({
   );
 }
 
-/** Saves the AI actors in the session, and the blueprint it came from, as a setup. */
-function SaveSetup({ host, session }: PanelProps) {
+/** Saves the AI actors in the session, its session type among them, as a setup. */
+function SaveSetup({ session }: Pick<PanelProps, 'session'>) {
   const library = useLibrary();
   const [name, setName] = useState('');
   const actors = session.actors.filter(isLibraryActor);
   const save = () =>
     run(async () => {
-      const blueprintId = currentBlueprint(session, host.blueprints)?.id;
       const description = actors.map((a) => a.personality.name).join(', ');
       const actorIds = actors.map((a) => a.id);
-      await library.saveSetup({ name: name.trim(), description, blueprintId, actorIds });
+      await library.saveSetup({ name: name.trim(), description, actorIds });
       setName('');
     });
   return (
@@ -163,9 +144,9 @@ export function LibraryDialog({
           </Section>
           {!picking && (
             <Section title="Setups">
-              <p className="muted">Start any setup from New session.</p>
-              <Setups blueprints={host.blueprints.list()} setups={view.setups} actors={view.all} />
-              <SaveSetup host={host} session={session} />
+              <p className="muted">Saved casts. Start one from New session.</p>
+              <Setups setups={view.setups} actors={view.all} />
+              <SaveSetup session={session} />
             </Section>
           )}
         </div>

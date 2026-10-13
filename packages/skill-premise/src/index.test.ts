@@ -7,11 +7,10 @@ import {
   conformanceSuite,
   conformanceTarget,
   coreModule,
-  defineBlueprint,
   jobEnded,
   loadModules,
   scriptedProvider,
-  startBlueprint,
+  startSession,
   upgradeActor,
 } from '@virtuocity/core';
 import { describe, expect, it } from 'vitest';
@@ -35,7 +34,6 @@ const quiet: Skill = {
   backing: 'code',
   takeTurn: () => Promise.resolve(),
 };
-const stage = defineBlueprint({ id: 'stage', name: 'Stage', description: '', roles: [] });
 
 function session() {
   const host = loadModules(new ModuleHost(), [coreModule, premiseModule]);
@@ -61,7 +59,7 @@ describe('opening a session', () => {
   it('uses a fixed premise word for word, without a model', async () => {
     const { runtime, ended } = session();
     const settings = { 'fixed-premise': { premise: 'You wake on a moving train.' } };
-    await startBlueprint(runtime, stage, [actor('premise', ['fixed-premise'], settings)]);
+    await startSession(runtime, [actor('premise', ['fixed-premise'], settings)]);
     await ended;
     expect(runtime.transcript()[0]).toMatchObject(textContent('You wake on a moving train.'));
     expect(runtime.calls.list()).toHaveLength(0);
@@ -72,7 +70,7 @@ describe('opening a session', () => {
     const settings = { 'fixed-premise': { premise: 'The butler did it.', shown: false } };
     const you: Actor = { ...actor('you', []), controller: 'human' };
     await runtime.join(you);
-    await startBlueprint(runtime, stage, [
+    await startSession(runtime, [
       actor('premise', ['fixed-premise'], settings),
       actor('wren', ['quiet']),
     ]);
@@ -83,7 +81,7 @@ describe('opening a session', () => {
 
   it('opens an empty story when it joins after the start', async () => {
     const { runtime, ended } = session();
-    await startBlueprint(runtime, stage);
+    await startSession(runtime, []);
     const settings = { 'fixed-premise': { premise: 'You wake on a moving train.' } };
     await runtime.join(actor('premise', ['fixed-premise'], settings));
     await runtime.join(actor('premise', ['fixed-premise'], settings));
@@ -96,7 +94,7 @@ describe('opening a session', () => {
     const { runtime } = session();
     await runtime.join(actor('wren', ['quiet']));
     await runtime.post('wren', textContent('Already going.'));
-    await startBlueprint(runtime, stage, [actor('premise', ['fixed-premise'])]);
+    await startSession(runtime, [actor('premise', ['fixed-premise'])]);
     expect(runtime.jobs.list()).toHaveLength(0);
     expect(runtime.transcript()).toHaveLength(1);
   });

@@ -9,6 +9,7 @@
   "dependencies": {
     "@virtuocity/contract-critique": "*",
     "@virtuocity/contract-writing": "*",
+    "@virtuocity/contract-session-type": "*",
     "@virtuocity/core": "*"
   }
 }

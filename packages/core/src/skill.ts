@@ -60,6 +60,26 @@ export function implementersOf(skills: readonly Skill[], wanted: ContractRef): S
   return skills.filter((s) => (s.implements ?? []).some((i) => fulfils(i.contract, wanted)));
 }
 
+/** Whether one of the actor's skills serves `wanted`. */
+export function serves(actor: Actor, skills: readonly Skill[], wanted: ContractRef): boolean {
+  const serving = implementersOf(skills, wanted).map((s) => s.id);
+  return actor.skillIds.some((id) => serving.includes(id));
+}
+
+/**
+ * For contracts a session has at most one of (a director, a session type):
+ * the actor among `actors` that `actor` would be a second one to, if any.
+ */
+export function rivalFor(
+  wanted: ContractRef,
+  actor: Actor,
+  actors: readonly Actor[],
+  skills: readonly Skill[],
+): Actor | undefined {
+  if (!serves(actor, skills, wanted)) return undefined;
+  return actors.find((a) => a.id !== actor.id && serves(a, skills, wanted));
+}
+
 /** What a set of skills uses of an actor, so editors ask only for that. */
 export interface ActorUse {
   readonly persona: boolean;

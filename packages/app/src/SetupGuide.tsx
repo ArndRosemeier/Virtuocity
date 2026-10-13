@@ -1,25 +1,27 @@
-import type { GuideLine } from '@virtuocity/core';
-import { SETUP, currentBlueprint, hideGuide, setupDoc, setupGuide } from '@virtuocity/core';
+import { SETUP, hideGuide, setupDoc } from '@virtuocity/core';
 import { IconButton } from '@virtuocity/ui';
 import { isLibraryActor } from './library';
+import type { GuideLine } from './sessionType';
+import { guideLines } from './sessionType';
 import type { Setting } from './settings';
 import { useSetting } from './settings';
 import type { PanelProps } from './types';
+import { useSessionType } from './useSessionType';
 
-/** Whether sessions started from a setup show its guide. */
+/** Whether sessions with a session type show its guide. */
 export const SHOW_GUIDE: Setting = { key: 'virtuocity.guide', fallback: 'on' };
 
 function Line({ line }: { line: GuideLine }) {
-  const { role, label, actor, available } = line;
+  const { role, actor, available } = line;
   return (
     <li className="guide__line" data-done={actor !== undefined}>
       <span className="guide__mark" aria-hidden>
         {actor ? '✓' : '○'}
       </span>
       <span>
-        <strong>{label}</strong>
+        <strong>{role.label}</strong>
         {actor && <span className="muted"> · {actor.personality.name}</span>}
-        {role.hint && <span className="guide__hint muted">{role.hint}</span>}
+        {role.hint !== '' && <span className="guide__hint muted">{role.hint}</span>}
         {!available && <span className="guide__hint muted">No installed skill can do this.</span>}
       </span>
     </li>
@@ -27,23 +29,24 @@ function Line({ line }: { line: GuideLine }) {
 }
 
 /**
- * What a session of this setup can use, ticked off as matching actors join.
+ * What a session of this type can use, ticked off as matching actors join.
  * It only explains: you add actors yourself, anything not listed is fine too.
  */
 export function SetupGuide({ host, session }: PanelProps) {
   const [show] = useSetting(SHOW_GUIDE);
-  const blueprint = currentBlueprint(session, host.blueprints);
-  if (show !== 'on' || !blueprint || session.workspace.read(SETUP, setupDoc).guideHidden) {
-    return null;
-  }
-  const actors = session.actors.filter(isLibraryActor);
-  const lines = setupGuide(blueprint, host.skills.list(), actors);
+  const type = useSessionType();
+  if (show !== 'on' || type.kind !== 'described') return null;
+  if (session.workspace.read(SETUP, setupDoc).guideHidden) return null;
+  const name = type.actor.personality.name;
+  const actors = session.actors.filter((a) => isLibraryActor(a) && a.id !== type.actor.id);
+  const lines = guideLines(type.description.roles, host.skills.list(), actors);
   const usual = lines.filter((l) => !l.role.optional);
   const options = lines.filter((l) => l.role.optional);
+  if (lines.length === 0) return null;
   return (
-    <section className="guide" aria-label={`${blueprint.name} guide`}>
+    <section className="guide" aria-label={`${name} guide`}>
       <header className="guide__header">
-        <strong>{blueprint.name}</strong>
+        <strong>{name}</strong>
         <IconButton
           size="sm"
           icon="close"
@@ -53,14 +56,14 @@ export function SetupGuide({ host, session }: PanelProps) {
       </header>
       {usual.length > 0 && <h4 className="guide__group">Usually</h4>}
       <ul className="guide__list">
-        {usual.map((l) => (
-          <Line key={l.role.id} line={l} />
+        {usual.map((l, i) => (
+          <Line key={i} line={l} />
         ))}
       </ul>
       {options.length > 0 && <h4 className="guide__group">Options</h4>}
       <ul className="guide__list">
-        {options.map((l) => (
-          <Line key={l.role.id} line={l} />
+        {options.map((l, i) => (
+          <Line key={i} line={l} />
         ))}
       </ul>
       <p className="muted guide__foot">

@@ -1,6 +1,6 @@
-import { z } from '@virtuocity/core';
+import { choice, z } from '@virtuocity/core';
 import { describe, expect, it } from 'vitest';
-import { defaultValue, kindOf, labelFor, pruneEmpty } from './schemaFields';
+import { choicesOf, defaultValue, kindOf, labelFor, pruneEmpty } from './schemaFields';
 
 const review = z.toJSONSchema(
   z.object({
@@ -17,6 +17,13 @@ describe('schema forms', () => {
     expect(kindOf(z.toJSONSchema(z.enum(['a', 'b'])))).toBe('enum');
     expect(kindOf(z.toJSONSchema(z.number().int()))).toBe('number');
     expect(kindOf({})).toBe('json');
+  });
+
+  it('picks text from an app list when the field names one', () => {
+    const picked = z.toJSONSchema(choice('contracts'));
+    expect(kindOf(picked)).toBe('choice');
+    expect(choicesOf(picked)).toBe('contracts');
+    expect(defaultValue(picked)).toBe('');
   });
 
   it('starts with required fields only', () => {

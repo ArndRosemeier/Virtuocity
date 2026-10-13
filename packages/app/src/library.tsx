@@ -9,7 +9,7 @@ import type {
   SessionRuntime,
 } from '@virtuocity/core';
 import { CAST, castDoc, includeKnownActors } from '@virtuocity/core';
-import { assertCanJoin } from './oneDirector';
+import { assertCanJoin } from './onePerSession';
 import { STORY_VIEW } from './storyView';
 import type { AppHost } from './types';
 

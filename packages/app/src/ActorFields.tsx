@@ -96,8 +96,11 @@ function ProfileFields({ host, draft, onChange }: FieldsProps) {
 }
 
 const PERSONALITY_HINT = 'Voice, role, backstory, quirks. This is what the model plays.';
+const PERSONALITY_EXAMPLE =
+  'A sharp-tongued half-elf bard who hides a soft heart and a stolen map…';
+const DESCRIPTION_HINT = 'What this actor is for, in a line. Lists such as New session show it.';
 
-/** Who the actor is and what it can do; personality only when a chosen skill voices it. */
+/** Who the actor is and what it can do: a personality when a chosen skill voices it, else a description. */
 function NameSkillsPersonality({
   host,
   draft,
@@ -124,20 +127,25 @@ function NameSkillsPersonality({
       <Section title="Skills">
         <SkillPicker host={host} draft={draft} onChange={onChange} />
       </Section>
-      {persona && (
-        <Field label="Personality" hint={PERSONALITY_HINT}>
-          {(id) => (
-            <LongText
-              id={id}
-              rows={5}
-              field={{ label: 'Personality', hint: PERSONALITY_HINT }}
-              value={draft.description}
-              placeholder="A sharp-tongued half-elf bard who hides a soft heart and a stolen map…"
-              onChange={(description) => onChange({ ...draft, description })}
-            />
-          )}
-        </Field>
-      )}
+      <Field
+        label={persona ? 'Personality' : 'Description'}
+        hint={persona ? PERSONALITY_HINT : DESCRIPTION_HINT}
+      >
+        {(id) => (
+          <LongText
+            id={id}
+            rows={persona ? 5 : 2}
+            field={
+              persona
+                ? { label: 'Personality', hint: PERSONALITY_HINT }
+                : { label: 'Description', hint: DESCRIPTION_HINT }
+            }
+            value={draft.description}
+            placeholder={persona ? PERSONALITY_EXAMPLE : 'A narrator tells the story with you.'}
+            onChange={(description) => onChange({ ...draft, description })}
+          />
+        )}
+      </Field>
     </>
   );
 }
