@@ -30,12 +30,13 @@ export interface Actors {
   readonly resolve: ResolveConflicts;
 }
 
-/** A runtime set up the way the app runs sessions. */
-function createRuntime(host: AppHost, assets: AssetStore): SessionRuntime {
+/** A runtime set up the way the app runs sessions: it includes the library's actors by id. */
+function createRuntime(host: AppHost, assets: AssetStore, library: Library): SessionRuntime {
   return new SessionRuntime({
     host,
     modelDefaults: () => readModelDefaults(host.modalities.list()),
     assets,
+    actors: library.actor,
   });
 }
 
@@ -49,7 +50,7 @@ export function useSession(
   assets: AssetStore,
   { library, resolve }: Actors,
 ): { session: SessionRuntime; switcher: SessionSwitcher } {
-  const session = useMemo(() => createRuntime(host, assets), [host, assets]);
+  const session = useMemo(() => createRuntime(host, assets, library), [host, assets, library]);
   const switcher = useMemo(
     () =>
       new SessionSwitcher({
@@ -59,12 +60,14 @@ export function useSession(
           await syncCast(library, runtime, fromFile ? resolve : keepLibrary);
           await ensureCast(host, runtime);
         },
-        scratch: () => createRuntime(host, assets),
+        scratch: () => createRuntime(host, assets, library),
       }),
     [host, session, store, assets, library, resolve],
   );
   const [, refresh] = useReducer((n: number) => n + 1, 0);
   useEffect(() => session.bus.on('*', refresh), [session]);
+  // The session shows its library actors as the library has them, so it redraws when they change.
+  useEffect(() => library.subscribe(refresh), [library]);
   useEffect(() => {
     let stop = () => {};
     void prepareLibrary(library, host)

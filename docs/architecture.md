@@ -179,7 +179,16 @@ head, so all documents (transcript, outline, inventory, scene) move together.
   actor sees it. The UI reads the transcript from the human's perspective.
 - **Permissions.** Every `WritePolicy` in `host.policies` must allow a change.
 - **Cast** (`cast.ts`): who is in the session is a document too, so joining and
-  leaving rewind, branch and save with everything else. `runtime.cast()` (and
+  leaving rewind, branch and save with everything else. Membership is in the
+  log; an actor's details are not, unless the session owns the actor. `join`
+  keeps an actor the session owns in the operation (the person, the story
+  view); an actor that `SessionConfig.actors` finds (the app passes
+  `library.actor`) is recorded as an `include` of its id instead. A session never
+  holds a copy of a library actor, so a library edit shows in every session at
+  once, and rewinding or retrying never brings back older details.
+  `includeKnownActors` (`cast-refs.ts`) turns copies a loaded session holds (a
+  file, or a session saved before 0.059) into includes; `withActorsWritten`
+  does the reverse for a file, which has to stand alone. `runtime.cast()` (and
   `ctx.cast`, `ContextRequest.cast`) is the cast proper: people and the actors
   with a turn-taking skill. Everyone else is support (an illustrator, a
   chronicler, the story view); prompts name only the cast as being in the scene.
@@ -454,19 +463,25 @@ edits it, and does not list it as a cast member.
 `Library` keeps the actors and setups, in an injected `KeyValueStore`
 (IndexedDB in the app). Items are validated on read, so a bad entry is skipped.
 
-- **One actor, one identity.** A library actor's id is its actor id, and the
-  session uses that very actor: adding joins it as is, and editing saves it to
-  the library and the session alike (the app's `saveEverywhere`). A variation
-  is an explicit copy with a new name.
+- **One name, one actor.** This is the core rule (Arnd), and it is unusual, so
+  it is also in the user manual (`packages/app/src/manual.md`). An actor's name
+  is its identity; the id underneath only lets renaming be one edit. Nowhere
+  (no session, no template, no setup) is there a second actor or a copy with
+  that name: sessions and setups refer to library actors by id (see Cast in
+  [State](#state)), and editing an actor (`saveEverywhere` only saves to the
+  library) changes it everywhere. A variation is an explicit copy with a new
+  name. The only copies outside the library are in files, because a file must
+  work in another browser; loading one moves them into the library at once.
 - **Names are unique** (`nameKey` ignores case and extra spaces); `saveActor`
   throws `NameTakenError`. The id stays hidden underneath, so renaming is one edit.
 - **Adopting.** `adopt(actors, resolve)` makes the library hold incoming actors
   under their own ids, e.g. a loaded session's cast (the app's `syncCast`) or
   an imported library file. New names are added, identical actors linked, and
-  names taken by different actors go to `resolve` (keep or replace). Only a
-  session or library loaded from a file asks the person; a stored session
-  (opened, reloaded, or copied from a template) settles with `keepLibrary`, since
-  its saved actor copies may simply be older than the library's.
+  names taken by different actors go to `resolve` (keep or replace); the choice
+  holds everywhere. Only a session or library loaded from a file asks the
+  person, and only when the details differ; a session saved before 0.059
+  still holds copies and settles with `keepLibrary` (the library wins) once,
+  then refers to its actors like any other.
 - **Deleting** an actor the session uses deletes that session too, after a
   warning, so nothing refers to a deleted actor.
 - A saved setup lists actor ids and the blueprint it came from;

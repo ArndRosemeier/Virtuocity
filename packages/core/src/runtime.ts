@@ -4,7 +4,7 @@ import type { AssetStore, StoredAsset } from './assets';
 import { createAssetStore } from './assets';
 import type { CallMeta } from './calls';
 import { CallLog } from './calls';
-import { CAST, castDoc } from './cast';
+import { CAST, castActors, castDoc, joinOp } from './cast';
 import type { Contract } from './contract';
 import { createSkillContext } from './contexts';
 import type { DecisionRequest, DecisionResult } from './decisions';
@@ -51,6 +51,8 @@ export interface SessionConfig {
   readonly assets?: AssetStore;
   readonly newId?: () => string;
   readonly now?: () => number;
+  /** Finds library actors; the session includes them by id, never as a copy (see `castDoc`). */
+  readonly actors?: (id: string) => Actor | undefined;
 }
 
 /**
@@ -97,14 +99,17 @@ export class SessionRuntime {
     return this.#speaking;
   }
 
-  /** Everyone in the session at the head. */
+  /** Everyone in the session at the head; included actors as the lookup has them now. */
   get actors(): readonly Actor[] {
-    return this.workspace.read(CAST, castDoc).actors;
+    return castActors(this.workspace.read(CAST, castDoc), this.lookup);
   }
 
-  /** Actors can join (or be updated) at any time. */
+  /** Finds actors kept outside the session (library actors); finds none without a lookup. */
+  readonly lookup = (id: string): Actor | undefined => this.config.actors?.(id);
+
+  /** Actors join (or are updated) at any time; one the lookup knows is included by id. */
   async join(actor: Actor): Promise<void> {
-    const payload = { type: 'join', actor } as const;
+    const payload = joinOp(actor, this.lookup);
     await this.workspace.change({ actorId: actor.id, docId: CAST, docType: castDoc, payload });
     await this.bus.emit(actorJoined.create({ actorId: actor.id }));
   }

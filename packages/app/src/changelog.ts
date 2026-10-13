@@ -9,6 +9,15 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 59,
+    date: '2026-10-13',
+    changes: [
+      'One name, one actor, now all the way down: sessions and templates no longer keep their own copies of actors, only which Library actors take part. Editing an actor changes it in every session at once, and retrying or going back to an earlier version never brings back older details. Sessions you already have are converted when you open them.',
+      'A session saved to a file still carries its actors, so it works in another browser. Loading it asks about an actor only when your Library has that name with different details.',
+      'New: a Manual in the header. It starts with the ideas that work differently from other apps, above all "one name, one actor".',
+    ],
+  },
+  {
     build: 58,
     date: '2026-10-13',
     changes: [

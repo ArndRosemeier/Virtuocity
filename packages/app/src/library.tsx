@@ -8,7 +8,7 @@ import type {
   SavedSetup,
   SessionRuntime,
 } from '@virtuocity/core';
-import { sameActor } from '@virtuocity/core';
+import { CAST, castDoc, includeKnownActors } from '@virtuocity/core';
 import { assertCanJoin } from './oneDirector';
 import { STORY_VIEW } from './storyView';
 import type { AppHost } from './types';
@@ -52,42 +52,38 @@ export function isLibraryActor(actor: Actor): boolean {
 }
 
 /**
- * Saves an actor in the library and, if it is in the session, there too.
- * Refuses, saving nothing, when the change would give the session a second director.
+ * Saves an actor in the library; every session that includes it has the change.
+ * Refuses, saving nothing, when the change would give the open session a second director.
  */
 export async function saveEverywhere(
   { host, library, session }: { host: AppHost; library: Library; session: SessionRuntime },
   actor: Actor,
 ): Promise<void> {
-  const inSession = session.actors.some((a) => a.id === actor.id);
-  if (inSession) assertCanJoin(host, session, actor);
+  if (session.actors.some((a) => a.id === actor.id)) assertCanJoin(host, session, actor);
   await library.saveActor(actor);
-  if (inSession) await session.join(actor);
 }
 
 /**
- * Settles every clash for the library's version. A stored session's actors are
- * library actors; the copy it was saved with may be older than the library's
- * (edited while another session was open), and that is no clash.
+ * Settles every clash for the library's version. Used for stored sessions: one
+ * saved by an older version holds copies of its library actors, which may be
+ * older than the library's, and that is no clash.
  */
 export const keepLibrary: ResolveConflicts = () => Promise.resolve({});
 
 /**
- * Makes every actor in the session a library actor, e.g. after loading a file:
- * new names join the library, taken ones are settled by `resolve`, and the
- * session gets the actors as the library holds them.
+ * Moves the copies of actors a loaded session holds (a file, or a session saved
+ * by an older version) into the library: new names join it, taken ones are
+ * settled by `resolve`. The session then includes them from the library by id.
  */
 export async function syncCast(
   library: Library,
   session: SessionRuntime,
   resolve: ResolveConflicts,
 ): Promise<void> {
-  const cast = session.actors.filter(isLibraryActor);
-  const held = await library.adopt(cast, resolve);
-  for (const actor of held) {
-    const current = cast.find((a) => a.id === actor.id);
-    if (!current || !sameActor(current, actor)) await session.join(actor);
-  }
+  const { members } = session.workspace.read(CAST, castDoc);
+  const copies = members.flatMap((m) => (m.actor && isLibraryActor(m.actor) ? [m.actor] : []));
+  if (copies.length > 0) await library.adopt(copies, resolve);
+  await includeKnownActors(session);
 }
 
 /** The names of a setup's actors that are still in the library. */
