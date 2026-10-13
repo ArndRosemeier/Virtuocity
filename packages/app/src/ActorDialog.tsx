@@ -86,7 +86,7 @@ function Footer(props: {
 }
 
 /** Why the draft's name cannot be saved: empty, or another actor's. */
-function nameProblem(name: string, takenNames: readonly string[]): string | undefined {
+export function nameProblem(name: string, takenNames: readonly string[]): string | undefined {
   if (!name.trim()) return 'Every actor needs a name.';
   const taken = takenNames.find((n) => sameName(n, name));
   return taken && `There is already an actor called ${taken}. Names are unique.`;

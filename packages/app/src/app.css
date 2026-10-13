@@ -393,6 +393,24 @@
 .composer__input:focus {
   outline: none;
 }
+.composer__name {
+  align-self: center;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+.composer__name:focus {
+  outline: none;
+  border-color: var(--accent);
+  color: var(--text);
+}
+.composer__name[aria-invalid='true'] {
+  border-color: var(--danger);
+}
 .composer__turns {
   display: flex;
   align-items: center;
