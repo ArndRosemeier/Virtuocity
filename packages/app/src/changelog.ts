@@ -13,6 +13,7 @@ export const RELEASES: readonly Release[] = [
     date: '2026-10-13',
     changes: [
       'New session fills in a name for you: the picked session type\'s name, numbered when it is taken (e.g. "Roleplay 2"). Picking another type changes it, until you type a name of your own.',
+      'Behind the scenes: every ready-made session type is now checked to be fillable by the ready-made actors, e.g. the Painter fills the illustrator role of an image workflow.',
     ],
   },
   {
