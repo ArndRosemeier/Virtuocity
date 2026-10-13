@@ -1,5 +1,13 @@
 import type { Actor, ChatMessage, Message } from '@virtuocity/core';
-import { actorName, defineSettings, estimateTokens, fitNewest, z } from '@virtuocity/core';
+import { pictureLabels } from './pictures';
+import {
+  actorName,
+  chatText,
+  defineSettings,
+  estimateTokens,
+  fitNewest,
+  z,
+} from '@virtuocity/core';
 
 export const conversationSettings = defineSettings({
   length: z
@@ -56,6 +64,8 @@ export interface PromptOptions {
   readonly context?: string;
   /** Who is in the scene; support actors are left out. Defaults to everyone in `actors`. */
   readonly cast?: readonly Actor[];
+  /** The picture the session works on, shown to the model last (see `lookAt`). */
+  readonly picture?: ChatMessage;
 }
 
 /**
@@ -73,18 +83,24 @@ export function buildPrompt(
   const nameOf = (id: string) => actorName(actors, id);
   const others = (options.cast ?? actors).filter((a) => a.id !== actor.id);
   const system = systemPrompt(actor, others, settings, options.context);
+  const labels = pictureLabels(history);
+  const said = (m: Message) => labels.get(m.id) ?? m.text;
   const turns = history
     .filter((m) => m.text.trim() !== '')
     .map((m): ChatMessage =>
       m.actorId === actor.id
-        ? { role: 'assistant', content: m.text }
-        : { role: 'user', content: `${nameOf(m.actorId)}: ${m.text}` },
+        ? { role: 'assistant', content: said(m) }
+        : { role: 'user', content: `${nameOf(m.actorId)}: ${said(m)}` },
     );
   const kept =
     settings.memory === undefined
       ? turns
       : fitNewest(turns, settings.memory - estimateTokens(system), (m) =>
-          estimateTokens(m.content),
+          estimateTokens(chatText(m.content)),
         );
-  return [{ role: 'system', content: system }, ...kept];
+  return [
+    { role: 'system', content: system },
+    ...kept,
+    ...(options.picture ? [options.picture] : []),
+  ];
 }

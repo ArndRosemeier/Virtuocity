@@ -6,6 +6,7 @@ import { provides } from '@virtuocity/core';
 import { Avatar, Button, IconButton, TextArea } from '@virtuocity/ui';
 import { DragHandle } from './DragHandle';
 import { SpaceActions } from './SpaceActions';
+import { GalleryView, SpaceStepper, browsable } from './SpaceBrowse';
 import { useSetting } from './settings';
 import { heightCss, movedHeight, spaceHeightSetting } from './spaceHeight';
 import { closeSpace, isShown, openSpace, spaceElementId, useOpenSpaces } from './openSpaces';
@@ -71,10 +72,20 @@ function useEscape(active: boolean, onEscape: () => void): void {
   }, [active, onEscape]);
 }
 
-/** What the space holds, rendered like any output and stretched to the area it gets. */
-function Content({ host, shown }: Pick<PanelProps, 'host'> & { shown: Shown | undefined }) {
+/**
+ * What the space holds, rendered like any output and stretched to the area it
+ * gets; several items show as a gallery when it has the whole screen (`gallery`).
+ */
+function Content({
+  host,
+  shown,
+  gallery,
+  ...browsing
+}: PanelProps & { shown: Shown | undefined; gallery: boolean; actor: Actor }) {
   if (!shown) return null;
   if ('error' in shown) return <p className="job__error">{shown.error}</p>;
+  const steps = gallery ? browsable(shown) : undefined;
+  if (steps) return <GalleryView host={host} {...steps} {...browsing} />;
   if (shown.parts.length === 0) return <p className="muted">Nothing here yet.</p>;
   return (
     <div className="space__content">
@@ -191,9 +202,10 @@ function Space({ actor, host, session, toggled }: PanelProps & { actor: Actor; t
           onToggle={() => setMaximized(!maximized)}
           onClose={() => closeSpace(actor.id)}
         >
+          <SpaceStepper session={session} actor={actor} shown={shown} />
           {hasContent && <SpaceActions session={session} actor={actor} />}
         </SpaceHeader>
-        <Content host={host} shown={shown} />
+        <Content host={host} shown={shown} gallery={maximized} session={session} actor={actor} />
         {editable && shown && 'parts' in shown && textOnly(shown.parts) && (
           <Editor name={name} parts={shown.parts} onSave={edit} />
         )}

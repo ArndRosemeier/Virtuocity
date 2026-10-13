@@ -7,6 +7,7 @@ import { MessageEditor } from './MessageEdit';
 import { openSpace } from './openSpaces';
 import { useMessageActions } from './messageActions';
 import { StatsBadge } from './StatsBadge';
+import { Stepper } from './Stepper';
 import type { AppHost } from './types';
 
 interface MessageViewProps {
@@ -33,31 +34,6 @@ interface MessageVersionPick {
   readonly count: number;
   readonly show: (index: number) => void;
   readonly busy: boolean;
-}
-
-/** "‹ 2/3 ›": steps through a retried message's versions; the newest is shown first. */
-function VersionPicker({ index, count, show, busy }: MessageVersionPick) {
-  return (
-    <span className="message__versions">
-      <IconButton
-        size="sm"
-        icon="back"
-        label="Show the earlier version"
-        disabled={busy || index === 0}
-        onClick={() => show(index - 1)}
-      />
-      <span className="message__version">
-        {index + 1}/{count}
-      </span>
-      <IconButton
-        size="sm"
-        icon="forward"
-        label="Show the later version"
-        disabled={busy || index === count - 1}
-        onClick={() => show(index + 1)}
-      />
-    </span>
-  );
 }
 
 interface MessageEdit {
@@ -134,7 +110,7 @@ export function MessageView({
             {name}
           </h3>
           {stats && <StatsBadge stats={stats} />}
-          {versions && <VersionPicker {...versions} />}
+          {versions && <Stepper {...versions} noun="version" />}
           <MessageButtons
             retry={retry}
             edit={editing ? undefined : edit}

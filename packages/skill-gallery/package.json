@@ -1,0 +1,14 @@
+{
+  "name": "@virtuocity/skill-gallery",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@virtuocity/contract-space": "*",
+    "@virtuocity/contract-visual": "*",
+    "@virtuocity/core": "*"
+  }
+}

@@ -60,4 +60,6 @@ export interface SkillContext {
   startJob(label: string, run: (control: JobControl) => Promise<void>): void;
   /** Asks another actor to perform a contract action, e.g. an editor asking a reviewer for notes. */
   readonly invoke: InvokeAction;
+  /** Whether an actor in the session can perform a contract, e.g. to find who to ask. */
+  serves(actorId: string, contract: Contract): boolean;
 }

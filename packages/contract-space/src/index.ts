@@ -18,11 +18,12 @@ const content = z.object({
  * parts with its renderers. Actors without it get no space.
  *
  * Every space can be thrown away (`discard`), since 1.1; a person can always
- * get rid of what a space shows.
+ * get rid of what a space shows. Since 1.2 a space may hold several items a
+ * person steps through (`browse`), e.g. a gallery of pictures.
  */
 export const spaceContract = defineContract({
   name: 'space',
-  version: '1.1',
+  version: '1.2',
   description: 'Shows something in the actor’s own space on screen.',
   actions: {
     fill: action({
@@ -34,7 +35,18 @@ export const spaceContract = defineContract({
           .boolean()
           .optional()
           .describe('Show the space only once opened, e.g. from a marker, with a way to close it'),
+        items: z
+          .array(outputPartSchema)
+          .optional()
+          .describe('Everything a person can step through; `parts` show the current one'),
+        current: z.number().int().min(0).optional().describe('Which of `items` is shown'),
       }),
+    }),
+    browse: optionalAction({
+      description:
+        'A person stepped to another of the items, by its position. Returns what the space shows now.',
+      input: z.object({ to: z.number().int().min(0) }),
+      output: content,
     }),
     edit: optionalAction({
       description: 'A person changed what the space shows. Returns what it shows now.',
@@ -55,6 +67,15 @@ export const spaceContract = defineContract({
     }),
   },
   conformance: [
+    {
+      name: 'shows the item a person browsed to, if it can be browsed',
+      run: async (t) => {
+        if (!t.implements('browse')) return;
+        await t.invoke('browse', { to: 0 });
+        const { items = [], current } = await t.invoke('fill', {});
+        check(items.length === 0 || current === 0, 'expected the first item to be current');
+      },
+    },
     {
       name: 'fills its space with output parts',
       run: async (t) => {

@@ -18,8 +18,25 @@ export interface ToolCall {
   readonly arguments: string;
 }
 
+/**
+ * A picture in a model call, by its stored asset. The runtime adds `url` (a
+ * data URL) before a provider sees it; a model that cannot see pictures gets
+ * the picture's `alt` instead.
+ */
+export interface ChatImage {
+  readonly type: 'image';
+  readonly assetId: string;
+  readonly mime: string;
+  readonly alt: string;
+  readonly url?: string;
+}
+
+/** One piece of what a person says to a model: words or a picture. */
+export type ChatPart = { readonly type: 'text'; readonly text: string } | ChatImage;
+
 export type ChatMessage =
-  | { readonly role: 'system' | 'user'; readonly content: string }
+  | { readonly role: 'system'; readonly content: string }
+  | { readonly role: 'user'; readonly content: string | readonly ChatPart[] }
   | {
       readonly role: 'assistant';
       readonly content: string;
@@ -110,10 +127,21 @@ export function modelsFor(models: readonly ModelInfo[], modality: Modality): Mod
   return models.filter((m) => m.outputs.includes(modality));
 }
 
+/** A message's words, with each picture as its `alt`, for models that cannot see pictures. */
+export function chatText(content: string | readonly ChatPart[]): string {
+  if (typeof content === 'string') return content;
+  return content.map((p) => (p.type === 'text' ? p.text : p.alt)).join('\n\n');
+}
+
 /** A conversation flattened into one prompt, for models that take a single prompt (image models). */
 export function promptText(messages: readonly ChatMessage[]): string {
   return messages
     .filter((m) => m.role !== 'tool')
-    .map((m) => m.content)
+    .map((m) => chatText(m.content))
     .join('\n\n');
+}
+
+/** The conversation with every picture replaced by its `alt`, for models that cannot see pictures. */
+export function withoutPictures(messages: readonly ChatMessage[]): ChatMessage[] {
+  return messages.map((m) => (m.role === 'user' ? { ...m, content: chatText(m.content) } : m));
 }

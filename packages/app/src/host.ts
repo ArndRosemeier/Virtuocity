@@ -7,6 +7,7 @@ import { conversationModule } from '@virtuocity/skill-conversation';
 import { diceModule } from '@virtuocity/skill-dice';
 import { chroniclerModule } from '@virtuocity/skill-chronicler';
 import { illustratorModule } from '@virtuocity/skill-illustrator';
+import { galleryModule } from '@virtuocity/skill-gallery';
 import { factGathererModule } from '@virtuocity/skill-fact-gatherer';
 import { premiseModule } from '@virtuocity/skill-premise';
 import { canvasModule } from '@virtuocity/skill-canvas';
@@ -58,6 +59,7 @@ export function createHost(): AppHost {
     sessionTypeModule as AppModule,
     writerModule as AppModule,
     illustratorModule as AppModule,
+    galleryModule as AppModule,
     chroniclerModule as AppModule,
     factGathererModule as AppModule,
     premiseModule as AppModule,

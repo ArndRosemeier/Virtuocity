@@ -24,6 +24,7 @@ export interface ContextSource {
   readonly actors: readonly Actor[];
   cast(): readonly Actor[];
   readonly invoke: InvokeAction;
+  implementationFor(actorId: string, contract: Contract): unknown;
   transcript(perspective?: string): readonly Message[];
   post(
     actorId: string,
@@ -67,6 +68,7 @@ export function createSkillContext(
     assets: source.assets,
     post: (content, stats, options) => source.post(actor.id, content, stats, options),
     invoke: source.invoke,
+    serves: (actorId, contract) => source.implementationFor(actorId, contract) !== undefined,
     complete: extras.complete,
     decide: extras.decide,
     tools: skillTools(extras.skills, skill, call),

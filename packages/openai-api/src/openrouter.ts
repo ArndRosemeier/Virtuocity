@@ -5,7 +5,7 @@ import type {
   ProviderOptions,
   VirtuocityModule,
 } from '@virtuocity/core';
-import { cachedCatalog } from '@virtuocity/core';
+import { cachedCatalog, withoutPictures } from '@virtuocity/core';
 import { decide } from './decisions';
 import { failUnlessOk, jsonPost, readAnswer } from './http';
 import type { ImagesResponse } from './images';
@@ -25,11 +25,13 @@ export function createOpenRouterProvider(options: OpenRouterOptions): ModelProvi
   const listModels = cachedCatalog(() => fetchModels(doFetch));
   /** Models that turned out to be image-only, so they go straight to the images endpoint. */
   const imageOnly = new Set<string>();
-  /** What a model outputs, per the catalog the model picker offers. */
-  const outputsOf = async (model: string) => {
-    const found = (await listModels()).find((m) => m.id === model);
-    if (!found) throw new Error(`Model "${model}" is not in OpenRouter's model list.`);
-    return found.outputs;
+  /** What a model takes and makes, per the catalog the model picker offers. */
+  const infoOf = async (model: string) => (await listModels()).find((m) => m.id === model);
+  /** An image call needs the model's outputs; a text call works without them. */
+  const outputsOf = async (request: CompletionRequest) => {
+    const found = await infoOf(request.model).catch(() => undefined);
+    if (found || request.modality !== 'image') return found;
+    throw new Error(`Model "${request.model}" is not in OpenRouter's model list.`);
   };
   const headersNow = () => ({
     Authorization: `Bearer ${options.apiKey()}`,
@@ -41,14 +43,19 @@ export function createOpenRouterProvider(options: OpenRouterOptions): ModelProvi
     ready: () => options.apiKey() !== '',
     listModels,
     decide: (request) => decide(doFetch, headersNow(), request),
-    async complete(request: CompletionRequest): Promise<CompletionResult> {
+    async complete(asked: CompletionRequest): Promise<CompletionResult> {
+      const info = await outputsOf(asked);
+      // A model that cannot see pictures gets their descriptions instead.
+      const request = info?.inputs.includes('image')
+        ? asked
+        : { ...asked, messages: withoutPictures(asked.messages) };
       const headers = headersNow();
       const post = jsonPost(doFetch, headers, request);
       const chat = (r: CompletionRequest, outputs?: readonly string[]) =>
         post(ENDPOINT, { ...requestBody(r, outputs), usage: { include: true } });
       const images = () => post(IMAGES_ENDPOINT, imagesBody(request));
       if (imageOnly.has(request.model)) return fromImages(await images(), request.model);
-      const outputs = request.modality === 'image' ? await outputsOf(request.model) : undefined;
+      const outputs = info?.outputs;
       let response = await chat(request, outputs);
       let error = response.ok ? '' : await response.text();
       if (needsImagesEndpoint(response.status, error, request)) {

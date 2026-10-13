@@ -140,3 +140,22 @@ describe('Anthropic requests', () => {
     });
   });
 });
+
+describe('pictures for Anthropic', () => {
+  it('sends a picture as a base64 image block, and one it cannot read as its description', () => {
+    const fox = { type: 'image', assetId: 'a', alt: 'A fox' } as const;
+    const [message] = toMessages([
+      {
+        role: 'user',
+        content: [
+          { ...fox, mime: 'image/png', url: 'data:image/png;base64,AAEC' },
+          { ...fox, mime: 'image/tiff', url: 'data:image/tiff;base64,AAEC' },
+        ],
+      },
+    ]);
+    expect(message?.content).toEqual([
+      { type: 'image', source: { type: 'base64', media_type: 'image/png', data: 'AAEC' } },
+      { type: 'text', text: 'A fox' },
+    ]);
+  });
+});
