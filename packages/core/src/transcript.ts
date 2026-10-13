@@ -89,9 +89,14 @@ const isAppendOf = (op: Operation, messageId: string) =>
   (op.payload as TranscriptOp).type === 'append' &&
   (op.payload as Extract<TranscriptOp, { type: 'append' }>).message.id === messageId;
 
+/** The operation on the current path that posted a message, if it is on the path. */
+export function findPostingOperation(log: OpLog, messageId: string): Operation | undefined {
+  return log.path().find((o) => isAppendOf(o, messageId));
+}
+
 /** The operation on the current path that posted a message. */
 export function postingOperation(log: OpLog, messageId: string): Operation {
-  const op = log.path().find((o) => isAppendOf(o, messageId));
+  const op = findPostingOperation(log, messageId);
   if (!op) throw new Error(`Message "${messageId}" is not on the current path`);
   return op;
 }

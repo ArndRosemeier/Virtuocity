@@ -1,6 +1,12 @@
 import { useEffect, useMemo } from 'react';
 import type { SessionRuntime } from '@virtuocity/core';
-import { retryMessage, retryable, textContent } from '@virtuocity/core';
+import {
+  messageVersions,
+  retryMessage,
+  retryable,
+  showVersion,
+  textContent,
+} from '@virtuocity/core';
 import type { StoryMarker } from '@virtuocity/contract-render';
 import { markerContract, renderContract } from '@virtuocity/contract-render';
 import { Avatar, Button, EmptyState } from '@virtuocity/ui';
@@ -154,6 +160,11 @@ function useMessageActionsFor(session: SessionRuntime): MessageActions {
     () => ({
       canRetry: (id) => retryable(session, id) !== undefined,
       retry: (id) => runSafely(() => retryMessage(session, id)),
+      versions: (id) => {
+        const found = messageVersions(session.workspace.log, id);
+        return found && { index: found.index, count: found.count };
+      },
+      showVersion: (id, index) => runSafely(() => showVersion(session, id, index)),
       editableText: (id) => {
         const message = session.transcript(USER_ID).find((m) => m.id === id);
         return message?.kind === 'text' ? message.text : undefined;

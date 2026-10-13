@@ -167,6 +167,16 @@
   font-size: var(--text-sm);
   font-weight: 700;
 }
+/* "‹ 2/3 ›" on a retried message. */
+.message__versions {
+  display: inline-flex;
+  align-items: center;
+}
+.message__version {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
 /* A marker another actor placed between messages, e.g. "Summarized". */
 .story-marker {
   display: flex;

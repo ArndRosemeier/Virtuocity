@@ -24,6 +24,40 @@ interface MessageViewProps {
   readonly edit?: MessageEdit | undefined;
   /** Offers a delete button; it is disabled while `busy`. */
   readonly remove?: { readonly run: () => void; readonly busy: boolean } | undefined;
+  /** A retried message's versions, with a picker to show another one. */
+  readonly versions?: MessageVersionPick | undefined;
+}
+
+interface MessageVersionPick {
+  readonly index: number;
+  readonly count: number;
+  readonly show: (index: number) => void;
+  readonly busy: boolean;
+}
+
+/** "‹ 2/3 ›": steps through a retried message's versions; the newest is shown first. */
+function VersionPicker({ index, count, show, busy }: MessageVersionPick) {
+  return (
+    <span className="message__versions">
+      <IconButton
+        size="sm"
+        icon="back"
+        label="Show the earlier version"
+        disabled={busy || index === 0}
+        onClick={() => show(index - 1)}
+      />
+      <span className="message__version">
+        {index + 1}/{count}
+      </span>
+      <IconButton
+        size="sm"
+        icon="forward"
+        label="Show the later version"
+        disabled={busy || index === count - 1}
+        onClick={() => show(index + 1)}
+      />
+    </span>
+  );
 }
 
 interface MessageEdit {
@@ -45,7 +79,7 @@ function MessageButtons({
         <IconButton
           size="sm"
           icon="restart"
-          label="Retry: drop this and everything after it, then answer again"
+          label="Retry: answer again; this answer stays as an earlier version"
           disabled={retry.busy}
           onClick={retry.run}
         />
@@ -84,6 +118,7 @@ export function MessageView({
   retry,
   edit,
   remove,
+  versions,
 }: MessageViewProps) {
   const [editing, setEditing] = useState(false);
   return (
@@ -99,6 +134,7 @@ export function MessageView({
             {name}
           </h3>
           {stats && <StatsBadge stats={stats} />}
+          {versions && <VersionPicker {...versions} />}
           <MessageButtons
             retry={retry}
             edit={editing ? undefined : edit}
@@ -143,6 +179,11 @@ export function ChatViewPart({ host, view }: { host: AppHost; view: ChatView }) 
     if (!actions || text === undefined) return undefined;
     return { text, save: (t: string) => actions.edit(id, t), busy: actions.busy };
   };
+  const versionsOf = (id: string) => {
+    const found = actions?.versions(id);
+    if (!actions || !found) return undefined;
+    return { ...found, show: (i: number) => actions.showVersion(id, i), busy: actions.busy };
+  };
   return (
     <>
       {view.entries.map((entry) => (
@@ -156,6 +197,7 @@ export function ChatViewPart({ host, view }: { host: AppHost; view: ChatView }) 
             stats={entry.stats}
             retry={retryOf(entry.id)}
             edit={editOf(entry.id)}
+            versions={versionsOf(entry.id)}
             remove={
               actions ? { run: () => actions.remove(entry.id), busy: actions.busy } : undefined
             }
