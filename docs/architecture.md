@@ -388,13 +388,11 @@ they are ordinary library actors.
 ## Channels
 
 A channel (`defineChannel`, `host.channels`) is a continuous output: something
-that stays showing or playing, such as the scene picture or background music,
+that stays showing or playing, such as background music,
 instead of a message in the story. It names the part kinds it `accepts`.
 `showOnChannel(state, channel, part)` replaces what a channel shows; the
 contents live in the `channels` document, so they rewind, branch and save with
-the story. Channels shared by several modules belong in a contract package
-(`sceneChannel` is in `contract-visual`, with the `sceneChanged` event that
-asks visualizers to picture a new scene; flows can emit it with `ctx.emit`). The app's "Now showing" panel
+the story. Channels shared by several modules belong in a contract package. The app's "Now showing" panel
 renders every channel through the renderer registry.
 
 ## Memory
@@ -474,9 +472,9 @@ what a person changed. `discard` throws away what the space shows and every
 space must offer it (the general rule since 1.1: whatever a space shows, a
 person can get rid of); the optional `redo` makes it again. They are the app's
 trash and retry buttons in the space's header. The canvas and the fact gatherer
-empty their space, the chronicler forgets its summary; the Illustrator removes the picture from the scene and the story, or
-repaints it from the description it keeps in the picture's data and replaces
-every copy. The app's Spaces panel shows one space per actor whose
+empty their space, the chronicler forgets its summary, the gallery takes the
+current picture out of the story. (Illustrators have no space: their pictures
+are messages in the session, and a gallery browses them.) The app's Spaces panel shows one space per actor whose
 skills implement the contract, asks for it again whenever the session's state
 moves, offers editing for spaces that provide `edit` and hold text, and can
 maximize any space to full screen, where its content stretches to fit. The

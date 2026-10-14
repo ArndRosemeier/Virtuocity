@@ -20,10 +20,6 @@ export const illustratorSettings = defineSettings({
     .describe(
       "Paint on its own after other actors' turns. When off, it paints only when you click it under 'or ask:', from the newest message",
     ),
-  inStory: z
-    .boolean()
-    .default(true)
-    .describe('Also post each picture into the story; it always shows as the scene'),
 });
 
 export type IllustratorSettings = z.output<typeof illustratorSettings>;

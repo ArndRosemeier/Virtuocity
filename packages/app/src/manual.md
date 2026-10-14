@@ -92,7 +92,7 @@ Some actors have a space in the left sidebar: a picture, a canvas, a list of fac
 
 ## Pictures and the gallery
 
-A session can hold many pictures, so one of them is always **the current picture**: the one everyone works on. A **Gallery** actor decides which. Its space shows the current picture with "‹ 2/5 ›" to step back and forth; maximized, it shows the current picture on one half and every other picture as thumbnails you click. A new picture becomes current as soon as it arrives. A session has at most one gallery. Any space that shows a picture has Copy (to the clipboard) and Save (to a file) buttons in its header.
+A session can hold many pictures, so one of them is always **the current picture**: the one everyone works on. A **Gallery** actor decides which. Its space shows the current picture with "‹ 2/5 ›" to step back and forth; maximized, it shows the current picture on one half and every other picture as thumbnails you click. A new picture becomes current as soon as it arrives. A session has at most one gallery. Illustrators have no space of their own: every picture they paint is posted into the session, where Retry and Delete work as on any message; add a gallery to browse them. Any space that shows a picture has Copy (to the clipboard) and Save (to a file) buttons in its header.
 
 A talking model sees the current picture itself, and every other picture as a numbered line such as "[Picture 2: a fox in the snow]", so you can say "go back to picture 2". Models that can't see pictures get only the descriptions.
 

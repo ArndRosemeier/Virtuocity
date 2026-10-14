@@ -125,7 +125,7 @@ export const brushStarter: Starter = {
     name: 'Brush',
     description: 'Paints every refined prompt as soon as it is written.',
   },
-  settings: { illustrator: { automatic: true, inStory: true } },
+  settings: { illustrator: { automatic: true } },
   needs: [illustratorContract],
 };
 
@@ -133,7 +133,7 @@ export const brushStarter: Starter = {
 export const painterStarter: Starter = {
   id: 'painter',
   personality: { name: 'Painter', description: 'Paints exactly what you describe.' },
-  settings: { illustrator: { automatic: false, inStory: true } },
+  settings: { illustrator: { automatic: false } },
   needs: [illustratorContract],
 };
 

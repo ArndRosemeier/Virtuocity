@@ -12,8 +12,8 @@ const content = z.object({
 });
 
 /**
- * Gives an actor its own space on screen, beside the story: an illustrator's
- * latest picture, a cartographer's map, a fact gatherer's notes, or a blank
+ * Gives an actor its own space on screen, beside the story: a gallery of the
+ * session's pictures, a cartographer's map, a fact gatherer's notes, or a blank
  * canvas for the person. Not tied to any kind of content; the app renders the
  * parts with its renderers. Actors without it get no space.
  *
