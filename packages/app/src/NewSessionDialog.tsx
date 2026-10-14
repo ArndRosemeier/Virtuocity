@@ -6,7 +6,9 @@ import { useLibraryItems } from './library';
 import type { PanelProps } from './types';
 import { runSafely } from './LibraryActors';
 import { StartFooter, useSessionName } from './SessionName';
+import { SHOW_GUIDE } from './SetupGuide';
 import { SetupWizard } from './SetupWizard';
+import { useSetting } from './settings';
 import { useSwitcher } from './switcher';
 import { startPicked } from './wizard';
 
@@ -40,6 +42,7 @@ function Choice({
  * that was open stays in the session list. The type joins the new session and
  * decides its cast contracts, panels and guide. With "Guide me" on, the setup
  * wizard asks for the type's roles first; otherwise you add the actors later.
+ * The checklist choice is remembered for the next new session.
  */
 export function NewSessionDialog({
   host,
@@ -50,6 +53,7 @@ export function NewSessionDialog({
   const types = actors.map((i) => i.actor).filter((a) => isSessionType(a, host.skills.list()));
   const [picked, setPicked] = useState<string>();
   const [guided, setGuided] = useState(true);
+  const [checklist, setChecklist] = useSetting(SHOW_GUIDE);
   const [asking, setAsking] = useState(false);
   const type = types.find((t) => t.id === picked) ?? types[0];
   const switcher = useSwitcher();
@@ -58,7 +62,7 @@ export function NewSessionDialog({
   const begin = (cast: readonly Actor[]) => {
     if (!ok || !type) return;
     onClose();
-    runSafely(() => startPicked(switcher, name, type, cast));
+    runSafely(() => startPicked(switcher, name, type, { picked: cast, guide: checklist === 'on' }));
   };
   if (asking && type) {
     const back = () => setAsking(false);
@@ -89,6 +93,14 @@ export function NewSessionDialog({
         <label className="settings__check">
           <input type="checkbox" checked={guided} onChange={(e) => setGuided(e.target.checked)} />
           Guide me: ask who takes part, step by step
+        </label>
+        <label className="settings__check">
+          <input
+            type="checkbox"
+            checked={checklist === 'on'}
+            onChange={(e) => setChecklist(e.target.checked ? 'on' : 'off')}
+          />
+          Show a checklist of what this session can use in the Cast panel
         </label>
       </div>
     </Modal>

@@ -12,7 +12,9 @@ import {
   loadModules,
   memoryStore,
   parseSavedSession,
+  SETUP,
   retryMessage,
+  setupDoc,
   startSession,
   stubContract,
   stubImplementation,
@@ -114,9 +116,12 @@ describe('one name, one actor', () => {
 
   it('keeps no copies when the setup wizard starts a session with library actors', async () => {
     const { library, shown, switcher } = await setup();
-    await startPicked(switcher, 'Guided', testType, [marlow]);
+    await startPicked(switcher, 'Guided', testType, { picked: [marlow] });
     expect(shown.actors).toEqual([testType, marlow]);
+    expect(shown.workspace.read(SETUP, setupDoc).guideHidden).toBeFalsy();
     await expectNoCopies(library, switcher);
+    await startPicked(switcher, 'Plain', testType, { picked: [], guide: false });
+    expect(shown.workspace.read(SETUP, setupDoc).guideHidden).toBe(true);
   });
 
   it('moves the actors of a file into the library, keeping no copy', async () => {
