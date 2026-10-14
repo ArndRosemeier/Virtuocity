@@ -21,7 +21,7 @@ A roleplay is one session type: a narrator, maybe AI players, a director, a prem
 5. **Add actors later.** Use Add actor in the Cast panel. The session type's guide at the top of the Cast panel lists what it usually needs and ticks each role off as a matching actor joins.
 6. **Play.** Write in the box at the bottom. Who answers depends on the session (see Turns below). The small field next to Act is your name (User until you change it): the AI actors see each line under its speaker's name, yours included, so pick one no actor has.
 
-On a fresh start your Library already holds some ready-made actors: the Open, Roleplay, Book room, Image workflow, Guided illustrations, Pathfinder 2e and D&D 5e session types and their usual cast (Narrator, Wren, Director, Ink, Chronicler, Premise, Quill, Marlow, Painter, Prompt refiner, Gallery, Game Master, Kira, Dungeon Master, Bram). They are ordinary actors: edit them, copy them or delete them. When a new version improves them, Settings › Save & load › Update default actors sets them back to how the app ships them now (your changes to them are lost, deleted ones come back, other actors stay).
+On a fresh start your Library already holds some ready-made actors: the Open, Roleplay, Book room, Image workflow, Guided illustrations, Pathfinder 2e and D&D 5e session types and their usual cast (Narrator, Wren, Director, Ink, Chronicler, Premise, Quill, Marlow, Painter, Prompt refiner, Brush, Gallery, Game Master, Kira, Dungeon Master, Bram). They are ordinary actors: edit them, copy them or delete them. When a new version improves them, Settings › Save & load › Update default actors sets them back to how the app ships them now (your changes to them are lost, deleted ones come back, other actors stay).
 
 ## The screen
 
@@ -78,7 +78,7 @@ A player actor's description is its character: ancestry, class, level, scores, b
 
 ## Turns and directors
 
-After every turn the session pauses. Without a director, nobody speaks on their own: you pick who speaks next under "Let speak". A session can have one **director**, an actor that picks the next speaker. With a director you can **Act** (write, then the director picks who answers) or **Pass** (the director picks without you writing). Support actors that can be asked, like an illustrator, appear under "or ask".
+After every turn the session pauses. Without a director, nobody speaks on their own: you pick who speaks next under "Let speak". A session can have one **director**, an actor that picks the next speaker. With a director you can **Act** (write, then the director picks who answers) or **Pass** (the director picks without you writing). Support actors that can be asked, like an illustrator, appear under "or ask". Some support actors also act on their own, with or without a director: a chronicler summarizes when the session grows, and an illustrator with "Paint on its own" switched on paints after every turn. That setting is off by default, since pictures cost money.
 
 ## Retry, versions and editing
 

@@ -16,6 +16,7 @@ import {
 } from '@virtuocity/core';
 import { describe, expect, it } from 'vitest';
 import { illustratorSkill } from './index';
+import { illustratorSettings } from './prompt';
 
 const png = { mime: 'image/png', bytes: new Uint8Array([137, 80, 78, 71]) };
 
@@ -62,7 +63,8 @@ function session(reply: () => { media?: (typeof png)[] }) {
   return { runtime, ended };
 }
 
-async function play(runtime: SessionRuntime, settings?: Record<string, unknown>) {
+/** A narrator's turn, with an illustrator painting on its own unless `illustrator` says otherwise. */
+async function play(runtime: SessionRuntime, illustrator: Record<string, unknown> = {}) {
   const actor = (id: string, skillIds: string[]) => ({
     id,
     controller: 'ai' as const,
@@ -70,9 +72,16 @@ async function play(runtime: SessionRuntime, settings?: Record<string, unknown>)
     skillIds,
   });
   await runtime.join(actor('narrator', ['narrator']));
-  await runtime.join({ ...actor('ink', ['illustrator']), ...(settings ? { settings } : {}) });
+  const settings = { illustrator: { automatic: true, ...illustrator } };
+  await runtime.join({ ...actor('ink', ['illustrator']), settings });
   await runtime.runTurn('narrator');
 }
+
+describe('an illustrator', () => {
+  it('paints only when asked unless "Paint on its own" is switched on, since pictures cost', () => {
+    expect(illustratorSettings.parse({}).automatic).toBe(false);
+  });
+});
 
 describe('illustrating a scene', () => {
   it('draws each turn in the background and posts the picture', async () => {
@@ -95,7 +104,7 @@ describe('illustrating a scene', () => {
 
   it('shows the picture only as the scene when it should stay out of the story', async () => {
     const { runtime, ended } = session(() => ({ media: [png] }));
-    await play(runtime, { illustrator: { inStory: false } });
+    await play(runtime, { inStory: false });
     await expect(ended).resolves.toBe('done');
     expect(runtime.transcript()).toHaveLength(1);
     expect(channelContents(runtime.workspace.view('user')).scene?.part.kind).toBe(IMAGE_PART);
@@ -116,6 +125,7 @@ describe('illustrating a scene', () => {
       controller: 'ai',
       personality: { name: 'Ink', description: '' },
       skillIds: ['illustrator'],
+      settings: { illustrator: { automatic: true } },
     });
     await runtime.bus.emit(sceneChanged.create({ description: 'A misty harbour at dawn.' }));
     await expect(ended).resolves.toBe('done');
@@ -126,7 +136,7 @@ describe('illustrating a scene', () => {
 
   it('paints only when picked once automatic is off, from the newest message', async () => {
     const { runtime } = session(() => ({ media: [png] }));
-    await play(runtime, { illustrator: { automatic: false } });
+    await play(runtime, { automatic: false });
     expect(runtime.jobs.running()).toEqual([]);
     expect(runtime.speakers().map((a) => a.id)).toEqual(['narrator']);
     expect(runtime.askable().map((a) => a.id)).toEqual(['ink']);

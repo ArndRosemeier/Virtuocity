@@ -10,6 +10,14 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 79,
+    date: '2026-10-14',
+    changes: [
+      'Illustrators now start with "Paint on its own" off, since pictures cost money and are optional: they paint when you click them under "or ask:". Switch it on in the actor editor to have one paint after every turn. Summarizers still work on their own.',
+      'This applies at once to every illustrator whose setting you never changed, Ink included. The new ready-made illustrator Brush paints on its own, for Guided illustrations, which needs that.',
+    ],
+  },
+  {
     build: 78,
     date: '2026-10-13',
     changes: [

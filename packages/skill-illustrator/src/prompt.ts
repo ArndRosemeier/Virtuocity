@@ -16,7 +16,7 @@ export const illustratorSettings = defineSettings({
     .describe('Paint after every this many messages from others'),
   automatic: z
     .boolean()
-    .default(true)
+    .default(false)
     .describe(
       "Paint on its own after other actors' turns. When off, it paints only when you click it under 'or ask:', from the newest message",
     ),
