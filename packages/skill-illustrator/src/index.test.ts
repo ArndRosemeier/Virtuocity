@@ -1,12 +1,10 @@
 import { textContent } from '@virtuocity/core';
-import { spaceContract } from '@virtuocity/contract-space';
-import { illustratorContract, sceneChanged } from '@virtuocity/contract-visual';
+import { illustratorContract } from '@virtuocity/contract-visual';
 import type { Skill } from '@virtuocity/core';
 import {
   IMAGE_PART,
   ModuleHost,
   SessionRuntime,
-  channelContents,
   conformanceSuite,
   conformanceTarget,
   coreModule,
@@ -16,6 +14,7 @@ import {
 } from '@virtuocity/core';
 import { describe, expect, it } from 'vitest';
 import { illustratorSkill } from './index';
+import { illustratorSettings } from './prompt';
 
 const png = { mime: 'image/png', bytes: new Uint8Array([137, 80, 78, 71]) };
 
@@ -27,13 +26,6 @@ describe('illustrator skill conforms to illustrator', () => {
     modelDefaults: { image: 'image-model' },
   });
   for (const testCase of conformanceSuite(illustratorContract)) {
-    it(`${testCase.contractId}: ${testCase.name}`, () => testCase.run(target));
-  }
-});
-
-describe('illustrator skill conforms to space', () => {
-  const target = conformanceTarget(spaceContract, { skills: [illustratorSkill] });
-  for (const testCase of conformanceSuite(spaceContract)) {
     it(`${testCase.contractId}: ${testCase.name}`, () => testCase.run(target));
   }
 });
@@ -62,7 +54,8 @@ function session(reply: () => { media?: (typeof png)[] }) {
   return { runtime, ended };
 }
 
-async function play(runtime: SessionRuntime, settings?: Record<string, unknown>) {
+/** A narrator's turn, with an illustrator painting on its own unless `illustrator` says otherwise. */
+async function play(runtime: SessionRuntime, illustrator: Record<string, unknown> = {}) {
   const actor = (id: string, skillIds: string[]) => ({
     id,
     controller: 'ai' as const,
@@ -70,9 +63,21 @@ async function play(runtime: SessionRuntime, settings?: Record<string, unknown>)
     skillIds,
   });
   await runtime.join(actor('narrator', ['narrator']));
-  await runtime.join({ ...actor('ink', ['illustrator']), ...(settings ? { settings } : {}) });
+  const settings = { illustrator: { automatic: true, ...illustrator } };
+  await runtime.join({ ...actor('ink', ['illustrator']), settings });
   await runtime.runTurn('narrator');
 }
+
+describe('an illustrator', () => {
+  it('has no space of its own: its pictures are in the session, and a gallery browses them', () => {
+    const contracts = (illustratorSkill.implements ?? []).map((i) => i.contract.name);
+    expect(contracts).toEqual([illustratorContract.name]);
+  });
+
+  it('paints only when asked unless "Paint on its own" is switched on, since pictures cost', () => {
+    expect(illustratorSettings.parse({}).automatic).toBe(false);
+  });
+});
 
 describe('illustrating a scene', () => {
   it('draws each turn in the background and posts the picture', async () => {
@@ -86,19 +91,6 @@ describe('illustrating a scene', () => {
     expect(picture?.kind).toBe(IMAGE_PART);
     expect(picture?.text).toContain('A lantern flickers');
     expect(runtime.calls.list()[0]?.request.messages[0]?.content).toContain('A lantern flickers');
-    const scene = channelContents(runtime.workspace.view('user')).scene;
-    const part = { kind: picture?.kind, data: picture?.data };
-    expect(scene).toMatchObject({ actorId: 'ink', part });
-    const space = await runtime.invoke('ink', spaceContract, 'fill', {});
-    expect(space.parts).toEqual([part]);
-  });
-
-  it('shows the picture only as the scene when it should stay out of the story', async () => {
-    const { runtime, ended } = session(() => ({ media: [png] }));
-    await play(runtime, { illustrator: { inStory: false } });
-    await expect(ended).resolves.toBe('done');
-    expect(runtime.transcript()).toHaveLength(1);
-    expect(channelContents(runtime.workspace.view('user')).scene?.part.kind).toBe(IMAGE_PART);
   });
 
   it('fails the job with a clear message when the model draws nothing', async () => {
@@ -109,24 +101,9 @@ describe('illustrating a scene', () => {
     expect(runtime.transcript()).toHaveLength(1);
   });
 
-  it('paints an announced new scene only as the scene picture', async () => {
-    const { runtime, ended } = session(() => ({ media: [png] }));
-    await runtime.join({
-      id: 'ink',
-      controller: 'ai',
-      personality: { name: 'Ink', description: '' },
-      skillIds: ['illustrator'],
-    });
-    await runtime.bus.emit(sceneChanged.create({ description: 'A misty harbour at dawn.' }));
-    await expect(ended).resolves.toBe('done');
-    expect(runtime.transcript()).toHaveLength(0);
-    expect(channelContents(runtime.workspace.view('user')).scene?.actorId).toBe('ink');
-    expect(runtime.calls.list()[0]?.request.messages[0]?.content).toContain('misty harbour');
-  });
-
   it('paints only when picked once automatic is off, from the newest message', async () => {
     const { runtime } = session(() => ({ media: [png] }));
-    await play(runtime, { illustrator: { automatic: false } });
+    await play(runtime, { automatic: false });
     expect(runtime.jobs.running()).toEqual([]);
     expect(runtime.speakers().map((a) => a.id)).toEqual(['narrator']);
     expect(runtime.askable().map((a) => a.id)).toEqual(['ink']);
@@ -146,30 +123,5 @@ describe('illustrating a scene', () => {
       skillIds: ['illustrator'],
     });
     await expect(runtime.runTurn('ink')).rejects.toThrow(/Nothing to paint yet/);
-  });
-
-  it('throws a picture away from its space, the scene and the story', async () => {
-    const { runtime, ended } = session(() => ({ media: [png] }));
-    await play(runtime);
-    await ended;
-    const after = await runtime.invoke('ink', spaceContract, 'discard', {});
-    expect(after.parts).toEqual([]);
-    expect(runtime.transcript().map((m) => m.actorId)).toEqual(['narrator']);
-    expect(channelContents(runtime.workspace.view('user')).scene).toBeUndefined();
-  });
-
-  it('paints the picture again from the same description, replacing it everywhere', async () => {
-    let call = 0;
-    const other = { mime: 'image/png', bytes: new Uint8Array([137, 80, 78, 71, 1]) };
-    const { runtime, ended } = session(() => ({ media: [call++ === 0 ? png : other] }));
-    await play(runtime);
-    await ended;
-    const before = runtime.transcript().at(-1)?.data;
-    const after = await runtime.invoke('ink', spaceContract, 'redo', {});
-    const story = runtime.transcript();
-    expect(story).toHaveLength(2);
-    expect(story[1]?.data).not.toEqual(before);
-    expect(after.parts).toEqual([{ kind: IMAGE_PART, data: story[1]?.data }]);
-    expect(runtime.calls.list()[1]?.request.messages[0]?.content).toContain('A lantern flickers');
   });
 });

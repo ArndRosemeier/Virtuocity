@@ -1,5 +1,5 @@
 import type { Actor, SessionRole, SessionTypeDescription, Skill } from '@virtuocity/core';
-import { SessionRuntime, sessionTypeContract, startSession } from '@virtuocity/core';
+import { SessionRuntime, hideGuide, sessionTypeContract, startSession } from '@virtuocity/core';
 import { roleFit } from './sessionType';
 import type { SessionSwitcher } from './switcher';
 import type { AppHost } from './types';
@@ -64,12 +64,18 @@ export async function describeType(host: AppHost, type: Actor): Promise<SessionT
   return scratch.invoke(type.id, sessionTypeContract, 'describe', {});
 }
 
-/** Starts a named session of `type` with the actors the wizard picked, in the type's order. */
+/**
+ * Starts a named session of `type` with the actors the wizard picked, in the
+ * type's order; with `guide` off, the type's checklist stays hidden in it.
+ */
 export function startPicked(
   switcher: SessionSwitcher,
   name: string,
   type: Actor,
-  picked: readonly Actor[],
+  { picked, guide = true }: { readonly picked: readonly Actor[]; readonly guide?: boolean },
 ): Promise<void> {
-  return switcher.startNew(name, (session) => startSession(session, [type, ...picked]));
+  return switcher.startNew(name, async (session) => {
+    await startSession(session, [type, ...picked]);
+    if (!guide) await hideGuide(session);
+  });
 }

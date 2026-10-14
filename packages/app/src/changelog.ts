@@ -10,6 +10,16 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 79,
+    date: '2026-10-14',
+    changes: [
+      'Illustrators now start with "Paint on its own" off, since pictures cost money and are optional: they paint when you click them under "or ask:". Switch it on in the actor editor to have one paint after every turn. Summarizers still work on their own.',
+      'This applies at once to every illustrator whose setting you never changed, Ink included. The new ready-made illustrator Brush paints on its own, for Guided illustrations, which needs that.',
+      'Illustrators no longer have a space of their own: every picture goes into the session, so "Also post into the story" is gone. Add a Gallery to browse the pictures, with Copy and Save.',
+      'The Cast panel checklist of what a session can use is switched on or off in New session now ("Show a checklist…", remembered for next time), no longer in Settings › Appearance.',
+    ],
+  },
+  {
     build: 78,
     date: '2026-10-13',
     changes: [

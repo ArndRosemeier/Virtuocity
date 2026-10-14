@@ -4,11 +4,10 @@ import { isLibraryActor } from './library';
 import type { GuideLine } from './sessionType';
 import { guideLines } from './sessionType';
 import type { Setting } from './settings';
-import { useSetting } from './settings';
 import type { PanelProps } from './types';
 import { useSessionType } from './useSessionType';
 
-/** Whether sessions with a session type show its guide. */
+/** Whether new sessions start with their type's checklist showing; the New session dialog remembers it. */
 export const SHOW_GUIDE: Setting = { key: 'virtuocity.guide', fallback: 'on' };
 
 function Line({ line }: { line: GuideLine }) {
@@ -33,9 +32,8 @@ function Line({ line }: { line: GuideLine }) {
  * It only explains: you add actors yourself, anything not listed is fine too.
  */
 export function SetupGuide({ host, session }: PanelProps) {
-  const [show] = useSetting(SHOW_GUIDE);
   const type = useSessionType();
-  if (show !== 'on' || type.kind !== 'described') return null;
+  if (type.kind !== 'described') return null;
   if (session.workspace.read(SETUP, setupDoc).guideHidden) return null;
   const name = type.actor.personality.name;
   const actors = session.actors.filter((a) => isLibraryActor(a) && a.id !== type.actor.id);
@@ -67,8 +65,8 @@ export function SetupGuide({ host, session }: PanelProps) {
         ))}
       </ul>
       <p className="muted guide__foot">
-        Add actors with Add actor. Nothing here is required. Turn the guide off in Settings ›
-        Appearance.
+        Add actors with Add actor. Nothing here is required. New sessions can start without this
+        checklist: untick it in New session.
       </p>
     </section>
   );

@@ -1,7 +1,6 @@
 import type { Picture } from '@virtuocity/contract-visual';
-import { sceneChannel } from '@virtuocity/contract-visual';
 import type { CallStats, SkillContext } from '@virtuocity/core';
-import { IMAGE_PART, readSettings, showOnChannel, storeMedia } from '@virtuocity/core';
+import { IMAGE_PART, readSettings, storeMedia } from '@virtuocity/core';
 import type { IllustrateRequest } from './prompt';
 import { illustratePrompt, illustratorSettings } from './prompt';
 
@@ -30,15 +29,13 @@ export async function illustrate(
   return { picture: { ...part.data, alt: part.data.alt ?? 'A picture' }, stats: result.stats };
 }
 
-/** Paints a picture that becomes the scene, and joins the story if asked. */
+/** Paints a picture and posts it into the session. */
 export async function paintNow(
   ctx: SkillContext,
   description: string,
-  inStory: boolean,
   signal?: AbortSignal,
 ): Promise<void> {
   const { picture, stats } = await illustrate(ctx, { description }, signal);
   const part = { kind: IMAGE_PART, data: { ...picture, description } };
-  await showOnChannel(ctx.state, sceneChannel, part);
-  if (inStory) await ctx.post({ ...part, text: picture.alt }, [stats]);
+  await ctx.post({ ...part, text: picture.alt }, [stats]);
 }

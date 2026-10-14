@@ -91,7 +91,7 @@ export const guidedIllustrationsType: Starter = {
         {
           label: 'An illustrator',
           question: 'Who paints the refined prompts?',
-          hint: 'Paints each refined prompt. Needs "Paint on its own" on, like Ink.',
+          hint: 'Paints each refined prompt. Needs "Paint on its own" on, like Brush.',
           needs: [illustratorContract.id],
           importance: 'needed',
           without: 'You get prompts, but no pictures.',
@@ -118,11 +118,22 @@ export const refinerStarter: Starter = {
   speaks: true,
 };
 
+/** An illustrator that paints each refined prompt on its own, for guided illustrations. */
+export const brushStarter: Starter = {
+  id: 'brush',
+  personality: {
+    name: 'Brush',
+    description: 'Paints every refined prompt as soon as it is written.',
+  },
+  settings: { illustrator: { automatic: true } },
+  needs: [illustratorContract],
+};
+
 /** An illustrator that paints only when it is its turn, offered on a fresh start. */
 export const painterStarter: Starter = {
   id: 'painter',
   personality: { name: 'Painter', description: 'Paints exactly what you describe.' },
-  settings: { illustrator: { automatic: false, inStory: true } },
+  settings: { illustrator: { automatic: false } },
   needs: [illustratorContract],
 };
 
@@ -133,8 +144,12 @@ export const imageWorkflowModule: VirtuocityModule = {
     host.contracts.register(directorContract);
     host.contracts.register(pictureSourceContract);
     host.contracts.register(sessionTypeContract);
-    [imageWorkflowType, painterStarter, guidedIllustrationsType, refinerStarter].forEach((s) =>
-      host.starters.register(s),
-    );
+    [
+      imageWorkflowType,
+      painterStarter,
+      guidedIllustrationsType,
+      refinerStarter,
+      brushStarter,
+    ].forEach((s) => host.starters.register(s));
   },
 };

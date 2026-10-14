@@ -1,26 +1,4 @@
-import {
-  IMAGE_PART,
-  action,
-  check,
-  defineChannel,
-  defineContract,
-  defineEvent,
-  z,
-} from '@virtuocity/core';
-
-/**
- * The story arrived somewhere new. Visualizers listen and picture it on the
- * scene channel; whoever moves the story (a flow, a narrator) emits it.
- */
-export const sceneChanged = defineEvent<{ readonly description: string }>('scene.changed');
-
-/** A picture of where the story is now, replaced as the story moves on. */
-export const sceneChannel = defineChannel({
-  id: 'scene',
-  title: 'Scene',
-  description: 'A picture of where the story is now.',
-  accepts: [IMAGE_PART],
-});
+import { action, check, defineContract, z } from '@virtuocity/core';
 
 const picture = z.object({
   assetId: z
