@@ -5,6 +5,8 @@ const PATHS = {
   plus: 'M12 5v14M5 12h14',
   send: 'M4 12 20 4l-6 16-3-7-7-1Z',
   skip: 'M6 5l8 7-8 7V5Zm10 0v14',
+  pause: 'M8 5v14M16 5v14',
+  play: 'M7 5l12 7-12 7V5Z',
   search: 'M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14Zm9 2-4.3-4.3',
   chevron: 'm7 10 5 5 5-5',
   back: 'm15 6-6 6 6 6',

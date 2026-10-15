@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Actor } from '@virtuocity/core';
-import { isSessionType, withdraw } from '@virtuocity/core';
+import { CAST, castDoc, isSessionType, pauseActor, pausedIds, withdraw } from '@virtuocity/core';
 import { Avatar, Button, IconButton, Pill } from '@virtuocity/ui';
 import { useAppActions } from './actions';
 import { useActorTips } from './actorTips';
@@ -17,10 +17,37 @@ interface CastRowProps {
   readonly actor: Actor;
   readonly speaking: boolean;
   readonly onLeave: () => void;
+  /** Whether the actor is paused in this session; undefined for actors directors never pick. */
+  readonly paused?: boolean;
+  readonly onPause?: () => void;
+}
+
+/** Pauses a cast actor in this session (directors skip it) or lets it go on. */
+function PauseButton({
+  name,
+  paused,
+  onPause,
+}: {
+  name: string;
+  paused: boolean;
+  onPause: () => void;
+}) {
+  return (
+    <IconButton
+      size="sm"
+      icon={paused ? 'play' : 'pause'}
+      label={
+        paused
+          ? `Let ${name} go on: directors can pick ${name} again`
+          : `Pause ${name} in this session: directors skip ${name} until you go on`
+      }
+      onClick={onPause}
+    />
+  );
 }
 
 /** One actor in the scene, with edit and remove. Editing changes the actor in the library too. */
-function CastRow({ actor: a, speaking, onLeave }: CastRowProps) {
+function CastRow({ actor: a, speaking, onLeave, paused, onPause }: CastRowProps) {
   const { openEditActor } = useAppActions();
   const tip = useActorTips()(a);
   return (
@@ -35,8 +62,12 @@ function CastRow({ actor: a, speaking, onLeave }: CastRowProps) {
             </Pill>
           ))}
           {speaking && <Pill tone="accent">writing…</Pill>}
+          {paused && <Pill>paused</Pill>}
         </span>
       </div>
+      {paused !== undefined && onPause && (
+        <PauseButton name={a.personality.name} paused={paused} onPause={onPause} />
+      )}
       <IconButton
         size="sm"
         icon="edit"
@@ -94,6 +125,17 @@ function CastPanel({ host, session }: PanelProps) {
   const row = (a: Actor) => (
     <CastRow key={a.id} actor={a} speaking={session.speaking === a.id} onLeave={() => remove(a)} />
   );
+  const paused = pausedIds(session.workspace.read(CAST, castDoc));
+  const castRow = (a: Actor) => (
+    <CastRow
+      key={a.id}
+      actor={a}
+      speaking={session.speaking === a.id}
+      onLeave={() => remove(a)}
+      paused={paused.has(a.id)}
+      onPause={() => runSafely(() => pauseActor(session, a.id, !paused.has(a.id)))}
+    />
+  );
   const type = session.actors.find(fixed);
   const cast = session.cast().filter((a) => a.controller === 'ai');
   const support = session.actors.filter(
@@ -106,7 +148,7 @@ function CastPanel({ host, session }: PanelProps) {
       {cast.length === 0 && (
         <p className="muted">Nobody here yet. Add an actor to start the scene.</p>
       )}
-      <ul className="cast__list">{cast.map(row)}</ul>
+      <ul className="cast__list">{cast.map(castRow)}</ul>
       {support.length > 0 && (
         <>
           <h3 className="cast__group">Support</h3>

@@ -4,6 +4,7 @@ import type { ContextContributor } from './context-assembly';
 import { defineDocType } from './doc-type';
 import type { ProfileField } from './settings';
 import { profileValue } from './settings';
+import type { Workspace } from './workspace';
 
 /**
  * `join` puts an actor the session owns into the cast, kept in the operation
@@ -15,12 +16,18 @@ import { profileValue } from './settings';
 export type CastOp =
   | { readonly type: 'join'; readonly actor: OwnActor }
   | { readonly type: 'include'; readonly actorId: string }
-  | { readonly type: 'leave'; readonly actorId: string };
+  | { readonly type: 'leave'; readonly actorId: string }
+  | { readonly type: 'pause'; readonly actorId: string; readonly paused: boolean };
 
-/** One cast member: an actor the session owns, or the id of one kept elsewhere. */
+/**
+ * One cast member: an actor the session owns, or the id of one kept elsewhere.
+ * A paused member stays in the session but directors do not see it; pausing is
+ * the session's state, never the actor's.
+ */
 export interface CastMember {
   readonly id: string;
   readonly actor?: Actor;
+  readonly paused?: true;
 }
 
 export interface Cast {
@@ -48,27 +55,42 @@ const memberOf = (op: CastOp): CastMember | undefined =>
       ? { id: op.actorId }
       : undefined;
 
+/** Pausing changes a member in place; pausing someone not in the cast changes nothing. */
+function paused(state: Cast, actorId: string, on: boolean): Cast {
+  const members = state.members.map((m) => {
+    if (m.id !== actorId) return m;
+    const kept = { id: m.id, ...(m.actor && { actor: m.actor }) };
+    return on ? { ...kept, paused: true as const } : kept;
+  });
+  return { members };
+}
+
 /**
  * Who is in the session. Joining and leaving are operations like any other,
  * so the cast rewinds, branches and saves together with the story.
  */
 export const castDoc = defineDocType<Cast, CastOp>({
   id: 'cast',
-  version: 2,
-  description: 'The actors in the session. Joining again updates an actor.',
+  version: 3,
+  description:
+    'The actors in the session. Joining again updates an actor and keeps it paused or not.',
   op: z.discriminatedUnion('type', [
     z.object({ type: z.literal('join'), actor: actorSchema }),
     z.object({ type: z.literal('include'), actorId: z.string() }),
     z.object({ type: z.literal('leave'), actorId: z.string() }),
+    z.object({ type: z.literal('pause'), actorId: z.string(), paused: z.boolean() }),
   ]),
   initial: () => ({ members: [] }),
   apply: (state, op) => {
+    if (op.type === 'pause') return paused(state, op.actorId, op.paused);
     const member = memberOf(op);
     const id = op.type === 'join' ? op.actor.id : op.actorId;
+    const before = state.members.find((m) => m.id === id);
     const others = state.members.filter((m) => m.id !== id);
-    return { members: member ? [...others, member] : others };
+    if (!member) return { members: others };
+    return { members: [...others, before?.paused ? { ...member, paused: true } : member] };
   },
-  // Version 2 added `include`; version 1 operations are valid as they are.
+  // Version 2 added `include`, version 3 `pause`; older operations are valid as they are.
   migrate: (payload) => payload,
 });
 
@@ -81,8 +103,29 @@ export function castActors(cast: Cast, lookup: ActorLookup): Actor[] {
   return cast.members.flatMap((m) => m.actor ?? lookup(m.id) ?? []);
 }
 
+/** Ids of the members paused in the cast. */
+export function pausedIds(cast: Cast): ReadonlySet<string> {
+  return new Set(cast.members.flatMap((m) => (m.paused ? [m.id] : [])));
+}
+
 /** The document id of a session's cast. */
 export const CAST = 'cast';
+
+/**
+ * Pauses an actor in a session, or lets it go on: directors do not see paused
+ * actors. The pause is the session's, kept in its cast, never on the actor.
+ */
+export async function pauseActor(
+  session: { readonly workspace: Workspace; readonly actors: readonly Actor[] },
+  actorId: string,
+  paused: boolean,
+): Promise<void> {
+  const cast = session.workspace.read(CAST, castDoc);
+  if (pausedIds(cast).has(actorId) === paused) return;
+  if (!session.actors.some((a) => a.id === actorId)) return;
+  const payload = { type: 'pause', actorId, paused } as const;
+  await session.workspace.change({ actorId, docId: CAST, docType: castDoc, payload });
+}
 
 /**
  * Who is in the cast and what anyone could see of them: names and profile

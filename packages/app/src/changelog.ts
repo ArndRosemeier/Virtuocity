@@ -10,6 +10,13 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 86,
+    date: '2026-10-15',
+    changes: [
+      'Pause an actor: the pause button next to a cast actor in the Cast panel hides it from the director, so it is not picked until you click play again. You can still let it speak yourself. Pausing is part of the session, not the actor, so it is not paused anywhere else.',
+    ],
+  },
+  {
     build: 85,
     date: '2026-10-15',
     changes: [
@@ -269,21 +276,6 @@ export const RELEASES: readonly Release[] = [
     date: '2026-10-13',
     changes: [
       'New skill "Fact gatherer": reads the whole session and keeps a list of the facts it has established (people, places, things, relationships, events, open threads) in its own space. Like the Illustrator it acts only when you click it under "or ask:", unless you turn on "automatic" to have it gather after every turn. Its prompt is editable in the actor\'s settings and starts with a sensible default. You can correct the list in its space, and the next gathering keeps your corrections.',
-    ],
-  },
-  {
-    build: 51,
-    date: '2026-10-13',
-    changes: [
-      'Chroniclers summarize less often and leave more of the story as it is: by default they keep the newest 8000 tokens out of the summary (was 2000) and update it once 6000 tokens of older story are new (was 1500). Chroniclers whose settings you never changed get the new values; ones you edited keep theirs.',
-    ],
-  },
-  {
-    build: 50,
-    date: '2026-10-13',
-    changes: [
-      'The Director skill is now plain code, with no model involved: the AI who spoke least recently answers next. Your Director actors keep working and become this one.',
-      'New skill "Director (decision model)": asks a decision model who should speak next, given the session and the actor\'s description of how to direct. It uses Jev from TypeSafe by default (through your OpenRouter key; very cheap). Settings > Models has a new "Decisions" choice to pick another decision model.',
     ],
   },
   ...MIDDLE_RELEASES,

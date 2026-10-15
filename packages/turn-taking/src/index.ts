@@ -1,6 +1,6 @@
 import { directorContract } from '@virtuocity/contract-director';
 import type { Actor, Flow, FlowContext, Skill, VirtuocityModule } from '@virtuocity/core';
-import { defineFlow, rivalFor, serves, z } from '@virtuocity/core';
+import { CAST, castDoc, defineFlow, pausedIds, rivalFor, serves, z } from '@virtuocity/core';
 
 export type TurnTakingInput =
   { readonly kind: 'pass' } | { readonly kind: 'choose'; readonly actorId: string };
@@ -25,10 +25,12 @@ export function rivalDirector(
 /**
  * Asks the session's director (the one actor serving `director@1`) who goes
  * next. Without a director, or when it hands the turn to a person, nobody does.
+ * Actors paused in the session are not offered: the director never sees them.
  */
 async function directorsPick(ctx: FlowContext): Promise<string | undefined> {
   const director = ctx.actors.find((a) => ctx.serves(a.id, directorContract));
-  const cast = ctx.cast();
+  const paused = pausedIds(ctx.state.read(CAST, castDoc));
+  const cast = ctx.cast().filter((a) => !paused.has(a.id));
   if (!director || cast.length === 0) return undefined;
   const candidates = cast.map((a) => ({
     id: a.id,

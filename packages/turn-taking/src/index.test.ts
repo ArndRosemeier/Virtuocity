@@ -6,6 +6,7 @@ import {
   coreModule,
   implement,
   loadModules,
+  pauseActor,
   textContent,
 } from '@virtuocity/core';
 import { describe, expect, it } from 'vitest';
@@ -93,6 +94,27 @@ describe('turn taking', () => {
     await session.flows.run('turn-taking', { kind: 'pass' });
     expect(offered).toEqual([['user', 'bard', 'wren']]);
     expect(speakers(session)).toEqual(['bard']);
+  });
+
+  it('hides paused actors from the director until they go on', async () => {
+    const session = await setup();
+    await session.join(actor('director', 'ai', ['always-bard']));
+    await pauseActor(session, 'bard', true);
+    offered.length = 0;
+    await session.flows.run('turn-taking', { kind: 'pass' });
+    expect(offered).toEqual([['user', 'wren']]);
+    expect(speakers(session)).toEqual([]);
+    await pauseActor(session, 'bard', false);
+    await session.flows.run('turn-taking', { kind: 'pass' });
+    expect(offered.at(-1)).toEqual(['user', 'bard', 'wren']);
+    expect(speakers(session)).toEqual(['bard']);
+  });
+
+  it('still lets the person choose a paused actor', async () => {
+    const session = await setup();
+    await pauseActor(session, 'wren', true);
+    await session.flows.run('turn-taking', { kind: 'choose', actorId: 'wren' });
+    expect(speakers(session)).toEqual(['wren']);
   });
 
   it('waits for the person when the director hands the turn back', async () => {
