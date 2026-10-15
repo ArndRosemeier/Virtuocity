@@ -10,6 +10,13 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 83,
+    date: '2026-10-15',
+    changes: [
+      'Analytics counts markers too: how many there are in all, and how many of each kind (for example Summarized), under its length figures.',
+    ],
+  },
+  {
     build: 82,
     date: '2026-10-15',
     changes: [

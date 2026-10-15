@@ -55,6 +55,24 @@ describe('sessionFigures', () => {
     expect(length?.figures[1]).toEqual({ label: 'Words', value: '12,480' });
   });
 
+  it('counts the markers in all and per label, only when there are any', () => {
+    const markers = [
+      { afterId: '1', label: 'Summarized', actorId: 'c' },
+      { afterId: '2', label: 'Summarized', actorId: 'd' },
+      { afterId: '2', label: 'Scene', actorId: 'e' },
+    ];
+    const { groups } = sessionFigures([message('1', 'n', 'text', 'Hi')], actors, markers);
+    expect(groups.at(-1)).toEqual({
+      title: 'Markers',
+      figures: [
+        { label: 'All', value: '3' },
+        { label: 'Summarized', value: '2' },
+        { label: 'Scene', value: '1' },
+      ],
+    });
+    expect(sessionFigures([], actors).groups.map((g) => g.title)).toEqual(['Length']);
+  });
+
   it('counts words between any whitespace', () => {
     expect(wordCount('  a\nb\t c  ')).toBe(3);
     expect(wordCount('')).toBe(0);

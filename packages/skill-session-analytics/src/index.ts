@@ -41,7 +41,7 @@ async function refresh(ctx: SkillContext): Promise<void> {
 
 /**
  * Plain code, no model: shows how long the session is (posts, words,
- * characters, tokens, words per speaker) and the session as an outline, one
+ * characters, tokens, words per speaker, markers) and the session as an outline, one
  * thin line per post colored by what kind of post it is, with markers such as
  * "Summarized" in between; clicking a line brings that post into view. Picked by a person (or Retry in its space), it
  * updates right away; with `automatic` on, also after every new post and
@@ -55,8 +55,9 @@ export const sessionAnalyticsSkill: Skill = {
   implements: [
     implement(sessionAnalyticsContract, {
       analyze: async (_input, ctx) => {
-        const outline = sessionOutline(ctx.transcript, ctx.actors, await markersOf(ctx));
-        const figures = sessionFigures(ctx.transcript, ctx.actors);
+        const markers = await markersOf(ctx);
+        const outline = sessionOutline(ctx.transcript, ctx.actors, markers);
+        const figures = sessionFigures(ctx.transcript, ctx.actors, markers);
         return {
           parts: [
             { kind: SESSION_FIGURES, data: figures },

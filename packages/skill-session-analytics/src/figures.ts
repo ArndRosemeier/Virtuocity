@@ -1,4 +1,5 @@
-import type { Figure, SessionFigures } from '@virtuocity/contract-analytics';
+import type { Figure, FigureGroup, SessionFigures } from '@virtuocity/contract-analytics';
+import type { StoryMarker } from '@virtuocity/contract-render';
 import type { Actor, Message } from '@virtuocity/core';
 import { IMAGE_PART, estimateTokens } from '@virtuocity/core';
 
@@ -18,13 +19,26 @@ function wordsPerSpeaker(texts: readonly Message[], actors: readonly Actor[]): F
     .map(([id, n]) => ({ label: nameOf(id), value: format(n) }));
 }
 
+/** How many markers the actors placed: in all, and per label (e.g. Summarized). */
+function markerCounts(markers: readonly StoryMarker[]): FigureGroup[] {
+  if (markers.length === 0) return [];
+  const byLabel = new Map<string, number>();
+  for (const m of markers) byLabel.set(m.label, (byLabel.get(m.label) ?? 0) + 1);
+  const labels = [...byLabel].map(([label, n]) => ({ label, value: format(n) }));
+  return [
+    { title: 'Markers', figures: [{ label: 'All', value: format(markers.length) }, ...labels] },
+  ];
+}
+
 /**
  * How long the session is: posts, words and characters of its text posts,
- * the tokens a model reads for all of it (an estimate), and words per speaker.
+ * the tokens a model reads for all of it (an estimate), words per speaker,
+ * and how many markers (e.g. Summarized) actors placed.
  */
 export function sessionFigures(
   messages: readonly Message[],
   actors: readonly Actor[],
+  markers: readonly StoryMarker[] = [],
 ): SessionFigures {
   const texts = messages.filter((m) => m.kind === 'text');
   const words = texts.reduce((n, m) => n + wordCount(m.text), 0);
@@ -44,6 +58,7 @@ export function sessionFigures(
     groups: [
       { title: 'Length', figures: session },
       ...(speakers.length > 0 ? [{ title: 'Words per speaker', figures: speakers }] : []),
+      ...markerCounts(markers),
     ],
   };
 }
