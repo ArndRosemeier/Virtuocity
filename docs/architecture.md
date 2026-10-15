@@ -438,14 +438,14 @@ the space's `fill`, `discard` and `redo`.
 whole session and returns output parts of any kind. It also holds the
 `session-outline` output kind: one row per post (message id, post type,
 hover title), with a fixed set of post types (person, ai, picture, sound,
-tool, hidden, other). `skill-session-analytics` ships "Session analytics",
+tool, hidden, other, marker): markers any actor places (`marker@1.0`) follow the post they come after, naming the placing actor in `markerOf`. `skill-session-analytics` ships "Session analytics",
 plain code that classifies the posts it sees (hidden from a person in the
 session counts as hidden), keeps the outline (`keptParts`) and shows it in its
-space; it updates on request, and after every `message.posted` only with its
+space; it updates on request, and after every `message.posted` and `job.ended` only with its
 `automatic` setting on (off by default). A ready-made "Analytics" actor is
 offered. The app draws the outline as thin colored lines with a legend;
 clicking one scrolls the session to that message (`scrollToMessage`, which
-finds the element the chat view marks with `data-message-id`). Hidden posts
+finds the element the chat view marks with `data-message-id`); a marker line scrolls to the chat view's marker (`data-marker`) and opens the placing actor's space. Hidden posts
 are not drawn in the session, so their lines do nothing.
 
 ## Directors

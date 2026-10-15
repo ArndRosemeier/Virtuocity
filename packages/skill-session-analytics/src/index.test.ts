@@ -1,4 +1,5 @@
 import { SESSION_OUTLINE, sessionAnalyticsContract } from '@virtuocity/contract-analytics';
+import { markerContract } from '@virtuocity/contract-render';
 import { spaceContract } from '@virtuocity/contract-space';
 import type { Skill } from '@virtuocity/core';
 import {
@@ -7,6 +8,7 @@ import {
   conformanceSuite,
   conformanceTarget,
   coreModule,
+  implement,
   loadModules,
   textContent,
 } from '@virtuocity/core';
@@ -36,9 +38,24 @@ const narrator: Skill = {
   },
 };
 
+const marking: Skill = {
+  id: 'marking',
+  name: 'Marking',
+  backing: 'code',
+  implements: [
+    implement(markerContract, {
+      markers: (_input, ctx) =>
+        Promise.resolve({
+          markers: ctx.transcript.slice(0, 1).map((m) => ({ afterId: m.id, label: 'Summarized' })),
+        }),
+    }),
+  ],
+};
+
 async function session(settings?: Record<string, unknown>) {
   const host = loadModules(new ModuleHost(), [coreModule, sessionAnalyticsModule]);
   host.skills.register(narrator);
+  host.skills.register(marking);
   const runtime = new SessionRuntime({ host, modelDefaults: () => ({}) });
   const actor = (id: string, skillIds: string[]) => ({
     id,
@@ -57,6 +74,23 @@ async function session(settings?: Record<string, unknown>) {
 }
 
 describe('analysing the session', () => {
+  it('shows the markers actors place, e.g. where the last summary is', async () => {
+    const { runtime, space } = await session();
+    await runtime.join({
+      id: 'Scribe',
+      controller: 'ai',
+      personality: { name: 'Scribe', description: '' },
+      skillIds: ['marking'],
+    });
+    await runtime.runTurn('Analytics');
+    const [part] = (await space()).parts;
+    const rows = (part?.data as { rows: { type: string; title: string }[] }).rows;
+    expect(rows.map((r) => [r.type, r.title])).toEqual([
+      ['ai', 'Narrator · Text by an AI actor'],
+      ['marker', 'Scribe · Summarized'],
+    ]);
+  });
+
   it('waits to be asked by default, and is support, not cast', async () => {
     const { runtime, space } = await session();
     expect((await space()).parts).toEqual([]);

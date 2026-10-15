@@ -51,3 +51,23 @@ describe('sessionOutline', () => {
     expect(rows[0]?.type).toBe('ai');
   });
 });
+
+describe('sessionOutline with markers', () => {
+  it('puts each marker right after the post it follows, naming who placed it', () => {
+    const { rows } = sessionOutline(
+      [message('1', 'you', 'text'), message('2', 'n', 'text')],
+      actors,
+      [
+        { afterId: '1', label: 'Summarized', actorId: 'n' },
+        { afterId: 'gone', label: 'Lost', actorId: 'n' },
+      ],
+    );
+    expect(rows.map((r) => r.type)).toEqual(['person', 'marker', 'ai']);
+    expect(rows[1]).toEqual({
+      messageId: '1',
+      type: 'marker',
+      title: 'Narrator · Summarized',
+      markerOf: 'n',
+    });
+  });
+});
