@@ -2,8 +2,8 @@ import type { ReactNode } from 'react';
 import { Button, Modal } from '@virtuocity/ui';
 
 /**
- * Warns before an action that deletes the current session, so nothing in a
- * session ever refers to an actor it no longer has.
+ * Warns before an action that throws the current session away: deleting it (so
+ * nothing in a session ever refers to an actor it no longer has) or clearing it.
  */
 export function SessionGoesDialog({
   title,

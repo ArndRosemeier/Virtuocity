@@ -10,6 +10,13 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 85,
+    date: '2026-10-15',
+    changes: [
+      'Clear session: the eraser in the header empties the open session after a warning. Everything that happened goes, every version included; who is in it stays. The next step starts it afresh, so a premise opens it again with its current text.',
+    ],
+  },
+  {
     build: 84,
     date: '2026-10-15',
     changes: [

@@ -34,3 +34,14 @@ export async function withdraw(
   await session.leave(actorId);
   return true;
 }
+
+/**
+ * Empties a session: who is in it and how it was set up stay, everything that
+ * happened goes, on every branch. Its next step opens it afresh, e.g. with a
+ * premise as it is then.
+ */
+export async function clearSession(session: { readonly workspace: Workspace }): Promise<void> {
+  const kept = session.workspace.log.path().filter(arranges);
+  const chained = kept.map((op, i) => ({ ...op, parentId: kept[i - 1]?.id ?? null }));
+  await session.workspace.load(chained, chained.at(-1)?.id ?? null);
+}
