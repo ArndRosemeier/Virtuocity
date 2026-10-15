@@ -80,6 +80,8 @@ A player actor's description is its character: ancestry, class, level, scores, b
 
 After every turn the session pauses. Without a director, nobody speaks on their own: you pick who speaks next under "Let speak". A session can have one **director**, an actor that picks the next speaker. With a director you can **Act** (write, then the director picks who answers) or **Pass** (the director picks without you writing). Support actors that can be asked, like an illustrator, appear under "or ask". Some support actors also act on their own, with or without a director: a chronicler summarizes when the session grows, and an illustrator with "Paint on its own" switched on paints after every turn. That setting is off by default, since pictures cost money.
 
+To take an actor out of the director's choices for a while, click the pause button next to it in the Cast panel. A paused actor stays in the session and you can still let it speak yourself; the director just doesn't see it until you click play. Pausing belongs to the session, not the actor: the same actor in another session is not paused. Like joining, a pause is part of the session's history, so going back to a point before it (a retry, an older version) undoes it.
+
 ## Retry, versions and editing
 
 - **Retry** lets an actor answer again. The old answer is kept: a retried message shows a picker like "‹ 2/3 ›". Going back to an earlier version brings back everything that followed it; anything new continues from the version you picked.

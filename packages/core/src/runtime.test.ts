@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Actor } from './actor';
+import { CAST, castDoc, pauseActor, pausedIds } from './cast';
 import { coreModule } from './core-module';
 import { textContent } from './output';
 import { ModuleHost, loadModules } from './module';
@@ -71,6 +72,8 @@ const ai = (id: string, skillIds: string[]): Actor => ({
   skillIds,
 });
 
+const pausedIn = (session: SessionRuntime) => pausedIds(session.workspace.read(CAST, castDoc));
+
 describe('SessionRuntime', () => {
   it('runs a turn with the skill model override and stats', async () => {
     const session = setup();
@@ -129,6 +132,25 @@ describe('SessionRuntime', () => {
     await session.leave('bard');
     expect(session.actors).toEqual([]);
     await expect(session.runTurn('bard')).rejects.toThrow(/cannot take a turn/);
+  });
+
+  it('pauses an actor in the session only, through rejoining, until it leaves', async () => {
+    const session = setup();
+    const bard = ai('bard', ['echo']);
+    await session.join(bard);
+    await pauseActor(session, 'bard', true);
+    expect([...pausedIn(session)]).toEqual(['bard']);
+    expect(session.actors).toEqual([bard]);
+    await session.join({ ...bard, personality: { name: 'bard', description: 'new' } });
+    expect([...pausedIn(session)]).toEqual(['bard']);
+    await pauseActor(session, 'bard', false);
+    expect([...pausedIn(session)]).toEqual([]);
+    await pauseActor(session, 'bard', true);
+    await session.leave('bard');
+    await session.join(bard);
+    expect([...pausedIn(session)]).toEqual([]);
+    await pauseActor(session, 'nobody', true);
+    expect([...pausedIn(session)]).toEqual([]);
   });
 });
 

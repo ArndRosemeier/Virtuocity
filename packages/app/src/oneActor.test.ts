@@ -12,6 +12,7 @@ import {
   loadModules,
   memoryStore,
   parseSavedSession,
+  pauseActor,
   SETUP,
   retryMessage,
   setupDoc,
@@ -100,6 +101,12 @@ describe('one name, one actor', () => {
     await shown.join(marlow);
     await shown.post('you', textContent('hello'));
     await shown.runTurn('marlow');
+    await expectNoCopies(library, switcher);
+
+    // Pausing is the session's state: the library actor stays as it was.
+    await pauseActor(shown, 'marlow', true);
+    expect(library.actor('marlow')).toEqual(marlow);
+    await pauseActor(shown, 'marlow', false);
     await expectNoCopies(library, switcher);
 
     await library.saveActor(described('A captain.'));

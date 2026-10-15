@@ -1,7 +1,22 @@
 import type { Release } from './changelog-earlier';
 
-/** Builds 34 to 49, newest first; kept apart so the changelog stays short. */
+/** Builds 34 to 51, newest first; kept apart so the changelog stays short. */
 export const MIDDLE_RELEASES: readonly Release[] = [
+  {
+    build: 51,
+    date: '2026-10-13',
+    changes: [
+      'Chroniclers summarize less often and leave more of the story as it is: by default they keep the newest 8000 tokens out of the summary (was 2000) and update it once 6000 tokens of older story are new (was 1500). Chroniclers whose settings you never changed get the new values; ones you edited keep theirs.',
+    ],
+  },
+  {
+    build: 50,
+    date: '2026-10-13',
+    changes: [
+      'The Director skill is now plain code, with no model involved: the AI who spoke least recently answers next. Your Director actors keep working and become this one.',
+      'New skill "Director (decision model)": asks a decision model who should speak next, given the session and the actor\'s description of how to direct. It uses Jev from TypeSafe by default (through your OpenRouter key; very cheap). Settings > Models has a new "Decisions" choice to pick another decision model.',
+    ],
+  },
   {
     build: 49,
     date: '2026-10-13',
