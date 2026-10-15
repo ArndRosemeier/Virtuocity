@@ -7,32 +7,34 @@ product is, and why that shapes every change, is in [vision.md](vision.md).
 
 ## Packages
 
-| Package                           | Role                                                                                  |
-| --------------------------------- | ------------------------------------------------------------------------------------- |
-| `@virtuocity/core`                | Concepts and extension points. No UI, no network, no other packages.                  |
-| `@virtuocity/contract-dice`       | `dice-roller@1` contract.                                                             |
-| `@virtuocity/contract-critique`   | `critic@1` and `reviewer@1` (extends `critic@1`) contracts.                           |
-| `@virtuocity/openai-api`          | `ModelProvider`s for OpenRouter and OpenAI (same chat API).                           |
-| `@virtuocity/anthropic`           | `ModelProvider` for Anthropic's Messages API (Claude).                                |
-| `@virtuocity/contract-speaker`    | `speaker@1.0` contract: says the actor's part in the session.                         |
-| `@virtuocity/skill-conversation`  | Conversation skill: implements `speaker@1.0` with a text model.                       |
-| `@virtuocity/skill-dice`          | Code-only skill implementing `dice-roller@1`.                                         |
-| `@virtuocity/skill-reviewer`      | LLM skill implementing `reviewer@1` (and so `critic@1`).                              |
-| `@virtuocity/contract-writing`    | `writer@1` contract.                                                                  |
-| `@virtuocity/skill-writer`        | LLM skill implementing `writer@1`.                                                    |
-| `@virtuocity/contract-visual`     | `illustrator@1` and `picture-source@1.0` contracts.                                   |
-| `@virtuocity/skill-illustrator`   | Image-model skill implementing `illustrator@1`; illustrates turns.                    |
-| `@virtuocity/skill-gallery`       | Gallery: every picture in a space; serves `picture-source@1.0` (the current picture). |
-| `@virtuocity/contract-facts`      | `fact-gatherer@1.0` contract: the facts a session has established.                    |
-| `@virtuocity/skill-fact-gatherer` | LLM skill implementing `fact-gatherer@1.0`; shows facts in its space.                 |
-| `@virtuocity/book-room`           | Walking skeleton: `manuscript` document and `book-pipeline` flow.                     |
-| `@virtuocity/contract-director`   | `director@1.0` contract: picks who takes the next turn.                               |
-| `@virtuocity/skill-session-type`  | "Session type": cast contracts, roles, panels in the actor's settings; the Open type. |
-| `@virtuocity/skill-director`      | Code and decision-model skills implementing `director@1.0`.                           |
-| `@virtuocity/turn-taking`         | `turn-taking` flow: pass (the director picks) or choose who speaks.                   |
-| `@virtuocity/roleplay`            | Roleplay session type and its starter actors (narrator, players...).                  |
-| `@virtuocity/image-workflow`      | Image workflow and Guided illustrations session types, Painter, Prompt refiner.       |
-| `@virtuocity/app`                 | Vite + React web app. Decides which modules are installed.                            |
+| Package                               | Role                                                                                   |
+| ------------------------------------- | -------------------------------------------------------------------------------------- |
+| `@virtuocity/core`                    | Concepts and extension points. No UI, no network, no other packages.                   |
+| `@virtuocity/contract-dice`           | `dice-roller@1` contract.                                                              |
+| `@virtuocity/contract-critique`       | `critic@1` and `reviewer@1` (extends `critic@1`) contracts.                            |
+| `@virtuocity/openai-api`              | `ModelProvider`s for OpenRouter and OpenAI (same chat API).                            |
+| `@virtuocity/anthropic`               | `ModelProvider` for Anthropic's Messages API (Claude).                                 |
+| `@virtuocity/contract-speaker`        | `speaker@1.0` contract: says the actor's part in the session.                          |
+| `@virtuocity/skill-conversation`      | Conversation skill: implements `speaker@1.0` with a text model.                        |
+| `@virtuocity/skill-dice`              | Code-only skill implementing `dice-roller@1`.                                          |
+| `@virtuocity/skill-reviewer`          | LLM skill implementing `reviewer@1` (and so `critic@1`).                               |
+| `@virtuocity/contract-writing`        | `writer@1` contract.                                                                   |
+| `@virtuocity/skill-writer`            | LLM skill implementing `writer@1`.                                                     |
+| `@virtuocity/contract-visual`         | `illustrator@1` and `picture-source@1.0` contracts.                                    |
+| `@virtuocity/skill-illustrator`       | Image-model skill implementing `illustrator@1`; illustrates turns.                     |
+| `@virtuocity/skill-gallery`           | Gallery: every picture in a space; serves `picture-source@1.0` (the current picture).  |
+| `@virtuocity/contract-facts`          | `fact-gatherer@1.0` contract: the facts a session has established.                     |
+| `@virtuocity/skill-fact-gatherer`     | LLM skill implementing `fact-gatherer@1.0`; shows facts in its space.                  |
+| `@virtuocity/contract-analytics`      | `session-analytics@1.0` contract and the `session-outline` output kind.                |
+| `@virtuocity/skill-session-analytics` | Code skill implementing `session-analytics@1.0`: an outline of the posts in its space. |
+| `@virtuocity/book-room`               | Walking skeleton: `manuscript` document and `book-pipeline` flow.                      |
+| `@virtuocity/contract-director`       | `director@1.0` contract: picks who takes the next turn.                                |
+| `@virtuocity/skill-session-type`      | "Session type": cast contracts, roles, panels in the actor's settings; the Open type.  |
+| `@virtuocity/skill-director`          | Code and decision-model skills implementing `director@1.0`.                            |
+| `@virtuocity/turn-taking`             | `turn-taking` flow: pass (the director picks) or choose who speaks.                    |
+| `@virtuocity/roleplay`                | Roleplay session type and its starter actors (narrator, players...).                   |
+| `@virtuocity/image-workflow`          | Image workflow and Guided illustrations session types, Painter, Prompt refiner.        |
+| `@virtuocity/app`                     | Vite + React web app. Decides which modules are installed.                             |
 
 New skills, session types and providers are new packages under `packages/`. New
 contracts are `contract-*` packages.
@@ -425,6 +427,26 @@ It refreshes by invoking the contract on its own actor (also on Retry in its spa
 next gathering keeps their corrections. Like the Illustrator it is support: it
 gathers when a person asks it (`onRequest`), and after other actors' turns only
 with its `automatic` setting on (off by default).
+
+Skills that keep the latest output parts of each of their actors for a space
+(facts, analyses) use core's `keptParts`: one log document per skill, plus
+the space's `fill`, `discard` and `redo`.
+
+## Session analytics
+
+`contract-analytics` defines `session-analytics@1.0`: `analyze` looks at the
+whole session and returns output parts of any kind. It also holds the
+`session-outline` output kind: one row per post (message id, post type,
+hover title), with a fixed set of post types (person, ai, picture, sound,
+tool, hidden, other). `skill-session-analytics` ships "Session analytics",
+plain code that classifies the posts it sees (hidden from a person in the
+session counts as hidden), keeps the outline (`keptParts`) and shows it in its
+space; it updates on request, and after every `message.posted` only with its
+`automatic` setting on (off by default). A ready-made "Analytics" actor is
+offered. The app draws the outline as thin colored lines with a legend;
+clicking one scrolls the session to that message (`scrollToMessage`, which
+finds the element the chat view marks with `data-message-id`). Hidden posts
+are not drawn in the session, so their lines do nothing.
 
 ## Directors
 

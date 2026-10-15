@@ -1,0 +1,14 @@
+{
+  "name": "@virtuocity/skill-session-analytics",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@virtuocity/contract-analytics": "*",
+    "@virtuocity/contract-space": "*",
+    "@virtuocity/core": "*"
+  }
+}
