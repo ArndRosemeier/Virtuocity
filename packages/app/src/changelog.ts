@@ -10,6 +10,14 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 81,
+    date: '2026-10-15',
+    changes: [
+      'Session analytics now shows markers too: a thin red divider between the posts wherever an actor placed one, such as a chronicler\'s "Summarized", so you see at a glance where the last summary is. Clicking it jumps to the marker in the session and opens that actor\'s space.',
+      'With "automatic" on, Analytics also updates when a background job finishes, so a new summary shows up right away.',
+    ],
+  },
+  {
     build: 80,
     date: '2026-10-15',
     changes: [

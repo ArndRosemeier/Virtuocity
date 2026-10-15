@@ -1214,6 +1214,14 @@
 .outline [data-type='hidden'] {
   --post: var(--text-faint);
 }
+.outline [data-type='marker'] {
+  --post: var(--danger);
+}
+/* A marker is a thin divider between posts, so it can't be taken for one. */
+.outline__line[data-type='marker'] {
+  height: 2px;
+  margin: 2px 0;
+}
 .outline__legend {
   display: flex;
   flex-wrap: wrap;

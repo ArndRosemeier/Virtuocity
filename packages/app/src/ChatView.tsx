@@ -5,7 +5,7 @@ import { Avatar, IconButton } from '@virtuocity/ui';
 import { useActorTips } from './actorTips';
 import { MessageEditor } from './MessageEdit';
 import { openSpace } from './openSpaces';
-import { MESSAGE_ID_ATTRIBUTE } from './scrollToMessage';
+import { MARKER_ATTRIBUTE, MESSAGE_ID_ATTRIBUTE, markerKey } from './scrollToMessage';
 import { useMessageActions } from './messageActions';
 import { StatsBadge } from './StatsBadge';
 import { Stepper } from './Stepper';
@@ -141,9 +141,22 @@ export function MessageView({
 }
 
 /** A small labeled line between messages; clicking it opens the placing actor's space. */
-function StoryMarkerLine({ label, actorId }: { label: string; actorId: string }) {
+function StoryMarkerLine({
+  label,
+  actorId,
+  afterId,
+}: {
+  label: string;
+  actorId: string;
+  afterId: string;
+}) {
   return (
-    <button type="button" className="story-marker" onClick={() => openSpace(actorId)}>
+    <button
+      type="button"
+      className="story-marker"
+      {...{ [MARKER_ATTRIBUTE]: markerKey(afterId, actorId) }}
+      onClick={() => openSpace(actorId)}
+    >
       {label}
     </button>
   );
@@ -185,7 +198,12 @@ export function ChatViewPart({ host, view }: { host: AppHost; view: ChatView }) 
             }
           />
           {entry.markers?.map((marker) => (
-            <StoryMarkerLine key={marker.actorId} label={marker.label} actorId={marker.actorId} />
+            <StoryMarkerLine
+              key={marker.actorId}
+              label={marker.label}
+              actorId={marker.actorId}
+              afterId={entry.id}
+            />
           ))}
         </Fragment>
       ))}

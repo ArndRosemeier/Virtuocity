@@ -1,5 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
-import { MESSAGE_ID_ATTRIBUTE, scrollToMessage } from './scrollToMessage';
+import {
+  MARKER_ATTRIBUTE,
+  MESSAGE_ID_ATTRIBUTE,
+  markerKey,
+  scrollToMarker,
+  scrollToMessage,
+} from './scrollToMessage';
 
 const drawn = (id: string) => {
   const element = {
@@ -22,5 +28,19 @@ describe('scrollToMessage', () => {
   it('does nothing for a message that is not drawn', () => {
     const root = { querySelectorAll: () => [drawn('1')] as unknown as Element[] };
     expect(scrollToMessage('gone', root)).toBe(false);
+  });
+});
+
+describe('scrollToMarker', () => {
+  it('brings the marker placed by that actor after that message into view', () => {
+    const marker = {
+      getAttribute: (name: string) => (name === MARKER_ATTRIBUTE ? markerKey('1', 'scribe') : null),
+      scrollIntoView: vi.fn(),
+      animate: vi.fn(),
+    };
+    const root = { querySelectorAll: () => [marker] as unknown as Element[] };
+    expect(scrollToMarker('1', 'scribe', root)).toBe(true);
+    expect(scrollToMarker('1', 'other', root)).toBe(false);
+    expect(marker.scrollIntoView).toHaveBeenCalledOnce();
   });
 });

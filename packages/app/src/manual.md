@@ -90,7 +90,7 @@ After every turn the session pauses. Without a director, nobody speaks on their 
 
 Some actors have a space in the left sidebar: a picture, a canvas, a list of facts, a summary. Every space can be resized, closed and brought back, and its content can be deleted. Some spaces stay hidden until a marker in the conversation (like a chronicler's "summarized" line) opens them.
 
-An **Analytics** actor (the Session analytics skill) shows the whole session in its space as a strip of thin colored lines, one per post: your text, AI text, pictures, sound, tool use, posts hidden from you, and anything else each get their own color (the legend underneath names them). Click a line to jump to that post in the session. It updates when you click it under "or ask:" or press Retry in its space; switch on "automatic" in the actor editor to have it update after every post.
+An **Analytics** actor (the Session analytics skill) shows the whole session in its space as a strip of thin colored lines, one per post: your text, AI text, pictures, sound, tool use, posts hidden from you, and anything else each get their own color (the legend underneath names them). Markers, such as a chronicler's "Summarized", show as thin red dividers where they fall, so you see where the last summary is. Click a line to jump to that post in the session; clicking a marker also opens its actor's space. It updates when you click it under "or ask:" or press Retry in its space; switch on "automatic" in the actor editor to have it update after every post and whenever background work (like a new summary) finishes.
 
 ## Pictures and the gallery
 

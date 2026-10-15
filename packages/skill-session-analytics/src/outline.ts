@@ -1,5 +1,6 @@
 import type { OutlineRow, PostType, SessionOutline } from '@virtuocity/contract-analytics';
 import { POST_TYPE_NAMES } from '@virtuocity/contract-analytics';
+import type { StoryMarker } from '@virtuocity/contract-render';
 import type { Actor, Message } from '@virtuocity/core';
 import { AUDIO_PART, IMAGE_PART, TOOL_USE } from '@virtuocity/core';
 
@@ -20,15 +21,32 @@ export function postType(message: Message, actors: readonly Actor[]): PostType {
   return human ? 'person' : 'ai';
 }
 
-/** One line per post, in order, saying who posted what kind of thing. */
+/**
+ * One line per post, in order, saying who posted what kind of thing, each
+ * followed by the markers placed after it (e.g. a chronicler's "Summarized").
+ */
 export function sessionOutline(
   messages: readonly Message[],
   actors: readonly Actor[],
+  markers: readonly StoryMarker[] = [],
 ): SessionOutline {
   const nameOf = (id: string) => actors.find((a) => a.id === id)?.personality.name ?? id;
-  const rows = messages.map((m): OutlineRow => {
+  const rows = messages.flatMap((m): OutlineRow[] => {
     const type = postType(m, actors);
-    return { messageId: m.id, type, title: `${nameOf(m.actorId)} · ${POST_TYPE_NAMES[type]}` };
+    const post = {
+      messageId: m.id,
+      type,
+      title: `${nameOf(m.actorId)} · ${POST_TYPE_NAMES[type]}`,
+    };
+    const after = markers
+      .filter((k) => k.afterId === m.id)
+      .map((k): OutlineRow => ({
+        messageId: m.id,
+        type: 'marker',
+        title: `${nameOf(k.actorId)} · ${k.label}`,
+        markerOf: k.actorId,
+      }));
+    return [post, ...after];
   });
   return { rows };
 }
