@@ -439,7 +439,7 @@ whole session and returns output parts of any kind. It also holds the
 `session-outline` output kind: one row per post (message id, post type,
 hover title), with a fixed set of post types (person, ai, picture, sound,
 tool, hidden, other, marker): markers any actor places (`marker@1.0`) follow the post they come after, naming the placing actor in `markerOf`. The `session-figures` kind holds groups of labeled figures (label and value as text). `skill-session-analytics` ships "Session analytics",
-plain code that counts the session's length (posts, words and characters of text posts, `estimateTokens` over everything, words per speaker) and classifies the posts it sees (hidden from a person in the
+plain code that counts the session's length (posts, words and characters of text posts, `estimateTokens` over everything, words per speaker, marker counts per label) and classifies the posts it sees (hidden from a person in the
 session counts as hidden), keeps the outline (`keptParts`) and shows it in its
 space; it updates on request, and after every `message.posted` and `job.ended` only with its
 `automatic` setting on (off by default). A ready-made "Analytics" actor is
