@@ -1,14 +1,20 @@
-import { SESSION_OUTLINE, sessionAnalyticsContract } from '@virtuocity/contract-analytics';
+import {
+  SESSION_FIGURES,
+  SESSION_OUTLINE,
+  sessionAnalyticsContract,
+} from '@virtuocity/contract-analytics';
 import type { StoryMarker } from '@virtuocity/contract-render';
 import { markerContract } from '@virtuocity/contract-render';
 import { spaceContract } from '@virtuocity/contract-space';
 import type { Skill, SkillContext, Starter, VirtuocityModule } from '@virtuocity/core';
 import { implement, jobEnded, messagePosted, readSettings } from '@virtuocity/core';
 import { analyses } from './analysis';
+import { sessionFigures } from './figures';
 import { sessionOutline } from './outline';
 import { sessionAnalyticsSettings } from './settings';
 
 export * from './analysis';
+export * from './figures';
 export * from './outline';
 export * from './settings';
 
@@ -34,7 +40,8 @@ async function refresh(ctx: SkillContext): Promise<void> {
 }
 
 /**
- * Plain code, no model: shows the session in its space as an outline, one
+ * Plain code, no model: shows how long the session is (posts, words,
+ * characters, tokens, words per speaker) and the session as an outline, one
  * thin line per post colored by what kind of post it is, with markers such as
  * "Summarized" in between; clicking a line brings that post into view. Picked by a person (or Retry in its space), it
  * updates right away; with `automatic` on, also after every new post and
@@ -49,7 +56,13 @@ export const sessionAnalyticsSkill: Skill = {
     implement(sessionAnalyticsContract, {
       analyze: async (_input, ctx) => {
         const outline = sessionOutline(ctx.transcript, ctx.actors, await markersOf(ctx));
-        return { parts: [{ kind: SESSION_OUTLINE, data: outline }] };
+        const figures = sessionFigures(ctx.transcript, ctx.actors);
+        return {
+          parts: [
+            { kind: SESSION_FIGURES, data: figures },
+            { kind: SESSION_OUTLINE, data: outline },
+          ],
+        };
       },
     }),
     implement(spaceContract, analyses.space(refresh)),

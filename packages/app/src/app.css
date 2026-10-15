@@ -1240,3 +1240,33 @@
   border-radius: 2px;
   background: var(--post);
 }
+/* Figures about the session, e.g. its words: label left, value right. */
+.figures {
+  display: grid;
+  gap: var(--space-2);
+}
+.figures__title {
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.figures__list {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+}
+.figures__list div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.figures__list dt {
+  color: var(--text-muted);
+}
+.figures__list dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}

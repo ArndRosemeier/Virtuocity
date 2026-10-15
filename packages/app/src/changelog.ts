@@ -10,6 +10,13 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 82,
+    date: '2026-10-15',
+    changes: [
+      'Analytics now also shows how long the session is, above its strip of posts: posts, words, characters, an estimate of the tokens a model reads for all of it, words per text post, pictures, and words per speaker.',
+    ],
+  },
+  {
     build: 81,
     date: '2026-10-15',
     changes: [

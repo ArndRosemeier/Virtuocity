@@ -1,11 +1,13 @@
 import { action, check, defineContract, outputPartSchema, z } from '@virtuocity/core';
 
+export * from './figures';
 export * from './outline';
 
 /**
  * Looks at the session as a whole rather than at what it says: how it is
  * built, who posted what kind of thing and where. What it returns is not tied
- * to any kind of content: a strip of posts (`session-outline`), a chart, a
+ * to any kind of content: a strip of posts (`session-outline`), figures such
+ * as word counts (`session-figures`), a chart, a
  * table. Room for more analyses later; each is another implementation.
  */
 export const sessionAnalyticsContract = defineContract({

@@ -1,4 +1,8 @@
-import { SESSION_OUTLINE, sessionAnalyticsContract } from '@virtuocity/contract-analytics';
+import {
+  SESSION_FIGURES,
+  SESSION_OUTLINE,
+  sessionAnalyticsContract,
+} from '@virtuocity/contract-analytics';
 import { markerContract } from '@virtuocity/contract-render';
 import { spaceContract } from '@virtuocity/contract-space';
 import type { Skill } from '@virtuocity/core';
@@ -83,7 +87,7 @@ describe('analysing the session', () => {
       skillIds: ['marking'],
     });
     await runtime.runTurn('Analytics');
-    const [part] = (await space()).parts;
+    const [, part] = (await space()).parts;
     const rows = (part?.data as { rows: { type: string; title: string }[] }).rows;
     expect(rows.map((r) => [r.type, r.title])).toEqual([
       ['ai', 'Narrator · Text by an AI actor'],
@@ -101,7 +105,7 @@ describe('analysing the session', () => {
   it('shows one line per post once asked', async () => {
     const { runtime, space } = await session();
     await runtime.runTurn('Analytics');
-    const [part] = (await space()).parts;
+    const [figures, part] = (await space()).parts;
     expect(part?.kind).toBe(SESSION_OUTLINE);
     expect(part?.data).toEqual({
       rows: [
@@ -112,13 +116,14 @@ describe('analysing the session', () => {
         },
       ],
     });
+    expect(figures?.kind).toBe(SESSION_FIGURES);
     expect(runtime.transcript()).toHaveLength(1);
   });
 
   it('updates after every new post when automatic', async () => {
     const { runtime, space } = await session({ 'session-analytics': { automatic: true } });
     await runtime.runTurn('Narrator');
-    const [part] = (await space()).parts;
+    const [, part] = (await space()).parts;
     expect((part?.data as { rows: unknown[] }).rows).toHaveLength(2);
   });
 
@@ -128,6 +133,6 @@ describe('analysing the session', () => {
     await runtime.invoke('Analytics', spaceContract, 'discard', {});
     expect((await space()).parts).toEqual([]);
     await runtime.invoke('Analytics', spaceContract, 'redo', {});
-    expect((await space()).parts).toHaveLength(1);
+    expect((await space()).parts).toHaveLength(2);
   });
 });
