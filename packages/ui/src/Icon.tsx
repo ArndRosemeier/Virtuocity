@@ -26,6 +26,7 @@ const PATHS = {
   minimize: 'M9 4v5H4m11-5v5h5M9 20v-5H4m11 5v-5h5',
   folder: 'M3 6h6l2 2h10v11H3V6Z',
   bookmark: 'M6 4h12v17l-6-4-6 4V4Z',
+  eraser: 'M8 20h12M5 15l9-9 5 5-9 9H8l-3-3Zm5-5 5 5',
   trash: 'M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3',
   key: 'M15 7a4 4 0 1 1-3.9 5H3v3h3v3h3v-3h2.1A4 4 0 0 1 15 7Zm1 3h.01',
   sparkles:

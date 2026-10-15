@@ -25,7 +25,7 @@ On a fresh start your Library already holds some ready-made actors: the Open, Ro
 
 ## The screen
 
-- **Header:** the version and What's new, this Manual, and the open session's name, which opens the session list. On the right are the cost so far, the model calls (for a look under the hood), the Library (bookmark), saving and loading a session file, New session, and Settings.
+- **Header:** the version and What's new, this Manual, and the open session's name, which opens the session list. On the right are the cost so far, the model calls (for a look under the hood), the Library (bookmark), saving and loading a session file, Clear session (the eraser), New session, and Settings.
 - **Main area:** what the session is about, such as the conversation or a manuscript. With several views you switch with tabs.
 - **Input:** where you write, act or pass, and pick who speaks next.
 - **Left sidebar (Spaces):** actors that show something beside the conversation, like a picture, a canvas, a list of facts or a summary.
@@ -103,6 +103,7 @@ A talking image model (one that both writes and paints, like Nano Banana) needs 
 ## Sessions and templates
 
 - Every session has a unique name. Open the session list from the session name in the header to switch, rename or delete sessions.
+- **Clear session** (the eraser in the header) empties the open session after a warning: everything that happened goes, every version included, while its cast and setup stay. The next step starts it afresh, so a premise opens it again as it is then.
 - Tick **Template** on a session to list it under Templates. Using a template asks for a name and starts a new session from a copy of it, with everything it already holds; the template itself stays as it is.
 - A session without a session type can't be opened: one saved by an older version is deleted, and a file without one is refused.
 

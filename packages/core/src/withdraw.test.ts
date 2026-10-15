@@ -4,8 +4,8 @@ import { coreModule } from './core-module';
 import { ModuleHost, loadModules } from './module';
 import { textContent } from './output';
 import { SessionRuntime } from './runtime';
-import { hideGuide } from './setup';
-import { withdraw } from './withdraw';
+import { clearSession, withdraw } from './withdraw';
+import { SETUP, hideGuide, setupDoc } from './setup';
 
 const actor = (id: string): Actor => ({
   id,
@@ -55,5 +55,24 @@ describe('withdraw', () => {
     expect(await withdraw(runtime, 'premise')).toBe(false);
     expect(texts(runtime)).toEqual(['You wake on a train.']);
     expect(ids(runtime)).toEqual(['premise', 'narrator']);
+  });
+});
+
+describe('clearing a session', () => {
+  it('keeps the cast and setup, and drops everything that happened on every branch', async () => {
+    const runtime = await session();
+    const opening = await runtime.post('premise', textContent('You wake on a train.'));
+    await runtime.post('narrator', textContent('The train slows.'));
+    await runtime.rewindToMessage(opening.id, { keepBranch: true });
+    await runtime.join(actor('ink'));
+    await runtime.leave('premise');
+    await hideGuide(runtime);
+    await clearSession(runtime);
+    expect(texts(runtime)).toEqual([]);
+    expect(ids(runtime)).toEqual(['narrator', 'ink']);
+    expect(runtime.workspace.read(SETUP, setupDoc)).toEqual({ guideHidden: true });
+    expect(runtime.workspace.log.leaves()).toHaveLength(1);
+    await runtime.post('narrator', textContent('Again.'));
+    expect(texts(runtime)).toEqual(['Again.']);
   });
 });
