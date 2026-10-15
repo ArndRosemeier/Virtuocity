@@ -10,6 +10,13 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 84,
+    date: '2026-10-15',
+    changes: [
+      'A premise now opens the session right before its first step (your first message, or the first actor acting), not when the session is made. So editing the premise actor before anything has happened still counts, and a template always starts from its premise as it is now. Until then the chat stays empty.',
+    ],
+  },
+  {
     build: 83,
     date: '2026-10-15',
     changes: [

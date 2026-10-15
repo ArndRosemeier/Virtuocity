@@ -4,7 +4,8 @@ import { coreModule } from './core-module';
 import { textContent } from './output';
 import { ModuleHost, loadModules } from './module';
 import type { ModelProvider } from './provider';
-import { SessionRuntime, messagePosted } from './runtime';
+import { SessionRuntime } from './runtime';
+import { messagePosted } from './session-events';
 import type { Skill } from './skill';
 
 const echo: Skill = {

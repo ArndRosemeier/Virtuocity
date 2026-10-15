@@ -471,12 +471,16 @@ it directs. The Roleplay session type lists a director as an optional role, and 
 
 `sessionStarted` (core) fires once when a session is started (`startSession`,
 with its session type) and its cast has joined, never when a saved session loads
-(`isStarting` tells whether that cast is still joining).
+(`isStarting` tells whether that cast is still joining). `firstStep` (core)
+fires right before the session's first step, while it is still empty: before
+the first post, turn or flow run (`beginIfEmpty`), and again if the session is
+rewound to empty. What its listeners post does not fire it again, and if one
+fails the step does not happen.
 `contract-premise` defines `premise@2.0`, which returns messages of any
 kind, so a premise may be text, a picture or sound. `skill-premise` listens for
-`sessionStarted`, and for its own `actorJoined` outside a start, and while the
-session is still empty invokes the premise contract on its own actor and posts
-the result as the opening. One implementation ships, "Premise": a text
+`firstStep`, invokes the premise contract on its own actor and posts the result
+as the opening. Nothing is stored before then, so a premise is always the one
+its actor has when the session begins, also in a session made from a template. One implementation ships, "Premise": a text
 written in the actor's settings (Transform by AI turns a few words into one).
 It replaced "Premise (from a prompt)", whose prompt becomes the text. With
 "shown" off, the premise is posted hidden from the people in the session, so

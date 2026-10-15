@@ -10,7 +10,7 @@ import { createSkillContext } from './contexts';
 import type { DecisionRequest, DecisionResult } from './decisions';
 import { DECISIONS_MODALITY } from './decisions';
 import { decisionCall } from './decision-call';
-import { EventBus, defineEvent } from './events';
+import { EventBus } from './events';
 import { FlowRunner } from './flow-runner';
 import type { VEvent } from './events';
 import { HumanTaskQueue } from './human-tasks';
@@ -22,6 +22,8 @@ import { ContractError, invokeAction } from './implementation';
 import type { DescribedType } from './session-type';
 import { sessionTypeContract, sessionTypeDescribed } from './session-type';
 import { SessionCast } from './session-cast';
+import { actorJoined, actorLeft, messagePosted, turnEnded, turnStarted } from './session-events';
+import { beginIfEmpty } from './session-events';
 import type { ModelOverrides } from './models';
 import { parseModelRef, resolveModel } from './models';
 import type { ModuleHost } from './module';
@@ -39,12 +41,6 @@ import type { Message } from './transcript';
 import { MAIN_TRANSCRIPT, postingOperation, transcriptDoc } from './transcript';
 import type { ChangeOptions } from './workspace';
 import { Workspace } from './workspace';
-
-export const actorJoined = defineEvent<{ readonly actorId: string }>('actor.joined');
-export const actorLeft = defineEvent<{ readonly actorId: string }>('actor.left');
-export const messagePosted = defineEvent<{ readonly messageId: string }>('message.posted');
-export const turnStarted = defineEvent<{ readonly actorId: string }>('turn.started');
-export const turnEnded = defineEvent<{ readonly actorId: string }>('turn.ended');
 
 const TRANSCRIPT = { docId: MAIN_TRANSCRIPT, docType: transcriptDoc } as const;
 
@@ -146,6 +142,7 @@ export class SessionRuntime {
     stats?: readonly CallStats[],
     options: ChangeOptions = {},
   ): Promise<Message> {
+    await beginIfEmpty(this);
     const message: Message = {
       id: this.#newId(),
       actorId,
@@ -244,6 +241,7 @@ export class SessionRuntime {
     const skill = actor && this.#cast.actingSkill(actor);
     const act = skill?.takeTurn ?? skill?.onRequest;
     if (!actor || !skill || !act) throw new Error(`"${actorId}" cannot take a turn`);
+    await beginIfEmpty(this);
     const turn = new AbortController();
     this.#turn = turn;
     this.#speaking = actorId;
