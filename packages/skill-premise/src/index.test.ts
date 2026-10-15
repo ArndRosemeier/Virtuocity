@@ -7,7 +7,6 @@ import {
   conformanceSuite,
   conformanceTarget,
   coreModule,
-  jobEnded,
   loadModules,
   scriptedProvider,
   startSession,
@@ -39,12 +38,10 @@ function session() {
   const host = loadModules(new ModuleHost(), [coreModule, premiseModule]);
   host.skills.register(quiet);
   host.providers.register(provider());
-  const runtime = new SessionRuntime({
+  return new SessionRuntime({
     host,
     modelDefaults: () => ({ text: 'scripted:text-model' }),
   });
-  const ended = new Promise((resolve) => runtime.bus.on(jobEnded, (e) => resolve(e.payload)));
-  return { runtime, ended };
 }
 
 const actor = (id: string, skillIds: string[], settings?: Record<string, unknown>): Actor => ({
@@ -55,49 +52,58 @@ const actor = (id: string, skillIds: string[], settings?: Record<string, unknown
   ...(settings ? { settings } : {}),
 });
 
+const premise = (text: string, shown = true) =>
+  actor('premise', ['fixed-premise'], { 'fixed-premise': { premise: text, shown } });
+const you: Actor = { ...actor('you', []), controller: 'human' };
+const act = (runtime: SessionRuntime) => runtime.post('you', textContent('I look around.'));
+
 describe('opening a session', () => {
-  it('uses a fixed premise word for word, without a model', async () => {
-    const { runtime, ended } = session();
-    const settings = { 'fixed-premise': { premise: 'You wake on a moving train.' } };
-    await startSession(runtime, [actor('premise', ['fixed-premise'], settings)]);
-    await ended;
+  it('waits for the first step, then opens with the premise word for word', async () => {
+    const runtime = session();
+    await startSession(runtime, [you, premise('You wake on a moving train.')]);
+    expect(runtime.transcript()).toHaveLength(0);
+    await act(runtime);
     expect(runtime.transcript()[0]).toMatchObject(textContent('You wake on a moving train.'));
+    expect(runtime.transcript()[1]).toMatchObject(textContent('I look around.'));
     expect(runtime.calls.list()).toHaveLength(0);
   });
 
+  it('uses the premise as it is at the first step, not as it was at the start', async () => {
+    const runtime = session();
+    await startSession(runtime, [you, premise('You wake on a moving train.')]);
+    await runtime.join(premise('You wake in a lighthouse.'));
+    await act(runtime);
+    expect(runtime.transcript()[0]).toMatchObject(textContent('You wake in a lighthouse.'));
+    expect(runtime.transcript()).toHaveLength(2);
+  });
+
   it('hides the premise from the people when it is not shown', async () => {
-    const { runtime, ended } = session();
-    const settings = { 'fixed-premise': { premise: 'The butler did it.', shown: false } };
-    const you: Actor = { ...actor('you', []), controller: 'human' };
-    await runtime.join(you);
+    const runtime = session();
     await startSession(runtime, [
-      actor('premise', ['fixed-premise'], settings),
+      you,
+      premise('The butler did it.', false),
       actor('wren', ['quiet']),
     ]);
-    await ended;
+    await runtime.runTurn('wren');
     expect(runtime.transcript('you')).toHaveLength(0);
     expect(runtime.transcript('wren')[0]).toMatchObject(textContent('The butler did it.'));
     expect(runtime.transcript('wren')[0]?.hiddenFrom).toEqual(['you']);
   });
 
-  it('opens an empty story when it joins after the start', async () => {
-    const { runtime, ended } = session();
-    await startSession(runtime, []);
-    const settings = { 'fixed-premise': { premise: 'You wake on a moving train.' } };
-    await runtime.join(actor('premise', ['fixed-premise'], settings));
-    await runtime.join(actor('premise', ['fixed-premise'], settings));
-    await ended;
-    expect(runtime.transcript()).toHaveLength(1);
-    expect(runtime.transcript()[0]).toMatchObject(textContent('You wake on a moving train.'));
+  it('stays silent when it joins a session that has already begun', async () => {
+    const runtime = session();
+    await startSession(runtime, [you]);
+    await act(runtime);
+    await runtime.join(premise('You wake on a moving train.'));
+    await act(runtime);
+    expect(runtime.transcript().map((m) => m.actorId)).toEqual(['you', 'you']);
   });
 
-  it('stays silent when it joins a story that has already begun', async () => {
-    const { runtime } = session();
-    await runtime.join(actor('wren', ['quiet']));
-    await runtime.post('wren', textContent('Already going.'));
-    await startSession(runtime, [actor('premise', ['fixed-premise'])]);
-    expect(runtime.jobs.list()).toHaveLength(0);
-    expect(runtime.transcript()).toHaveLength(1);
+  it('holds the first step back, with the reason, while it has no premise', async () => {
+    const runtime = session();
+    await startSession(runtime, [you, premise('  ')]);
+    await expect(act(runtime)).rejects.toThrow('Write the premise');
+    expect(runtime.transcript()).toHaveLength(0);
   });
 });
 

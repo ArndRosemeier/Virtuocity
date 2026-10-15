@@ -142,8 +142,8 @@ export function Composer({ session }: { session: SessionRuntime }) {
     run(async () => {
       const text = draft.trim();
       if (!text) return;
-      setDraft('');
       await session.post(USER_ID, textContent(text));
+      setDraft('');
       await takeTurn(session, { kind: 'pass' });
     });
 

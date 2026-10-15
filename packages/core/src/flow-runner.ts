@@ -6,6 +6,7 @@ import { FlowStop, flowEnded, flowStarted } from './flow';
 import type { HumanTaskQueue } from './human-tasks';
 import type { Implementation } from './implementation';
 import type { InvokeAction } from './skill-context';
+import { beginIfEmpty } from './session-events';
 import type { Message } from './transcript';
 import type { Workspace } from './workspace';
 
@@ -54,6 +55,7 @@ export class FlowRunner {
     const flow = this.flows(flowId);
     const parsed = flow.input.safeParse(input);
     if (!parsed.success) throw new Error(`Invalid input for ${flowId}: ${parsed.error.message}`);
+    await beginIfEmpty(this.host);
     const controller = new AbortController();
     this.#controller = controller;
     this.#running = flowId;

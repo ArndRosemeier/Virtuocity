@@ -37,6 +37,7 @@ export * from './provider';
 export * from './random';
 export * from './registry';
 export * from './runtime';
+export * from './session-events';
 export * from './settings';
 export * from './setup';
 export * from './starter';
