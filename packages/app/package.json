@@ -11,6 +11,7 @@
   "dependencies": {
     "@virtuocity/anthropic": "*",
     "@virtuocity/book-room": "*",
+    "@virtuocity/contract-analytics": "*",
     "@virtuocity/contract-critique": "*",
     "@virtuocity/contract-director": "*",
     "@virtuocity/skill-session-type": "*",
@@ -28,6 +29,7 @@
     "@virtuocity/skill-conversation": "*",
     "@virtuocity/skill-dice": "*",
     "@virtuocity/skill-fact-gatherer": "*",
+    "@virtuocity/skill-session-analytics": "*",
     "@virtuocity/skill-director": "*",
     "@virtuocity/skill-gallery": "*",
     "@virtuocity/skill-illustrator": "*",

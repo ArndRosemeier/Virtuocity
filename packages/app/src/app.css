@@ -1166,3 +1166,69 @@
   gap: var(--space-2);
   margin: 0;
 }
+/* A session outline: one thin line per post, colored by what kind of post it is. */
+.outline {
+  display: grid;
+  gap: var(--space-2);
+}
+.outline__lines {
+  display: grid;
+  gap: 1px;
+}
+.outline__line,
+.outline__legend li {
+  --post: var(--hue-2);
+}
+.outline__line {
+  height: 4px;
+  padding: 0;
+  border: 0;
+  border-radius: 1px;
+  background: var(--post);
+  cursor: pointer;
+}
+.outline__line:not(:disabled):hover,
+.outline__line:focus-visible {
+  outline: 1px solid var(--text);
+  outline-offset: 1px;
+}
+.outline__line:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+.outline [data-type='person'] {
+  --post: var(--accent);
+}
+.outline [data-type='ai'] {
+  --post: var(--hue-1);
+}
+.outline [data-type='picture'] {
+  --post: var(--hue-4);
+}
+.outline [data-type='sound'] {
+  --post: var(--hue-6);
+}
+.outline [data-type='tool'] {
+  --post: var(--hue-3);
+}
+.outline [data-type='hidden'] {
+  --post: var(--text-faint);
+}
+.outline__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--text-muted);
+}
+.outline__legend li::before {
+  content: '';
+  display: inline-block;
+  width: 0.6em;
+  height: 0.6em;
+  margin-right: var(--space-1);
+  border-radius: 2px;
+  background: var(--post);
+}

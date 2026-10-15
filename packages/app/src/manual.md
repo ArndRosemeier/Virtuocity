@@ -21,7 +21,7 @@ A roleplay is one session type: a narrator, maybe AI players, a director, a prem
 5. **Add actors later.** Use Add actor in the Cast panel. The session type's guide at the top of the Cast panel lists what it usually needs and ticks each role off as a matching actor joins. It is a checklist you can close with ×; untick "Show a checklist…" in New session to start sessions without it (the choice is remembered).
 6. **Play.** Write in the box at the bottom. Who answers depends on the session (see Turns below). The small field next to Act is your name (User until you change it): the AI actors see each line under its speaker's name, yours included, so pick one no actor has.
 
-On a fresh start your Library already holds some ready-made actors: the Open, Roleplay, Book room, Image workflow, Guided illustrations, Pathfinder 2e and D&D 5e session types and their usual cast (Narrator, Wren, Director, Ink, Chronicler, Premise, Quill, Marlow, Painter, Prompt refiner, Brush, Gallery, Game Master, Kira, Dungeon Master, Bram). They are ordinary actors: edit them, copy them or delete them. When a new version improves them, Settings › Save & load › Update default actors sets them back to how the app ships them now (your changes to them are lost, deleted ones come back, other actors stay).
+On a fresh start your Library already holds some ready-made actors: the Open, Roleplay, Book room, Image workflow, Guided illustrations, Pathfinder 2e and D&D 5e session types and their usual cast (Narrator, Wren, Director, Ink, Chronicler, Premise, Quill, Marlow, Painter, Prompt refiner, Brush, Gallery, Analytics, Game Master, Kira, Dungeon Master, Bram). They are ordinary actors: edit them, copy them or delete them. When a new version improves them, Settings › Save & load › Update default actors sets them back to how the app ships them now (your changes to them are lost, deleted ones come back, other actors stay).
 
 ## The screen
 
@@ -89,6 +89,8 @@ After every turn the session pauses. Without a director, nobody speaks on their 
 ## Spaces
 
 Some actors have a space in the left sidebar: a picture, a canvas, a list of facts, a summary. Every space can be resized, closed and brought back, and its content can be deleted. Some spaces stay hidden until a marker in the conversation (like a chronicler's "summarized" line) opens them.
+
+An **Analytics** actor (the Session analytics skill) shows the whole session in its space as a strip of thin colored lines, one per post: your text, AI text, pictures, sound, tool use, posts hidden from you, and anything else each get their own color (the legend underneath names them). Click a line to jump to that post in the session. It updates when you click it under "or ask:" or press Retry in its space; switch on "automatic" in the actor editor to have it update after every post.
 
 ## Pictures and the gallery
 

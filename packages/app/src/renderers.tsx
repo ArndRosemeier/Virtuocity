@@ -2,10 +2,12 @@ import type { MediaPartData, ToolRun } from '@virtuocity/core';
 import { AUDIO_PART, IMAGE_PART, TOOL_USE } from '@virtuocity/core';
 import type { ChatView } from '@virtuocity/contract-render';
 import { CHAT_VIEW } from '@virtuocity/contract-render';
+import { SESSION_OUTLINE, sessionOutlineSchema } from '@virtuocity/contract-analytics';
 import type { RichText } from '@virtuocity/skill-roleplay-view';
 import { RICH_TEXT } from '@virtuocity/skill-roleplay-view';
 import { ChatViewPart } from './ChatView';
 import { RichTextView } from './RichText';
+import { SessionOutlineView } from './SessionOutline';
 import { AudioPart, ImagePart } from './media';
 import type { AppModule } from './types';
 
@@ -53,6 +55,13 @@ export const defaultRenderersModule: AppModule = {
     host.renderers.register({
       id: CHAT_VIEW,
       render: (part) => <ChatViewPart host={host} view={part.data as ChatView} />,
+    });
+    host.renderers.register({
+      id: SESSION_OUTLINE,
+      render: (part) => {
+        const outline = sessionOutlineSchema.safeParse(part.data);
+        return outline.success ? <SessionOutlineView outline={outline.data} /> : null;
+      },
     });
   },
 };

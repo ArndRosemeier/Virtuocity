@@ -5,6 +5,7 @@ import { Avatar, IconButton } from '@virtuocity/ui';
 import { useActorTips } from './actorTips';
 import { MessageEditor } from './MessageEdit';
 import { openSpace } from './openSpaces';
+import { MESSAGE_ID_ATTRIBUTE } from './scrollToMessage';
 import { useMessageActions } from './messageActions';
 import { StatsBadge } from './StatsBadge';
 import { Stepper } from './Stepper';
@@ -12,6 +13,8 @@ import type { AppHost } from './types';
 
 interface MessageViewProps {
   readonly host: AppHost;
+  /** The message drawn, so other views (e.g. a session outline) can bring it into view. */
+  readonly messageId?: string;
   readonly name: string;
   /** Hover text on the speaker's avatar and name: what the actor is. */
   readonly tip?: string | undefined;
@@ -85,6 +88,7 @@ function MessageButtons({
 /** One message under its speaker's name, its content drawn by the renderer for its kind. */
 export function MessageView({
   host,
+  messageId,
   name,
   tip,
   part,
@@ -101,6 +105,7 @@ export function MessageView({
     <article
       className={live ? 'message message--live' : 'message'}
       data-human={human}
+      {...(messageId ? { [MESSAGE_ID_ATTRIBUTE]: messageId } : {})}
       {...(live ? { 'aria-live': 'polite' } : {})}
     >
       <Avatar name={name} size="lg" title={tip} />
@@ -166,6 +171,7 @@ export function ChatViewPart({ host, view }: { host: AppHost; view: ChatView }) 
         <Fragment key={entry.id}>
           <MessageView
             host={host}
+            messageId={entry.id}
             name={entry.name}
             tip={tipOf(entry.actorId)}
             part={entry.part}

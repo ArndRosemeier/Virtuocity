@@ -10,6 +10,14 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 80,
+    date: '2026-10-15',
+    changes: [
+      'New: Session analytics. The ready-made actor Analytics shows the whole session in its space as thin colored lines, one per post (your text, AI text, pictures, sound, tool use, hidden posts, anything else; a legend names the colors). Click a line to jump to that post.',
+      'It updates when you click it under "or ask:" or press Retry in its space. Switch on "automatic" in the actor editor to have it update after every post. More analyses can join it later.',
+    ],
+  },
+  {
     build: 79,
     date: '2026-10-14',
     changes: [

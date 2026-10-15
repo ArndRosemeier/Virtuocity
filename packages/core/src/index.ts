@@ -54,3 +54,4 @@ export * from './tools';
 export * from './transcript';
 export * from './versions';
 export * from './workspace';
+export * from './kept-parts';

@@ -1,8 +1,8 @@
 import { factGathererContract } from '@virtuocity/contract-facts';
 import { spaceContract } from '@virtuocity/contract-space';
-import type { OutputPart, Skill, SkillContext, VirtuocityModule } from '@virtuocity/core';
+import type { Skill, SkillContext, VirtuocityModule } from '@virtuocity/core';
 import { implement, readSettings, turnEnded } from '@virtuocity/core';
-import { FACTS, factsDoc, gatheredFacts } from './facts';
+import { gatheredFacts } from './facts';
 import { gatherPrompt, sessionText } from './prompt';
 import { factGathererSettings } from './settings';
 
@@ -14,19 +14,11 @@ export * from './settings';
 async function gather(ctx: SkillContext) {
   const { prompt } = readSettings(factGathererSettings, ctx.settings);
   const session = sessionText(ctx.transcript, ctx.actors);
-  const messages = gatherPrompt(prompt, session, gatheredFacts(ctx.state, ctx.actor.id));
+  const messages = gatherPrompt(prompt, session, gatheredFacts.shown(ctx).parts);
   const { text } = await ctx.complete({ modality: 'text', messages });
   const facts = text.trim();
   if (!facts) throw new Error('The model returned no facts.');
   return { parts: [{ kind: 'text', data: facts }] };
-}
-
-const shown = (ctx: SkillContext) => ({ parts: gatheredFacts(ctx.state, ctx.actor.id) });
-
-/** Keeps these facts as the gathered ones, and returns what the space shows now. */
-async function keep(ctx: SkillContext, parts: readonly OutputPart[]) {
-  await ctx.state.change(FACTS, factsDoc, { actorId: ctx.actor.id, parts });
-  return shown(ctx);
 }
 
 /**
@@ -35,7 +27,7 @@ async function keep(ctx: SkillContext, parts: readonly OutputPart[]) {
  */
 async function refresh(ctx: SkillContext): Promise<void> {
   const { parts } = await ctx.invoke(ctx.actor.id, factGathererContract, 'gather', {});
-  await keep(ctx, parts);
+  await gatheredFacts.keep(ctx, parts);
 }
 
 /** Gatherers with a refresh running, so a busy session doesn't start a second one. */
@@ -69,13 +61,8 @@ export const factGathererSkill: Skill = {
   implements: [
     implement(factGathererContract, { gather: (_input, ctx) => gather(ctx) }),
     implement(spaceContract, {
-      fill: (_input, ctx) => Promise.resolve(shown(ctx)),
-      edit: ({ parts }, ctx) => keep(ctx, parts),
-      discard: (_input, ctx) => keep(ctx, []),
-      redo: async (_input, ctx) => {
-        await refresh(ctx);
-        return shown(ctx);
-      },
+      ...gatheredFacts.space(refresh),
+      edit: ({ parts }, ctx) => gatheredFacts.keep(ctx, parts),
     }),
   ],
   onRequest: refresh,
@@ -94,7 +81,7 @@ export const factGathererModule: VirtuocityModule = {
   register: (host) => {
     host.contracts.register(factGathererContract);
     host.contracts.register(spaceContract);
-    host.docTypes.register(factsDoc);
+    host.docTypes.register(gatheredFacts.doc);
     host.skills.register(factGathererSkill);
   },
 };
