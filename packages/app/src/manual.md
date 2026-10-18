@@ -116,3 +116,5 @@ The session holds what happened in it: messages, pictures, summaries, facts. You
 ## Saving
 
 Everything is kept in this browser automatically. Settings › Save & load saves everything to one file (without your API keys) or replaces everything with such a file. A single session can be saved to a file from the header.
+
+To see exactly what went to a model and what came back, Settings › Connection › Show prompt log lists the last 5 model calls of this tab, raw. It is always on, forgets everything on reload and never shows your keys.

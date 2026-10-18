@@ -6,6 +6,7 @@ import type { Connection } from './connections';
 import { THEME, keySetting, useModelDefaults, useSetting, writeModelDefaults } from './settings';
 import { BackupTab } from './BackupTab';
 import { DefaultActors } from './DefaultActors';
+import { PromptLogSection } from './PromptLogDialog';
 import { RendererSelect } from './RendererSelect';
 import { RENDERER, rendererActors } from './storyView';
 import type { ThemeChoice } from './theme';
@@ -52,6 +53,7 @@ function ConnectionTab() {
       {CONNECTIONS.map((c) => (
         <KeyField key={c.providerId} connection={c} />
       ))}
+      <PromptLogSection />
     </>
   );
 }
