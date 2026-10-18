@@ -10,6 +10,13 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 87,
+    date: '2026-10-18',
+    changes: [
+      'Prompt log: Settings > Connection > "Show prompt log" shows the last 5 model calls exactly as they were sent to the provider and what came back, raw and unparsed. It is always on, covers every provider (text, picture and decision models), keeps nothing after a reload and never shows your keys.',
+    ],
+  },
+  {
     build: 86,
     date: '2026-10-15',
     changes: [
@@ -254,28 +261,6 @@ export const RELEASES: readonly Release[] = [
     changes: [
       'Every space in the left sidebar can now be closed and its content deleted, as a general rule for all spaces. A closed space leaves a "Show" button so you can bring it back. Deleting empties the Fact gatherer\'s list and a canvas, and makes a Chronicler forget its summary (it writes a fresh one from the whole story at its next update).',
       "The Fact gatherer's space has a Retry button that gathers the facts again right away.",
-    ],
-  },
-  {
-    build: 54,
-    date: '2026-10-13',
-    changes: [
-      'Drag the bottom edge of a space in the left sidebar to make it taller or shorter; double-click the edge to go back to a third of the sidebar. Each space remembers its height in this browser.',
-    ],
-  },
-  {
-    build: 53,
-    date: '2026-10-13',
-    changes: [
-      'Editing a message keeps your change when you click elsewhere; there is no Save button any more. Revert (or Escape) drops the change.',
-      'Fixed: retrying an answer after editing or deleting an earlier message brought the old message back. An edit now changes the message itself instead of being a later step, so nothing can undo it by going back in time.',
-    ],
-  },
-  {
-    build: 52,
-    date: '2026-10-13',
-    changes: [
-      'New skill "Fact gatherer": reads the whole session and keeps a list of the facts it has established (people, places, things, relationships, events, open threads) in its own space. Like the Illustrator it acts only when you click it under "or ask:", unless you turn on "automatic" to have it gather after every turn. Its prompt is editable in the actor\'s settings and starts with a sensible default. You can correct the list in its space, and the next gathering keeps your corrections.',
     ],
   },
   ...MIDDLE_RELEASES,

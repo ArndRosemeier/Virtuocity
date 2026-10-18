@@ -1,7 +1,29 @@
 import type { Release } from './changelog-earlier';
 
-/** Builds 34 to 51, newest first; kept apart so the changelog stays short. */
+/** Builds 34 to 54, newest first; kept apart so the changelog stays short. */
 export const MIDDLE_RELEASES: readonly Release[] = [
+  {
+    build: 54,
+    date: '2026-10-13',
+    changes: [
+      'Drag the bottom edge of a space in the left sidebar to make it taller or shorter; double-click the edge to go back to a third of the sidebar. Each space remembers its height in this browser.',
+    ],
+  },
+  {
+    build: 53,
+    date: '2026-10-13',
+    changes: [
+      'Editing a message keeps your change when you click elsewhere; there is no Save button any more. Revert (or Escape) drops the change.',
+      'Fixed: retrying an answer after editing or deleting an earlier message brought the old message back. An edit now changes the message itself instead of being a later step, so nothing can undo it by going back in time.',
+    ],
+  },
+  {
+    build: 52,
+    date: '2026-10-13',
+    changes: [
+      'New skill "Fact gatherer": reads the whole session and keeps a list of the facts it has established (people, places, things, relationships, events, open threads) in its own space. Like the Illustrator it acts only when you click it under "or ask:", unless you turn on "automatic" to have it gather after every turn. Its prompt is editable in the actor\'s settings and starts with a sensible default. You can correct the list in its space, and the next gathering keeps your corrections.',
+    ],
+  },
   {
     build: 51,
     date: '2026-10-13',

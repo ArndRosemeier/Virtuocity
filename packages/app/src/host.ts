@@ -32,12 +32,19 @@ import { jobsPanelModule } from './JobsPanel';
 import { spacesPanelModule } from './SpacesPanel';
 import { taskPanelModule } from './TaskPanel';
 import { defaultRenderersModule } from './renderers';
+import { loggingFetch, promptLog } from './promptLog';
 import { keySetting, readSetting } from './settings';
 import type { AppHost, AppModule, PanelProps } from './types';
 import type { ComponentType, ReactNode } from 'react';
 
+/** Every provider call goes through this fetch, so the prompt log sees all of them. */
+const logged = loggingFetch(promptLog, (input, init) => globalThis.fetch(input, init), Date.now);
+
 /** Reads the user's key for a provider at call time, so key changes apply at once. */
-const keyOf = (providerId: string) => ({ apiKey: () => readSetting(keySetting(providerId)) });
+const keyOf = (providerId: string) => ({
+  apiKey: () => readSetting(keySetting(providerId)),
+  fetch: logged,
+});
 
 /** The one place that decides which modules are installed. */
 export function createHost(): AppHost {
