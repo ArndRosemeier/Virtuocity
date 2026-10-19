@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { textContent } from './output';
 import { TOOL_USE } from './tools';
-import { transcriptDoc } from './transcript';
+import { sessionText, transcriptDoc } from './transcript';
 import { migrateTranscriptOp, partsToContent } from './transcript-migrate';
 
 const meta = { opId: 'o', actorId: 'a', at: 0 };
@@ -54,5 +54,19 @@ describe('migrating version 1 messages', () => {
     });
     const current = { type: 'append', message };
     expect(migrateTranscriptOp(current, 2)).toBe(current);
+  });
+});
+
+describe('sessionText', () => {
+  it('names each speaker and skips messages that say nothing in words', () => {
+    const wren = {
+      id: 'a',
+      controller: 'ai' as const,
+      personality: { name: 'Wren', description: '' },
+      skillIds: [],
+    };
+    const silent = { ...message, id: 'm2', ...textContent('  ') };
+    const stranger = { ...message, id: 'm3', actorId: 'b', ...textContent('Hello.') };
+    expect(sessionText([message, silent, stranger], [wren])).toBe('Wren: Rain.\n\nb: Hello.');
   });
 });

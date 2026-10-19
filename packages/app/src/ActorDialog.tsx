@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import type { Actor } from '@virtuocity/core';
-import { sameName } from '@virtuocity/core';
+import { sameName, settingsProblems } from '@virtuocity/core';
 import { Button, Modal, TransformTextContext } from '@virtuocity/ui';
 import type { TransformAbout } from './transform';
 import { useTransform } from './transform';
@@ -92,6 +92,24 @@ export function nameProblem(name: string, takenNames: readonly string[]): string
   return taken && `There is already an actor called ${taken}. Names are unique.`;
 }
 
+/** Whether a skill finds its settings unsavable, e.g. an automation script that cannot run; the form says why. */
+function badSettings(host: AppHost, draft: Draft): boolean {
+  const skills = draft.skillIds.flatMap((id) => host.skills.find(id) ?? []);
+  return settingsProblems(skills, draft.settings).length > 0;
+}
+
+interface ActorDialogProps {
+  host: AppHost;
+  actor?: Actor | undefined;
+  open: boolean;
+  onClose: () => void;
+  onSave: (actor: Actor) => void;
+  takenNames: readonly string[];
+  saveLabel?: string;
+  /** The skills a new actor starts with, ticked. */
+  skillIds?: readonly string[];
+}
+
 /**
  * Creates an AI actor, or edits one when `actor` is given. Models are optional
  * overrides of the defaults, per modality. Names are unique: `takenNames` are
@@ -107,26 +125,17 @@ export function ActorDialog({
   takenNames,
   saveLabel = actor ? 'Save' : 'Create',
   skillIds = [],
-}: {
-  host: AppHost;
-  actor?: Actor | undefined;
-  open: boolean;
-  onClose: () => void;
-  onSave: (actor: Actor) => void;
-  takenNames: readonly string[];
-  saveLabel?: string;
-  /** The skills a new actor starts with, ticked. */
-  skillIds?: readonly string[];
-}) {
+}: ActorDialogProps) {
   const [draft, setDraft] = useState<Draft>(() =>
     actor ? draftOf(actor) : { ...EMPTY, skillIds: [...skillIds] },
   );
   const problem = nameProblem(draft.name, takenNames);
+  const blocked = problem !== undefined || badSettings(host, draft);
   const transform = useTransform(aboutDraft(host, draft));
 
   const submit = (e?: FormEvent) => {
     e?.preventDefault();
-    if (problem) return;
+    if (blocked) return;
     onSave(actorFromDraft(actor?.id ?? crypto.randomUUID(), draft));
     onClose();
   };
@@ -135,7 +144,7 @@ export function ActorDialog({
     <Footer
       editing={actor !== undefined}
       label={saveLabel}
-      disabled={problem !== undefined}
+      disabled={blocked}
       onSave={() => submit()}
       onCancel={onClose}
     />

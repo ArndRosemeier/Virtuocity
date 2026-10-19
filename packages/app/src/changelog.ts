@@ -10,6 +10,13 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 88,
+    date: '2026-10-19',
+    changes: [
+      'Automation: a new skill that runs a small script of AI calls written in its settings and posts the result as one message. name = LLM("...") keeps an answer in a variable, a bare LLM("...") adds its answer to the message, [name] puts a variable into a prompt and [context] is the story so far. Variables starting with _ keep their value between runs. The actor editor checks the script and names the line that is wrong. It runs when you click it under "or ask", or on its own with "automatic" on.',
+    ],
+  },
+  {
     build: 87,
     date: '2026-10-18',
     changes: [

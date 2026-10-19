@@ -1,13 +1,4 @@
-import type { Actor, ChatMessage, Message, OutputPart } from '@virtuocity/core';
-import { actorName } from '@virtuocity/core';
-
-/** The whole session as "Name: text", read through each message's text form. */
-export function sessionText(transcript: readonly Message[], actors: readonly Actor[]): string {
-  return transcript
-    .filter((m) => m.text.trim() !== '')
-    .map((m) => `${actorName(actors, m.actorId)}: ${m.text}`)
-    .join('\n\n');
-}
+import type { ChatMessage, OutputPart } from '@virtuocity/core';
 
 /** What was gathered before, in words; parts that are not text say nothing here. */
 const previousText = (parts: readonly OutputPart[]) =>
