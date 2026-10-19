@@ -1,11 +1,13 @@
 /**
- * The automation language. A script is a list of model calls, one per line
- * (a prompt may span lines):
+ * The automation language. A script is a list of statements, one per line
+ * (a quoted text may span lines):
  *
- *   name = LLM("prompt")   keeps the answer in `name`
+ *   name = LLM("prompt")   keeps the model's answer in `name`
  *   LLM("prompt")          adds the answer to the one message the run posts
+ *   name = "text"          keeps the text in `name`, without a model call
+ *   "text"                 adds the text to the message
  *
- * `[name]` in a prompt puts in a variable's value, `[[` is a plain `[`, and
+ * `[name]` in quotes puts in a variable's value, `[[` is a plain `[`, and
  * `\"` a quote. `[context]` is the story so far. Variables starting with `_`
  * keep their value from one run to the next (empty before the first). `//`
  * starts a comment.
@@ -17,8 +19,10 @@ export type PromptPart = { readonly text: string } | { readonly variable: string
 export interface Statement {
   /** The line the statement starts on, for messages. */
   readonly line: number;
-  /** The variable the answer goes into; without one, the answer is posted. */
+  /** The variable the result goes into; without one, the result is posted. */
   readonly target?: string;
+  /** Whether the text is a prompt for the model (`LLM("...")`) rather than the result itself. */
+  readonly ask: boolean;
   readonly prompt: readonly PromptPart[];
 }
 
@@ -36,6 +40,7 @@ export const isKept = (name: string) => name.startsWith('_');
 const NAME = '[A-Za-z_][A-Za-z0-9_]*';
 const BLANK = /(?:\s|\/\/[^\n]*)*/y;
 const CALL = /LLM[ \t]*\([ \t]*"/y;
+const QUOTE = /"/y;
 const TARGET = new RegExp(`(${NAME})[ \\t]*=[ \\t]*`, 'y');
 const CLOSE = /[ \t]*\)/y;
 const LINE_END = /[ \t]*(?:\/\/[^\n]*)?(?:\r?\n|$)/y;
@@ -83,7 +88,7 @@ class Reader {
       text += escaped ? next : char;
       this.#at += escaped ? 2 : 1;
     }
-    return this.fail('the prompt is never closed: end it with "', start);
+    return this.fail('the quotes are never closed: end the text with "', start);
   }
 }
 
@@ -115,18 +120,27 @@ export function promptParts(prompt: string, line: number): PromptPart[] {
   return parts;
 }
 
+/** Reads how a value starts: `LLM("` asks the model, `"` is plain text, anything else neither. */
+function valueStart(reader: Reader): boolean | undefined {
+  if (reader.match(CALL)) return true;
+  if (reader.match(QUOTE)) return false;
+  return undefined;
+}
+
 function statement(reader: Reader): Statement {
   const line = reader.line();
   let target: string | undefined;
-  if (!reader.match(CALL)) {
+  let ask = valueStart(reader);
+  if (ask === undefined) {
     target = reader.match(TARGET)?.[1];
-    if (target === undefined) reader.fail('expected LLM("...") or name = LLM("...")');
-    if (!reader.match(CALL)) reader.fail(`expected LLM("...") after ${target} =`);
+    if (target === undefined) reader.fail('expected LLM("..."), "..." or name = ...');
+    ask = valueStart(reader);
+    if (ask === undefined) reader.fail(`expected LLM("...") or "..." after ${target} =`);
   }
   const prompt = promptParts(reader.quoted(), line);
-  if (!reader.match(CLOSE)) reader.fail('expected ) after the prompt');
-  if (!reader.match(LINE_END)) reader.fail('put each LLM(...) on a line of its own');
-  return target === undefined ? { line, prompt } : { line, target, prompt };
+  if (ask && !reader.match(CLOSE)) reader.fail('expected ) after the prompt');
+  if (!reader.match(LINE_END)) reader.fail('put each statement on a line of its own');
+  return { line, ask, prompt, ...(target === undefined ? {} : { target }) };
 }
 
 /** The variables a script keeps between runs: those starting with `_` that it sets. */
@@ -153,7 +167,9 @@ export function meaningProblems(statements: readonly Statement[]): string[] {
     }
   }
   if (!statements.some((s) => s.target === undefined)) {
-    problems.push('Nothing to post: add at least one LLM("...") that is not kept in a variable.');
+    problems.push(
+      'Nothing to post: add at least one LLM("...") or "..." that is not kept in a variable.',
+    );
   }
   return problems;
 }

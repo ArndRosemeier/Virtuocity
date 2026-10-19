@@ -10,6 +10,13 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 89,
+    date: '2026-10-19',
+    changes: [
+      'Automation scripts can now use plain text as well as AI calls: a line with just "..." adds that text to the message, with [variables] filled in and no AI call, and name = "..." keeps such a text in a variable. So a script can end with "Mood: [mood]" instead of another AI call.',
+    ],
+  },
+  {
     build: 88,
     date: '2026-10-19',
     changes: [

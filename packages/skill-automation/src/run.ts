@@ -9,7 +9,7 @@ export interface RunInput {
 }
 
 export interface RunResult {
-  /** The answers of the calls not kept in a variable, joined into one message. */
+  /** The results of the statements not kept in a variable, joined into one message. */
   readonly text: string;
   /** The variables starting with `_` that the script sets, for the next run. */
   readonly kept: Record<string, string>;
@@ -22,8 +22,9 @@ const fill = (prompt: readonly PromptPart[], values: ReadonlyMap<string, string>
   prompt.map((part) => ('text' in part ? part.text : (values.get(part.variable) ?? ''))).join('');
 
 /**
- * Runs a parsed script top to bottom, one model call per statement. Ordinary
- * variables start empty every run; kept ones start with their last value.
+ * Runs a parsed script top to bottom: a model call for each `LLM(...)`, the
+ * filled-in text for each plain one. Ordinary variables start empty every
+ * run; kept ones start with their last value.
  */
 export async function runScript(
   statements: readonly Statement[],
@@ -33,8 +34,10 @@ export async function runScript(
   const values = new Map<string, string>(Object.entries(input.kept));
   values.set(CONTEXT, input.context);
   const posted: string[] = [];
-  for (const { target, prompt } of statements) {
-    const answer = (await ask(fill(prompt, values))).trim();
+  for (const statement of statements) {
+    const { target, prompt } = statement;
+    const text = fill(prompt, values);
+    const answer = (statement.ask ? await ask(text) : text).trim();
     if (target === undefined) posted.push(answer);
     else values.set(target, answer);
   }

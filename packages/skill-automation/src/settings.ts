@@ -2,7 +2,7 @@ import type { Message } from '@virtuocity/core';
 import { defineSettings, z } from '@virtuocity/core';
 
 const EXAMPLE = `// name = LLM("...") keeps the answer in a variable; [name] puts it into a later prompt.
-// A bare LLM("...") adds its answer to the one message this actor posts.
+// A bare LLM("...") adds its answer to the one message this actor posts; a bare "..." adds that text.
 // [context] is the story so far. Variables starting with _ keep their value between runs.
 mood = LLM("Name the mood of this story in one word.
 
@@ -15,7 +15,7 @@ export const automationSettings = defineSettings({
     .max(20000)
     .default(EXAMPLE)
     .describe(
-      'The script. name = LLM("...") keeps an answer, a bare LLM("...") adds it to the post, [name] puts a value into a prompt, [[ is a plain [, [context] is the story so far, names starting with _ keep their value between runs, // starts a comment',
+      'The script. name = LLM("...") keeps an answer, a bare LLM("...") adds it to the post, "..." is plain text (kept or posted, no model call), [name] puts a value into a prompt, [[ is a plain [, [context] is the story so far, names starting with _ keep their value between runs, // starts a comment',
     ),
   every: z
     .number()
