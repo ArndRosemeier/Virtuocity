@@ -11,6 +11,7 @@ import { galleryModule } from '@virtuocity/skill-gallery';
 import { factGathererModule } from '@virtuocity/skill-fact-gatherer';
 import { sessionAnalyticsModule } from '@virtuocity/skill-session-analytics';
 import { premiseModule } from '@virtuocity/skill-premise';
+import { automationModule } from '@virtuocity/skill-automation';
 import { canvasModule } from '@virtuocity/skill-canvas';
 import { chatViewModule } from '@virtuocity/skill-chat-view';
 import { systemPromptModule } from '@virtuocity/skill-system-prompt';
@@ -74,6 +75,7 @@ export function createHost(): AppHost {
     factGathererModule as AppModule,
     sessionAnalyticsModule as AppModule,
     premiseModule as AppModule,
+    automationModule as AppModule,
     canvasModule as AppModule,
     chatViewModule as AppModule,
     systemPromptModule as AppModule,

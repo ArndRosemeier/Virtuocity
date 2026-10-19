@@ -1,5 +1,5 @@
 import type { ModelOverrides, Skill } from '@virtuocity/core';
-import { actorUse, readSettings, z } from '@virtuocity/core';
+import { actorUse, readSettings, settingsProblems, z } from '@virtuocity/core';
 import { Field, LongText, ModelLayerEditor, SchemaField, Section, TextInput } from '@virtuocity/ui';
 import type { AppHost } from './types';
 import { useProviderCatalogs } from './useModels';
@@ -53,6 +53,7 @@ function SkillSettings({ host, draft, onChange }: FieldsProps) {
   const skills = draft.skillIds
     .map((id) => host.skills.find(id))
     .flatMap((s) => (s?.settings ? [{ ...s, settings: s.settings }] : []));
+  const problems = settingsProblems(skills, draft.settings);
   return skills.map((skill) => (
     <Section key={skill.id} title={`${skill.name} settings`}>
       <SchemaField
@@ -62,6 +63,14 @@ function SkillSettings({ host, draft, onChange }: FieldsProps) {
           onChange({ ...draft, settings: { ...draft.settings, [skill.id]: next } })
         }
       />
+      {problems
+        .filter((p) => p.skill.id === skill.id)
+        .flatMap((p) => p.problems)
+        .map((problem) => (
+          <p key={problem} className="composer__error">
+            {problem}
+          </p>
+        ))}
     </Section>
   ));
 }

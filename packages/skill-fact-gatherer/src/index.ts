@@ -1,9 +1,9 @@
 import { factGathererContract } from '@virtuocity/contract-facts';
 import { spaceContract } from '@virtuocity/contract-space';
 import type { Skill, SkillContext, VirtuocityModule } from '@virtuocity/core';
-import { implement, readSettings, turnEnded } from '@virtuocity/core';
+import { implement, readSettings, sessionText, turnEnded } from '@virtuocity/core';
 import { gatheredFacts } from './facts';
-import { gatherPrompt, sessionText } from './prompt';
+import { gatherPrompt } from './prompt';
 import { factGathererSettings } from './settings';
 
 export * from './facts';

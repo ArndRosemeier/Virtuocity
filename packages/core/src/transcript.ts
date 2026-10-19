@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import type { Actor } from './actor';
+import { actorName } from './actor-names';
 import { defineDocType } from './doc-type';
 import type { Content } from './output';
 import { contentSchema } from './output';
@@ -102,4 +104,12 @@ export function postingOperation(log: OpLog, messageId: string): Operation {
   const op = findPostingOperation(log, messageId);
   if (!op) throw new Error(`Message "${messageId}" is not on the current path`);
   return op;
+}
+
+/** The story as "Name: text", read through each message's text form. */
+export function sessionText(messages: readonly Message[], actors: readonly Actor[]): string {
+  return messages
+    .filter((m) => m.text.trim() !== '')
+    .map((m) => `${actorName(actors, m.actorId)}: ${m.text}`)
+    .join('\n\n');
 }

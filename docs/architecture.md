@@ -34,6 +34,8 @@ product is, and why that shapes every change, is in [vision.md](vision.md).
 | `@virtuocity/turn-taking`             | `turn-taking` flow: pass (the director picks) or choose who speaks.                    |
 | `@virtuocity/roleplay`                | Roleplay session type and its starter actors (narrator, players...).                   |
 | `@virtuocity/image-workflow`          | Image workflow and Guided illustrations session types, Painter, Prompt refiner.        |
+| `@virtuocity/contract-automation`     | `automation@1.0` contract: runs an automation and returns one message.                 |
+| `@virtuocity/skill-automation`        | Automation skill: a tiny script language of model calls implementing `automation@1.0`. |
 | `@virtuocity/app`                     | Vite + React web app. Decides which modules are installed.                             |
 
 New skills, session types and providers are new packages under `packages/`. New
@@ -304,6 +306,10 @@ request, schema)` asks for JSON matching a zod schema, then shows the model
   `actor.settings[skillId]`; skills read them with
   `readSettings(schema, ctx.settings)`, which fills defaults and drops invalid
   values. The app renders a form for each chosen skill from the schema.
+- **Checking settings**: a skill may add `checkSettings(stored)`, returning
+  what is wrong beyond the schema (one line each), e.g. a script that cannot
+  run. `settingsProblems(skills, settings)` collects them; the actor dialog
+  shows them under the skill's form and refuses to save until they are fixed.
 - **Profile fields**: modules register `ProfileField`s in `host.profileFields`
   (the illustrator adds `appearance`). Values live in `actor.profile[fieldId]`
   and any skill reads them with `profileValue(actor, field)`. Settings belong to
@@ -485,6 +491,25 @@ written in the actor's settings (Transform by AI turns a few words into one).
 It replaced "Premise (from a prompt)", whose prompt becomes the text. With
 "shown" off, the premise is posted hidden from the people in the session, so
 only AI actors (the narrator) know the setup.
+
+## Automation
+
+`contract-automation` defines `automation@1.0`: `run` runs the automation once
+and returns one message of any kind. `skill-automation` ships "Automation",
+which runs a script written in the actor's settings. A script is a list of
+model calls, one per line (a prompt may span lines): `name = LLM("...")` keeps
+the answer in a variable, a bare `LLM("...")` adds it to the message, `[name]`
+puts a value into a prompt (`[[` is a plain `[`, `\"` a quote), and `//` starts
+a comment. `[context]` is the story so far as the actor sees it
+(`sessionText`). Variables run fresh every time, except those starting with
+`_`: they are kept per actor in the `automation-variables` document, so they
+rewind and branch with the session (empty in a new one). `parseScript` reads a
+script or lists what is wrong with it by line (syntax, a variable read before
+an earlier line sets it, a reserved name, nothing to post); `checkSettings`
+uses it so a broken script is refused when the actor is saved. Like an
+illustrator, it runs when a person asks; with `automatic` on it also runs in
+the background after every `every` messages from others. It calls the actor's
+text model, so the model can be overridden per actor.
 
 ## Spaces
 

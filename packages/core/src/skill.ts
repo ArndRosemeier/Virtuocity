@@ -29,6 +29,12 @@ export interface Skill extends Identified {
   readonly character?: boolean;
   /** What can be set per actor, built with `defineSettings`; the app renders a form from it. */
   readonly settings?: SettingsSchema;
+  /**
+   * What is wrong with an actor's stored settings beyond their schema (e.g. a
+   * script that cannot run), one line each; empty when they are fine. The app
+   * shows them and refuses to save the actor until they are fixed.
+   */
+  checkSettings?(stored: unknown): readonly string[];
   /** Removed skills this one takes over: actors that had them get this skill instead. */
   readonly replaces?: readonly SkillReplacement[];
   /** Contracts this skill implements, built with `implement`. */
@@ -108,4 +114,21 @@ export function actorUse(skills: readonly Skill[]): ActorUse {
     character: skills.some((s) => s.character),
     modalities: [...new Set(skills.flatMap((s) => s.modalities ?? []))],
   };
+}
+
+/** What one skill finds wrong with an actor's settings for it. */
+export interface SettingsProblems {
+  readonly skill: Skill;
+  readonly problems: readonly string[];
+}
+
+/** The skills that find something wrong with their settings in `settings` (by skill id). */
+export function settingsProblems(
+  skills: readonly Skill[],
+  settings: Readonly<Record<string, unknown>>,
+): SettingsProblems[] {
+  return skills.flatMap((skill) => {
+    const problems = skill.checkSettings?.(settings[skill.id]) ?? [];
+    return problems.length > 0 ? [{ skill, problems }] : [];
+  });
 }

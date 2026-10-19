@@ -34,6 +34,7 @@
     "@virtuocity/skill-gallery": "*",
     "@virtuocity/skill-illustrator": "*",
     "@virtuocity/skill-premise": "*",
+    "@virtuocity/skill-automation": "*",
     "@virtuocity/skill-reviewer": "*",
     "@virtuocity/skill-roleplay-view": "*",
     "@virtuocity/skill-system-prompt": "*",

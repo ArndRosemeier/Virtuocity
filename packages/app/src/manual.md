@@ -82,6 +82,17 @@ After every turn the session pauses. Without a director, nobody speaks on their 
 
 To take an actor out of the director's choices for a while, click the pause button next to it in the Cast panel. A paused actor stays in the session and you can still let it speak yourself; the director just doesn't see it until you click play. Pausing belongs to the session, not the actor: the same actor in another session is not paused. Like joining, a pause is part of the session's history, so going back to a point before it (a retry, an older version) undoes it.
 
+## Automations
+
+An **Automation** actor runs a small script of AI calls that you write in its settings, then posts what came out as one message. Each line is one call; a prompt in quotes may span several lines:
+
+- `mood = LLM("Name the mood in one word.")` asks the text model and keeps the answer in `mood`.
+- `LLM("Suggest a twist that fits a [mood] mood.")` asks and adds the answer to the message the actor posts. Several such lines become one message.
+- `[mood]` in a prompt puts in what `mood` holds. `[context]` is the story so far. Write `[[` for a plain `[` and `\"` for a quote inside a prompt; `//` starts a comment.
+- Variables start empty on every run, except names starting with `_` (like `_notes`): they keep their value from the last run in this session, so a script can build something up over time.
+
+A variable has to be set on an earlier line before a prompt uses it (kept `_` variables excepted). The actor editor checks the script as you type, says which line is wrong and won't save until it is fixed. Like an illustrator, an automation runs when you click it under "or ask"; switch on "automatic" to have it run after other actors' turns. It uses the default text model unless you pick another one for it.
+
 ## Retry, versions and editing
 
 - **Retry** lets an actor answer again. The old answer is kept: a retried message shows a picker like "‹ 2/3 ›". Going back to an earlier version brings back everything that followed it; anything new continues from the version you picked.
