@@ -71,6 +71,16 @@ describe('an automation', () => {
     ]);
   });
 
+  it('can post plain text with variables filled in, asking no model at all', async () => {
+    const runtime = session();
+    await play(runtime, { script: '"Story so far: [context]"' });
+    await runtime.runTurn('bot');
+    expect(runtime.transcript().at(-1)?.text).toBe(
+      'Story so far: narrator: A lantern flickers in the rain.',
+    );
+    expect(runtime.calls.list()).toEqual([]);
+  });
+
   it('posts one message when picked, with the story so far as [context]', async () => {
     const runtime = session();
     await play(runtime, { script: 'a = LLM("Mood of: [context]")\nLLM("Twist for [a]")' });

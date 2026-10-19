@@ -498,7 +498,8 @@ only AI actors (the narrator) know the setup.
 and returns one message of any kind. `skill-automation` ships "Automation",
 which runs a script written in the actor's settings. A script is a list of
 model calls, one per line (a prompt may span lines): `name = LLM("...")` keeps
-the answer in a variable, a bare `LLM("...")` adds it to the message, `[name]`
+the answer in a variable, a bare `LLM("...")` adds it to the message, a plain
+`"..."` is text without a model call (kept with `name = "..."` or posted), `[name]`
 puts a value into a prompt (`[[` is a plain `[`, `\"` a quote), and `//` starts
 a comment. `[context]` is the story so far as the actor sees it
 (`sessionText`). Variables run fresh every time, except those starting with

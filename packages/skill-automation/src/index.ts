@@ -39,7 +39,7 @@ async function automate(
   const kept = keptValues(ctx.state, ctx.actor.id);
   const result = await runScript(parsed.statements, { context, kept }, ask);
   await keepValues(ctx.state, ctx.actor.id, result.kept);
-  if (!result.text) throw new Error('The model returned nothing to post.');
+  if (!result.text) throw new Error('The run produced nothing to post.');
   return { message: textContent(result.text), stats };
 }
 

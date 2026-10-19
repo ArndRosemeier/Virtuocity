@@ -44,6 +44,14 @@ describe('runScript', () => {
     expect(prompts[0]).toBe('!');
   });
 
+  it('posts plain text filled in, without asking the model', async () => {
+    const prompts: string[] = [];
+    const script = statements('a = LLM("one")\nb = "[a] and [context]"\n"Result: [b]"');
+    const result = await runScript(script, { context: 'story', kept: {} }, echo(prompts));
+    expect(prompts).toEqual(['one']);
+    expect(result.text).toBe('Result: <one> and story');
+  });
+
   it('leaves out empty answers instead of posting blank lines', async () => {
     const answers = ['', 'only'];
     const script = statements('LLM("a")\nLLM("b")');

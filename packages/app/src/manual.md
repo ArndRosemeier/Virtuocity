@@ -84,10 +84,11 @@ To take an actor out of the director's choices for a while, click the pause butt
 
 ## Automations
 
-An **Automation** actor runs a small script of AI calls that you write in its settings, then posts what came out as one message. Each line is one call; a prompt in quotes may span several lines:
+An **Automation** actor runs a small script of AI calls that you write in its settings, then posts what came out as one message. Each line is one step; text in quotes may span several lines:
 
 - `mood = LLM("Name the mood in one word.")` asks the text model and keeps the answer in `mood`.
 - `LLM("Suggest a twist that fits a [mood] mood.")` asks and adds the answer to the message the actor posts. Several such lines become one message.
+- `"The mood is [mood]."` on its own adds that text to the message as it is, with the variables filled in and no AI call. `name = "..."` keeps such a text in a variable instead.
 - `[mood]` in a prompt puts in what `mood` holds. `[context]` is the story so far. Write `[[` for a plain `[` and `\"` for a quote inside a prompt; `//` starts a comment.
 - Variables start empty on every run, except names starting with `_` (like `_notes`): they keep their value from the last run in this session, so a script can build something up over time.
 

@@ -17,12 +17,29 @@ LLM( "Write a [mood] line." )`);
       statements: [
         {
           line: 2,
+          ask: true,
           target: 'mood',
           prompt: [{ text: 'Name the mood.\n\n' }, { variable: 'context' }],
         },
         {
           line: 6,
+          ask: true,
           prompt: [{ text: 'Write a ' }, { variable: 'mood' }, { text: ' line.' }],
+        },
+      ],
+    });
+  });
+
+  it('reads plain text, kept or posted, that asks no model', () => {
+    const parsed = parseScript('who = "the [[old] innkeeper"\n"Ask [who]:\n[context]" // posted');
+    expect(parsed).toEqual({
+      ok: true,
+      statements: [
+        { line: 1, ask: false, target: 'who', prompt: [{ text: 'the [old] innkeeper' }] },
+        {
+          line: 2,
+          ask: false,
+          prompt: [{ text: 'Ask ' }, { variable: 'who' }, { text: ':\n' }, { variable: 'context' }],
         },
       ],
     });
@@ -58,15 +75,20 @@ LLM( "Write a [mood] line." )`);
 
   it('says on which line the syntax goes wrong', () => {
     expect(errors(parseScript('LLM("a")\nmood LLM("b")'))).toEqual([
-      'Line 2: expected LLM("...") or name = LLM("...")',
+      'Line 2: expected LLM("..."), "..." or name = ...',
     ]);
-    expect(errors(parseScript('x = "a"'))).toEqual(['Line 1: expected LLM("...") after x =']);
+    expect(errors(parseScript('x = a'))).toEqual([
+      'Line 1: expected LLM("...") or "..." after x =',
+    ]);
     expect(errors(parseScript('LLM("a"'))).toEqual(['Line 1: expected ) after the prompt']);
     expect(errors(parseScript('\n\nLLM("open'))).toEqual([
-      'Line 3: the prompt is never closed: end it with "',
+      'Line 3: the quotes are never closed: end the text with "',
     ]);
     expect(errors(parseScript('LLM("a") LLM("b")'))).toEqual([
-      'Line 1: put each LLM(...) on a line of its own',
+      'Line 1: put each statement on a line of its own',
+    ]);
+    expect(errors(parseScript('"a")'))).toEqual([
+      'Line 1: put each statement on a line of its own',
     ]);
     expect(errors(parseScript('LLM("a [not a name]")'))).toEqual([
       'Line 1: [ starts a variable such as [name]; write [[ for a plain [',
