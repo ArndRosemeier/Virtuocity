@@ -28,6 +28,7 @@ const talker: Skill = {
   id: 'talker',
   name: 'Talker',
   backing: 'llm',
+  waitsToBeAsked: (stored) => stored === 'wait',
   takeTurn: async (ctx) => {
     const { text } = await ctx.complete({ modality: 'text', messages: [] });
     await ctx.post(textContent(text));
@@ -107,6 +108,19 @@ describe('turn taking', () => {
     await pauseActor(session, 'bard', false);
     await session.flows.run('turn-taking', { kind: 'pass' });
     expect(offered.at(-1)).toEqual(['user', 'bard', 'wren']);
+    expect(speakers(session)).toEqual(['bard']);
+  });
+
+  it('never offers the director an actor whose settings say it waits to be asked', async () => {
+    const session = await setup();
+    await session.join(actor('director', 'ai', ['always-bard']));
+    await session.join({ ...actor('bard', 'ai', ['talker']), settings: { talker: 'wait' } });
+    offered.length = 0;
+    await session.flows.run('turn-taking', { kind: 'pass' });
+    expect(offered).toEqual([['user', 'wren']]);
+    expect(speakers(session)).toEqual([]);
+    expect(session.cast().map((a) => a.id)).toContain('bard');
+    await session.flows.run('turn-taking', { kind: 'choose', actorId: 'bard' });
     expect(speakers(session)).toEqual(['bard']);
   });
 

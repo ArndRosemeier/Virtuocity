@@ -10,6 +10,13 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 91,
+    date: '2026-10-20',
+    changes: [
+      'Conversation has an "automatic" setting, on by default. Switch it off in the actor editor and the director never picks that actor; it speaks only when you click it under "Let speak". Unlike pausing in the Cast panel, this belongs to the actor, so it holds in every session the actor is in.',
+    ],
+  },
+  {
     build: 90,
     date: '2026-10-20',
     changes: [
@@ -259,29 +266,6 @@ export const RELEASES: readonly Release[] = [
     date: '2026-10-13',
     changes: [
       'Fixed: reloading the page or opening a session no longer asks about "Actors with the same name" when an actor was only edited in your library since the session was last open. Your own sessions always use the library\'s current version of each actor; the question only comes up when you load a file.',
-    ],
-  },
-  {
-    build: 57,
-    date: '2026-10-13',
-    changes: [
-      'Sessions can be renamed: open the session list from the header and click the pencil next to a session or template. Names stay unique.',
-      'Text in the left sidebar spaces is now smaller by default, the same size as the other small text in the sidebars.',
-    ],
-  },
-  {
-    build: 56,
-    date: '2026-10-13',
-    changes: [
-      'Retrying an answer keeps the old one. A retried message shows "‹ 2/2 ›": step back to an earlier version and everything that followed it comes back with it; the newest version is shown by default. Anything new you write then continues from the version you picked.',
-    ],
-  },
-  {
-    build: 55,
-    date: '2026-10-13',
-    changes: [
-      'Every space in the left sidebar can now be closed and its content deleted, as a general rule for all spaces. A closed space leaves a "Show" button so you can bring it back. Deleting empties the Fact gatherer\'s list and a canvas, and makes a Chronicler forget its summary (it writes a fresh one from the whole story at its next update).',
-      "The Fact gatherer's space has a Retry button that gathers the facts again right away.",
     ],
   },
   ...MIDDLE_RELEASES,

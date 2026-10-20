@@ -25,12 +25,13 @@ export function rivalDirector(
 /**
  * Asks the session's director (the one actor serving `director@1`) who goes
  * next. Without a director, or when it hands the turn to a person, nobody does.
- * Actors paused in the session are not offered: the director never sees them.
+ * Actors paused in the session, and those whose settings say they wait to be
+ * asked, are not offered: the director never sees them.
  */
 async function directorsPick(ctx: FlowContext): Promise<string | undefined> {
   const director = ctx.actors.find((a) => ctx.serves(a.id, directorContract));
   const paused = pausedIds(ctx.state.read(CAST, castDoc));
-  const cast = ctx.cast().filter((a) => !paused.has(a.id));
+  const cast = ctx.cast().filter((a) => !paused.has(a.id) && !ctx.waitsToBeAsked(a.id));
   if (!director || cast.length === 0) return undefined;
   const candidates = cast.map((a) => ({
     id: a.id,

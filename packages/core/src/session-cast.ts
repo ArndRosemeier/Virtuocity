@@ -60,6 +60,12 @@ export class SessionCast {
       .filter((a) => a.controller === 'ai' && !this.castSkill(a) && this.#requestSkill(a));
   }
 
+  /** Whether a cast actor's settings for its cast skill say a director must not pick it. */
+  waitsToBeAsked(actor: Actor): boolean {
+    const skill = this.castSkill(actor);
+    return skill?.waitsToBeAsked?.(actor.settings?.[skill.id]) ?? false;
+  }
+
   /** The skill an actor acts with when it is its turn or it is asked. */
   actingSkill(actor: Actor): Skill | undefined {
     return this.castSkill(actor) ?? this.#requestSkill(actor);

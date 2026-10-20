@@ -70,6 +70,15 @@ describe('conversation skill', () => {
   });
 });
 
+describe('conversation automatic setting', () => {
+  it('lets a director pick the actor unless automatic is switched off', () => {
+    const waits = (stored: unknown) => conversationSkill.waitsToBeAsked?.(stored);
+    expect(waits(undefined)).toBe(false);
+    expect(waits({ automatic: true })).toBe(false);
+    expect(waits({ automatic: false })).toBe(true);
+  });
+});
+
 describe('conversation conforms to speaker', () => {
   const target = conformanceTarget(speakerContract, {
     skills: [conversationSkill],

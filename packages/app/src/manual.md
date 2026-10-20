@@ -82,6 +82,8 @@ After every turn the session pauses. Without a director, nobody speaks on their 
 
 To take an actor out of the director's choices for a while, click the pause button next to it in the Cast panel. A paused actor stays in the session and you can still let it speak yourself; the director just doesn't see it until you click play. Pausing belongs to the session, not the actor: the same actor in another session is not paused. Like joining, a pause is part of the session's history, so going back to a point before it (a retry, an older version) undoes it.
 
+For an actor that should never be picked by a director, switch off "automatic" in its Conversation settings (it is on by default). Such an actor speaks only when you click it under "Let speak", in every session it is in, since the setting belongs to the actor rather than to one session.
+
 ## Automations
 
 An **Automation** actor runs a small script of AI calls that you write in its settings, then posts what came out as one message. Each line is one step; text in quotes may span several lines:
