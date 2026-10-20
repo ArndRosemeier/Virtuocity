@@ -4,7 +4,8 @@ import { coreModule } from './core-module';
 import { ModuleHost, loadModules } from './module';
 import { textContent } from './output';
 import { SessionRuntime } from './runtime';
-import { clearSession, withdraw } from './withdraw';
+import { everyone } from './cast-refs';
+import { clearSession } from './clear-session';
 import { SETUP, hideGuide, setupDoc } from './setup';
 
 const actor = (id: string): Actor => ({
@@ -27,33 +28,31 @@ async function session() {
 const texts = (runtime: SessionRuntime) => runtime.transcript().map((m) => m.text);
 const ids = (runtime: SessionRuntime) => runtime.actors.map((a) => a.id);
 
-describe('withdraw', () => {
-  it('takes out an actor that did nothing', async () => {
+describe('leaving', () => {
+  it('keeps what the actor did and its name, and stops it taking part', async () => {
     const runtime = await session();
-    expect(await withdraw(runtime, 'premise')).toBe(true);
+    await runtime.post('premise', textContent('You wake on a train.'));
+    await runtime.post('narrator', textContent('The train slows.'));
+    await runtime.leave('premise');
+    expect(texts(runtime)).toEqual(['You wake on a train.', 'The train slows.']);
     expect(ids(runtime)).toEqual(['narrator']);
+    expect(everyone(runtime).map((a) => a.id)).toEqual(['narrator', 'premise']);
   });
 
-  it('takes out what an actor did when nobody went on from it', async () => {
+  it('stops the running jobs of the actor that leaves', async () => {
     const runtime = await session();
-    await runtime.post('premise', textContent('You wake on a train.'), undefined, {
-      hiddenFrom: ['user'],
+    const job = runtime.jobs.start({ actorId: 'premise', label: 'Painting' }, (control) => {
+      return new Promise((_, reject) => control.signal.addEventListener('abort', reject));
     });
-    await runtime.join(actor('ink'));
-    await hideGuide(runtime);
-    expect(await withdraw(runtime, 'premise')).toBe(true);
-    expect(texts(runtime)).toEqual([]);
-    expect(ids(runtime)).toEqual(['narrator', 'ink']);
-    expect(runtime.workspace.log.all().some((op) => op.actorId === 'premise')).toBe(true);
+    await runtime.leave('premise');
+    expect((await job.done).status).toBe('cancelled');
   });
 
-  it('keeps an actor the session went on from, on any branch', async () => {
+  it('comes back when the session goes back to before it left', async () => {
     const runtime = await session();
     const opening = await runtime.post('premise', textContent('You wake on a train.'));
-    await runtime.post('narrator', textContent('The train slows.'));
-    await runtime.rewindToMessage(opening.id, { keepBranch: true });
-    expect(await withdraw(runtime, 'premise')).toBe(false);
-    expect(texts(runtime)).toEqual(['You wake on a train.']);
+    await runtime.leave('premise');
+    await runtime.rewindToMessage(opening.id);
     expect(ids(runtime)).toEqual(['premise', 'narrator']);
   });
 });

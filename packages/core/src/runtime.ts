@@ -123,8 +123,10 @@ export class SessionRuntime {
     await this.bus.emit(actorJoined.create({ actorId: actor.id }));
   }
 
+  /** An actor leaves from here on: what it did stays, its running jobs stop. */
   async leave(actorId: string): Promise<void> {
     if (!this.actors.some((a) => a.id === actorId)) return;
+    this.jobs.cancelOf(actorId);
     const payload = { type: 'leave', actorId } as const;
     await this.workspace.change({ actorId, docId: CAST, docType: castDoc, payload });
     await this.#cast.settle();

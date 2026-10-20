@@ -10,6 +10,13 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 90,
+    date: '2026-10-20',
+    changes: [
+      'Removing an actor from a session no longer deletes the session. The actor stops taking part, and what it already did stays under its name, so you can swap a narrator, director, chronicler or any other actor mid-session by removing it and adding another. Going back to before it left brings it back. The session still counts as using it, so deleting it from the Library still deletes the session (that warning now also finds sessions where it appears only in an older retry version).',
+    ],
+  },
+  {
     build: 89,
     date: '2026-10-19',
     changes: [

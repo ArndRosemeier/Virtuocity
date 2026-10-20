@@ -13,7 +13,7 @@ export * from './settings';
 /** Asks the text model for the facts of the whole session, as its actor sees it. */
 async function gather(ctx: SkillContext) {
   const { prompt } = readSettings(factGathererSettings, ctx.settings);
-  const session = sessionText(ctx.transcript, ctx.actors);
+  const session = sessionText(ctx.transcript, ctx.everyone);
   const messages = gatherPrompt(prompt, session, gatheredFacts.shown(ctx).parts);
   const { text } = await ctx.complete({ modality: 'text', messages });
   const facts = text.trim();

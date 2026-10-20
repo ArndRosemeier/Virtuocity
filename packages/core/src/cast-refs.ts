@@ -2,9 +2,9 @@ import type { Actor } from './actor';
 import { nameKey } from './actor-names';
 import type { ActorLookup, CastOp } from './cast';
 import { CAST, castDoc } from './cast';
-import type { Operation } from './oplog';
+import type { OpLog, Operation } from './oplog';
 import type { SavedSession } from './persistence';
-import type { SessionRuntime } from './runtime';
+import type { Workspace } from './workspace';
 
 const castOp = (op: Operation) => (op.docId === CAST ? (op.payload as CastOp) : undefined);
 
@@ -13,9 +13,10 @@ const castOp = (op: Operation) => (op.docId === CAST ? (op.payload as CastOp) : 
  * them, on every branch. A session loaded from a file (or saved by an older
  * version) holds copies; once those actors are in the library, it refers to them.
  */
-export async function includeKnownActors(
-  session: Pick<SessionRuntime, 'workspace' | 'lookup'>,
-): Promise<void> {
+export async function includeKnownActors(session: {
+  readonly workspace: Workspace;
+  readonly lookup: ActorLookup;
+}): Promise<void> {
   const { log } = session.workspace;
   let changed = false;
   const operations = log.all().map((op) => {
@@ -57,4 +58,30 @@ export function actorCopies(operations: readonly Operation[], library: readonly 
     const { actor } = cast;
     return ids.has(actor.id) || names.has(nameKey(actor.personality.name)) ? [actor] : [];
   });
+}
+
+/**
+ * Everyone who ever was in a session, on any branch: who is in it now, and
+ * actors that left or are only on another branch, as the lookup has them. What
+ * an actor did stays when it leaves, so its posts still need its name, and the
+ * session still uses it: deleting it from the library deletes the session.
+ */
+export function everyone(session: {
+  readonly workspace: { readonly log: OpLog };
+  readonly lookup: ActorLookup;
+  readonly actors: readonly Actor[];
+}): readonly Actor[] {
+  const now = new Set(session.actors.map((a) => a.id));
+  const before = new Map<string, Actor>();
+  for (const op of session.workspace.log.all()) {
+    const cast = castOp(op);
+    const actor =
+      cast?.type === 'join'
+        ? cast.actor
+        : cast?.type === 'include'
+          ? session.lookup(cast.actorId)
+          : undefined;
+    if (actor && !now.has(actor.id)) before.set(actor.id, actor);
+  }
+  return [...session.actors, ...before.values()];
 }

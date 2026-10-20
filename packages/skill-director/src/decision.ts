@@ -54,7 +54,7 @@ export async function decideNext(
   ctx: SkillContext,
 ): Promise<DirectorCandidate | undefined> {
   const { text: background } = ctx.context(CONTEXT_BUDGET);
-  const state = { background, session: storyLines(ctx.transcript, ctx.actors) };
+  const state = { background, session: storyLines(ctx.transcript, ctx.everyone) };
   const question = nextQuestion(ctx.actor, candidates, ctx.actors);
   const result = await ctx.decide({ state, questions: { [QUESTION]: question } });
   const options = optionsOf(candidates);

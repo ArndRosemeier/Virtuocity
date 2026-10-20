@@ -1,4 +1,5 @@
 import type { Job } from '@virtuocity/core';
+import { actorName, everyone } from '@virtuocity/core';
 import { Button } from '@virtuocity/ui';
 import type { AppModule, PanelProps } from './types';
 
@@ -31,7 +32,8 @@ function JobsPanel({ session }: PanelProps) {
   const problems = all.filter((j) => j.status === 'failed' || j.status === 'cancelled');
   const shown = [...running, ...problems.slice(-RECENT).reverse()];
   if (shown.length === 0) return <p className="muted">Nothing running in the background.</p>;
-  const nameOf = (id: string) => session.actors.find((a) => a.id === id)?.personality.name ?? id;
+  const known = everyone(session);
+  const nameOf = (id: string) => actorName(known, id);
   return (
     <ul className="jobs">
       {shown.map((job) => (

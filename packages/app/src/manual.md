@@ -42,7 +42,7 @@ This is the most important idea in Virtuocity.
 - **Editing an actor changes it everywhere.** Change Marlow, and every session with Marlow, including old ones and templates, has the new Marlow. Going back in a session (retry, an earlier version) never brings back an older Marlow either.
 - **Want a variation? Copy it under a new name.** "Marlow (young)" is a different actor with its own name, and from then on it is independent.
 - **Deleting an actor deletes the sessions that use it.** Virtuocity warns you first and lists those sessions. Nothing is left referring to an actor that no longer exists.
-- **Removing an actor from a session** is clean as long as the session hasn't gone on from what it did: whatever it did (a premise it posted, say) goes with it. Once others have acted after it, the session is part of its history, and removing it means deleting the session.
+- **Removing an actor from a session** never deletes the session. The actor stops taking part from that moment, and whatever it already did stays, under its name: its lines, pictures and summaries. To replace an actor, remove it and add another. Going back to before it left (a retry, say) brings it back. Because its work stays, the session still counts as using it, so deleting it from the Library still deletes the session. A removed chronicler's last summary keeps informing the others until a newer one replaces it; delete its space first if you want that gone.
 
 ### Making an actor
 

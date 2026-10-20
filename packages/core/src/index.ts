@@ -5,7 +5,7 @@ export * from './assets';
 export * from './bundle';
 export * from './calls';
 export * from './cast';
-export * from './withdraw';
+export * from './clear-session';
 export * from './cast-refs';
 export * from './channels';
 export * from './conformance';

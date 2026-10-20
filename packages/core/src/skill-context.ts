@@ -32,6 +32,11 @@ export interface SkillContext {
   readonly state: StateView;
   /** Everyone currently in the session, support actors included. */
   readonly actors: readonly Actor[];
+  /**
+   * Everyone who was ever in the session, also actors that left: what they did
+   * stays, so use this to name the author of any post.
+   */
+  readonly everyone: readonly Actor[];
   /** The cast: people and the actors who take turns talking. Support actors are left out. */
   readonly cast: readonly Actor[];
   /** Adds a message from this actor to the story: any content, with its text form. */

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { CallTrace, ChatMessage, SessionRuntime } from '@virtuocity/core';
-import { chatText } from '@virtuocity/core';
+import { actorName, chatText, everyone } from '@virtuocity/core';
 import { IconButton, Modal, Pill, formatUsd } from '@virtuocity/ui';
 
 const STATUS: Record<CallTrace['status'], string> = {
@@ -77,7 +77,8 @@ function TraceRow({ trace, actor }: { trace: CallTrace; actor: string }) {
 export function Calls({ session }: { session: SessionRuntime }) {
   const [open, setOpen] = useState(false);
   const traces = [...session.calls.list()].reverse();
-  const nameOf = (id: string) => session.actors.find((a) => a.id === id)?.personality.name ?? id;
+  const known = everyone(session);
+  const nameOf = (id: string) => actorName(known, id);
   return (
     <>
       <IconButton icon="activity" label="Model calls" onClick={() => setOpen(true)} />

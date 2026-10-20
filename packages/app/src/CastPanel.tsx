@@ -1,17 +1,14 @@
-import { useState } from 'react';
 import type { Actor } from '@virtuocity/core';
-import { CAST, castDoc, isSessionType, pauseActor, pausedIds, withdraw } from '@virtuocity/core';
+import { CAST, castDoc, isSessionType, pauseActor, pausedIds } from '@virtuocity/core';
 import { Avatar, Button, IconButton, Pill } from '@virtuocity/ui';
 import { useAppActions } from './actions';
 import { useActorTips } from './actorTips';
 import { runSafely } from './LibraryActors';
-import { SessionGoesDialog } from './SessionGoesDialog';
 import { SessionTypeField } from './SessionTypeField';
 import { SetupGuide } from './SetupGuide';
 import { StoryViewPicker } from './StoryViewPicker';
 import { STORY_VIEW } from './storyView';
 import type { AppModule, PanelProps } from './types';
-import { useSwitcher } from './switcher';
 
 interface CastRowProps {
   readonly actor: Actor;
@@ -85,34 +82,6 @@ function CastRow({ actor: a, speaking, onLeave, paused, onPause }: CastRowProps)
 }
 
 /**
- * Removing an actor nobody has built on yet is clean: what it did goes with it.
- * One whose work the session went on from stays part of the session, so removing it
- * deletes the session, after a warning.
- */
-function useRemove({ session }: PanelProps) {
-  const switcher = useSwitcher();
-  const [actor, setActor] = useState<Actor>();
-  const remove = (a: Actor) => {
-    void withdraw(session, a.id).then((gone) => {
-      if (!gone) setActor(a);
-    });
-  };
-  const name = actor?.personality.name ?? '';
-  const dialog = actor && (
-    <SessionGoesDialog
-      title={`Remove ${name}`}
-      confirm="Delete the session"
-      onConfirm={() => runSafely(() => switcher.removeOpen())}
-      onClose={() => setActor(undefined)}
-    >
-      The session has gone on since {name} took part, so removing {name} means deleting the session.{' '}
-      {name} stays in your Library.
-    </SessionGoesDialog>
-  );
-  return [remove, dialog] as const;
-}
-
-/**
  * Who is in the session: the cast (actors with one of the session type's cast
  * skills) and, apart from it, support actors, who can all join and leave at
  * any time. Below them the two every session has exactly one of: its type
@@ -120,7 +89,8 @@ function useRemove({ session }: PanelProps) {
  */
 function CastPanel({ host, session }: PanelProps) {
   const { openAddActor } = useAppActions();
-  const [remove, removeDialog] = useRemove({ host, session });
+  // Leaving keeps what the actor did; going back to before it left brings it back.
+  const remove = (a: Actor) => runSafely(() => session.leave(a.id));
   const fixed = (a: Actor) => isSessionType(a, host.skills.list());
   const row = (a: Actor) => (
     <CastRow key={a.id} actor={a} speaking={session.speaking === a.id} onLeave={() => remove(a)} />
@@ -162,7 +132,6 @@ function CastPanel({ host, session }: PanelProps) {
       </Button>
       {type && <SessionTypeField type={type} />}
       <StoryViewPicker host={host} session={session} />
-      {removeDialog}
     </div>
   );
 }
