@@ -117,8 +117,11 @@ app ──► any module ──► ui ──────────► core
   mostly plain code; skills can `replace` it.
 - **Flows** (`flow.ts`, `flow-runner.ts`): see [Flows](#flows) below.
 - **SessionRuntime** (`runtime.ts`): a running session. Actors `join` and
-  `leave` at any time (the app only lets an actor leave while `hasActed` in
-  `cast.ts` is false; removing one that acted deletes the session); `post` adds a message;
+  `leave` at any time. Leaving is an operation like any other: what the actor
+  did stays, its running jobs stop, and rewinding to before it brings it back.
+  `everyone` (`cast-refs.ts`) is every actor in the log on any branch, left ones
+  included; posts are named from it (`SkillContext.everyone`) and a session uses
+  all of them, so deleting one from the library deletes the session; `post` adds a message;
   `runTurn` lets a chosen actor speak; `retryMessage` (`retry.ts`)
   rewinds to before an actor's message, keeping the old answer and what
   followed as a branch, and lets that actor speak again. Those sibling

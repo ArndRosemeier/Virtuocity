@@ -24,7 +24,7 @@ async function reply(
   const settings = readSettings(conversationSettings, ctx.settings);
   const { text: context } = ctx.context(contextBudget(settings));
   const current = await currentPicture(ctx);
-  const messages = buildPrompt(ctx.actor, ctx.actors, ctx.transcript, {
+  const messages = buildPrompt(ctx.actor, ctx.everyone, ctx.transcript, {
     settings,
     context,
     cast: ctx.cast,

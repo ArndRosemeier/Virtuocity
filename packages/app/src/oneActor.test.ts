@@ -7,6 +7,7 @@ import {
   actorCopies,
   coreModule,
   createAssetStore,
+  everyone,
   exportBundle,
   importBundle,
   loadModules,
@@ -155,6 +156,21 @@ describe('one name, one actor', () => {
     const id = await switcher.catalog.create('Old', old);
     await switcher.open(id);
     expect(shown.actors).toEqual([testType, marlow]);
+    await expectNoCopies(library, switcher);
+  });
+
+  it('keeps an actor that left as part of the session, still only in the library', async () => {
+    const { library, shown, switcher } = await setup();
+    await switcher.startNew('Voyage', (r) => startSession(r, [testType, marlow]));
+    await shown.runTurn('marlow');
+    await shown.leave('marlow');
+    expect(shown.actors).toEqual([testType]);
+    expect(shown.transcript().map((m) => m.actorId)).toEqual(['marlow']);
+    // Its posts stay, so the session still uses it: deleting it from the library finds this one.
+    expect(everyone(shown)).toEqual([testType, marlow]);
+    const voyage = switcher.openId;
+    await switcher.startNew('Another', (r) => startSession(r, [testType]));
+    expect((await switcher.sessionsWith('marlow')).map((e) => e.id)).toEqual([voyage]);
     await expectNoCopies(library, switcher);
   });
 });

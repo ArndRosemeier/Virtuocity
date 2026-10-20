@@ -56,8 +56,8 @@ export const sessionAnalyticsSkill: Skill = {
     implement(sessionAnalyticsContract, {
       analyze: async (_input, ctx) => {
         const markers = await markersOf(ctx);
-        const outline = sessionOutline(ctx.transcript, ctx.actors, markers);
-        const figures = sessionFigures(ctx.transcript, ctx.actors, markers);
+        const outline = sessionOutline(ctx.transcript, ctx.everyone, markers);
+        const figures = sessionFigures(ctx.transcript, ctx.everyone, markers);
         return {
           parts: [
             { kind: SESSION_FIGURES, data: figures },

@@ -1,5 +1,6 @@
 import { createContext, useContext } from 'react';
 import type { Actor } from '@virtuocity/core';
+import { everyone } from '@virtuocity/core';
 import { actorTip } from './actorTip';
 import type { PanelProps } from './types';
 
@@ -12,7 +13,8 @@ export const ActorTipsContext = createContext<ActorTips>(() => undefined);
 export function actorTips({ host, session }: PanelProps): ActorTips {
   const skillName = (id: string) => host.skills.find(id)?.name;
   return (target) => {
-    const actor = typeof target === 'string' ? session.actors.find((a) => a.id === target) : target;
+    const actor =
+      typeof target === 'string' ? everyone(session).find((a) => a.id === target) : target;
     return actor && actorTip(actor, skillName);
   };
 }

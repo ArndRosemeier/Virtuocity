@@ -17,7 +17,7 @@ export function chronicle(ctx: SkillContext): void {
   const settings = readSettings(chroniclerSettings, ctx.settings);
   const previous = chronicles(ctx.state)[ctx.actor.id];
   const story = ctx.transcript.filter((m) => m.actorId !== ctx.actor.id);
-  const lines = linesToCover(storyLines(story, ctx.actors), settings, previous?.upTo);
+  const lines = linesToCover(storyLines(story, ctx.everyone), settings, previous?.upTo);
   const last = lines?.at(-1);
   if (!lines || !last || busy.has(ctx.actor.id)) return;
   busy.add(ctx.actor.id);

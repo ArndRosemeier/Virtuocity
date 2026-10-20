@@ -94,6 +94,11 @@ export class JobQueue {
     return true;
   }
 
+  /** Asks every running job of an actor to stop, e.g. when it leaves the session. */
+  cancelOf(actorId: string): void {
+    for (const job of this.running()) if (job.actorId === actorId) this.cancel(job.id);
+  }
+
   async #run<T>(
     id: string,
     controller: AbortController,

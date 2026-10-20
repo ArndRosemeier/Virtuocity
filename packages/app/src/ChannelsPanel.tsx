@@ -1,4 +1,4 @@
-import { channelContents } from '@virtuocity/core';
+import { channelContents, everyone } from '@virtuocity/core';
 import type { AppModule, PanelProps } from './types';
 import { USER_ID } from './useSession';
 
@@ -14,7 +14,7 @@ function ChannelsPanel({ host, session }: PanelProps) {
       {showing.map((channel) => {
         const content = contents[channel.id];
         if (!content) return null;
-        const by = session.actors.find((a) => a.id === content.actorId)?.personality.name;
+        const by = everyone(session).find((a) => a.id === content.actorId)?.personality.name;
         return (
           <figure key={channel.id} className="channel">
             {host.renderers.render(content.part)}

@@ -1,6 +1,8 @@
 import { useEffect, useMemo } from 'react';
 import type { SessionRuntime } from '@virtuocity/core';
 import {
+  actorName,
+  everyone,
   messageVersions,
   retryMessage,
   retryable,
@@ -181,7 +183,8 @@ function useMessageActionsFor(session: SessionRuntime): MessageActions {
 export function Feed({ host, session }: PanelProps) {
   const { scroller, content, pin } = useStickToBottom<HTMLElement, HTMLDivElement>();
   const messages = session.transcript(USER_ID);
-  const nameOf = (id: string) => session.actors.find((a) => a.id === id)?.personality.name ?? id;
+  const known = everyone(session);
+  const nameOf = (id: string) => actorName(known, id);
   const speaking = session.speaking;
   const actions = useMessageActionsFor(session);
 

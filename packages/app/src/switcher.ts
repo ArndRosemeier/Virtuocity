@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, useSyncExternalStore } 
 import type { Actor, SessionRuntime } from '@virtuocity/core';
 import type { Skill } from '@virtuocity/core';
 import {
+  everyone,
   headMoved,
   isSessionType,
   sessionTypeOf,
@@ -192,9 +193,9 @@ export class SessionSwitcher {
     return using;
   }
 
-  /** The actors a stored session has. */
+  /** The actors a stored session uses: everyone ever in it, on any branch, also those that left. */
   async actorsOf(entry: SessionEntry): Promise<readonly Actor[]> {
-    if (entry.id === this.#id) return this.#deps.runtime.actors;
+    if (entry.id === this.#id) return everyone(this.#deps.runtime);
     const stored = await this.catalog.get(entry.id);
     const scratch = this.#deps.scratch();
     try {
@@ -202,7 +203,7 @@ export class SessionSwitcher {
     } catch {
       return [];
     }
-    return scratch.actors;
+    return everyone(scratch);
   }
 
   async #startAs(name: string, load: Load, fromFile = false): Promise<void> {

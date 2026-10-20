@@ -1,5 +1,7 @@
 import type { Actor } from './actor';
 import type { AssetStore } from './assets';
+import type { ActorLookup } from './cast';
+import { everyone } from './cast-refs';
 import type { ContextContributor } from './context-assembly';
 import { assembleContext } from './context-assembly';
 import type { Contract } from './contract';
@@ -22,6 +24,7 @@ export interface ContextSource {
   readonly jobs: JobQueue;
   readonly assets: AssetStore;
   readonly actors: readonly Actor[];
+  readonly lookup: ActorLookup;
   cast(): readonly Actor[];
   readonly invoke: InvokeAction;
   implementationFor(actorId: string, contract: Contract): unknown;
@@ -64,6 +67,7 @@ export function createSkillContext(
     transcript,
     state,
     actors: source.actors,
+    everyone: everyone(source),
     cast,
     assets: source.assets,
     post: (content, stats, options) => source.post(actor.id, content, stats, options),
