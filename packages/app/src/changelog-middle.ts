@@ -1,7 +1,30 @@
 import type { Release } from './changelog-earlier';
 
-/** Builds 34 to 54, newest first; kept apart so the changelog stays short. */
+/** Builds 34 to 57, newest first; kept apart so the changelog stays short. */
 export const MIDDLE_RELEASES: readonly Release[] = [
+  {
+    build: 57,
+    date: '2026-10-13',
+    changes: [
+      'Sessions can be renamed: open the session list from the header and click the pencil next to a session or template. Names stay unique.',
+      'Text in the left sidebar spaces is now smaller by default, the same size as the other small text in the sidebars.',
+    ],
+  },
+  {
+    build: 56,
+    date: '2026-10-13',
+    changes: [
+      'Retrying an answer keeps the old one. A retried message shows "‹ 2/2 ›": step back to an earlier version and everything that followed it comes back with it; the newest version is shown by default. Anything new you write then continues from the version you picked.',
+    ],
+  },
+  {
+    build: 55,
+    date: '2026-10-13',
+    changes: [
+      'Every space in the left sidebar can now be closed and its content deleted, as a general rule for all spaces. A closed space leaves a "Show" button so you can bring it back. Deleting empties the Fact gatherer\'s list and a canvas, and makes a Chronicler forget its summary (it writes a fresh one from the whole story at its next update).',
+      "The Fact gatherer's space has a Retry button that gathers the facts again right away.",
+    ],
+  },
   {
     build: 54,
     date: '2026-10-13',

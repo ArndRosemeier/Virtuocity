@@ -43,7 +43,8 @@ async function reply(
  * Lets an actor speak with a text model (`speaker@1.0`). The actor's other
  * skills are offered as tools, so a character with dice can roll while
  * speaking. On its turn it posts what it says, and the pictures a model that
- * can paint drew; the calls' cost goes with the last of them.
+ * can paint drew; the calls' cost goes with the last of them. With `automatic`
+ * off, a director never picks it; it speaks only when a person picks it.
  */
 export const conversationSkill: Skill = {
   id: 'conversation',
@@ -54,6 +55,7 @@ export const conversationSkill: Skill = {
   character: true,
   settings: conversationSettings,
   implements: [implement(speakerContract, { speak: async (_input, ctx) => reply(ctx) })],
+  waitsToBeAsked: (stored) => !readSettings(conversationSettings, stored).automatic,
   async takeTurn(ctx) {
     const { parts, stats } = await reply(ctx);
     const words = parts.at(-1);

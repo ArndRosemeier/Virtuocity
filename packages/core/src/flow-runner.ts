@@ -20,6 +20,7 @@ export interface FlowHost {
   transcript(): readonly Message[];
   runTurn(actorId: string): Promise<void>;
   cast(): readonly Actor[];
+  waitsToBeAsked(actorId: string): boolean;
   implementationFor(actorId: string, contract: Contract): Implementation | undefined;
 }
 
@@ -105,6 +106,7 @@ export class FlowRunner {
       state: host.workspace.view(`flow:${flowId}`),
       transcript: () => host.transcript(),
       cast: () => host.cast(),
+      waitsToBeAsked: (actorId) => host.waitsToBeAsked(actorId),
       serves: (actorId, contract) => host.implementationFor(actorId, contract) !== undefined,
       emit: (event) => host.bus.emit(event),
       runTurn: (actorId) => step(() => host.runTurn(actorId)),

@@ -22,6 +22,12 @@ export const conversationSettings = defineSettings({
     .describe(
       'How many tokens of story and background the actor reads each turn. Leave empty to read everything',
     ),
+  automatic: z
+    .boolean()
+    .default(true)
+    .describe(
+      "Let a director pick this actor to speak. When off, it speaks only when you click it under 'Let speak'",
+    ),
 });
 
 /** Background knowledge gets at most this share of a limited memory; the story gets the rest. */

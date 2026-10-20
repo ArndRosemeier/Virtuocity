@@ -35,7 +35,7 @@ import type { InvokeAction } from './skill-context';
 import { memoryStore } from './storage';
 import type { RewindOptions } from './oplog';
 import type { SavedSession } from './persistence';
-import { migrateOperations, parseSavedSession } from './persistence';
+import { migrateOperations, parseSavedSession, savedSession } from './persistence';
 import type { CallStats } from './stats';
 import type { Message } from './transcript';
 import { MAIN_TRANSCRIPT, postingOperation, transcriptDoc } from './transcript';
@@ -185,15 +185,7 @@ export class SessionRuntime {
 
   /** A snapshot of the whole session (every branch) that `load` can bring back. */
   save(): SavedSession {
-    const { log } = this.workspace;
-    return {
-      format: 'virtuocity.session',
-      formatVersion: 1,
-      savedAt: this.#now(),
-      head: log.head,
-      operations: log.all(),
-      spent: [...this.#spent],
-    };
+    return savedSession(this.workspace.log, this.#spent, this.#now());
   }
 
   /** Replaces this session with saved data, upgrading old document versions. */
@@ -232,6 +224,11 @@ export class SessionRuntime {
   /** AI support actors a person can ask to act (`onRequest`); a director never picks them. */
   askable(): Actor[] {
     return this.#cast.askable();
+  }
+
+  /** Whether a cast actor's settings say it speaks only when a person picks it (see `Skill`). */
+  waitsToBeAsked(actorId: string): boolean {
+    return this.#cast.waitsToBeAsked(this.#actor(actorId));
   }
 
   /**

@@ -24,6 +24,8 @@ export interface FlowContext {
   readonly invoke: InvokeAction;
   /** The cast: people and the actors who take turns talking. */
   cast(): readonly Actor[];
+  /** Whether a cast actor's settings say it speaks only when a person picks it, never a director. */
+  waitsToBeAsked(actorId: string): boolean;
   /** Whether an actor's skills serve a contract, e.g. whether it can direct. */
   serves(actorId: string, contract: Contract): boolean;
   /** Tells everyone listening that something happened, e.g. that the scene changed. */

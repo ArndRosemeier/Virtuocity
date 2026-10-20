@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { DocType } from './doc-type';
-import type { Operation } from './oplog';
+import type { OpLog, Operation } from './oplog';
 import type { CallStats } from './stats';
 import { callStatsSchema } from './stats';
 
@@ -13,6 +13,22 @@ export interface SavedSession {
   /** Every operation on every branch. */
   readonly operations: readonly Operation[];
   readonly spent: readonly CallStats[];
+}
+
+/** A snapshot of a session's whole log (every branch) and what it cost, for `load`. */
+export function savedSession(
+  log: OpLog,
+  spent: readonly CallStats[],
+  savedAt: number,
+): SavedSession {
+  return {
+    format: 'virtuocity.session',
+    formatVersion: 1,
+    savedAt,
+    head: log.head,
+    operations: log.all(),
+    spent: [...spent],
+  };
 }
 
 const operation = z.object({
@@ -28,7 +44,7 @@ const operation = z.object({
   at: z.number(),
 });
 
-const savedSession = z.object({
+const savedSchema = z.object({
   format: z.literal('virtuocity.session'),
   formatVersion: z.literal(1),
   savedAt: z.number(),
@@ -39,7 +55,7 @@ const savedSession = z.object({
 
 /** Checks the shape of untrusted saved data (a file, storage) before it is used. */
 export function parseSavedSession(data: unknown): SavedSession {
-  const result = savedSession.safeParse(data);
+  const result = savedSchema.safeParse(data);
   if (!result.success) throw new Error(`Not a Virtuocity session: ${result.error.message}`);
   return result.data as SavedSession;
 }

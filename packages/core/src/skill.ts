@@ -45,6 +45,12 @@ export interface Skill extends Identified {
   /** Present on skills that let an actor take a turn, e.g. conversation. */
   takeTurn?(ctx: SkillContext): Promise<void>;
   /**
+   * Whether an actor's stored settings for this skill say it waits to be
+   * asked: when it is cast with this skill, a director never picks it, and it
+   * speaks only when a person picks it. Absent means it never waits.
+   */
+  waitsToBeAsked?(stored: unknown): boolean;
+  /**
    * Present on skills that act only when a person asks, e.g. an illustrator
    * painting the latest message. Runs like a turn but the director never picks
    * it, and the actor stays support rather than cast.
