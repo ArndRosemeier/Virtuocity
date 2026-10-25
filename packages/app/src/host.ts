@@ -9,6 +9,7 @@ import { chroniclerModule } from '@virtuocity/skill-chronicler';
 import { illustratorModule } from '@virtuocity/skill-illustrator';
 import { galleryModule } from '@virtuocity/skill-gallery';
 import { factGathererModule } from '@virtuocity/skill-fact-gatherer';
+import { refinerModule } from '@virtuocity/skill-refiner';
 import { sessionAnalyticsModule } from '@virtuocity/skill-session-analytics';
 import { premiseModule } from '@virtuocity/skill-premise';
 import { automationModule } from '@virtuocity/skill-automation';
@@ -73,6 +74,7 @@ export function createHost(): AppHost {
     galleryModule as AppModule,
     chroniclerModule as AppModule,
     factGathererModule as AppModule,
+    refinerModule as AppModule,
     sessionAnalyticsModule as AppModule,
     premiseModule as AppModule,
     automationModule as AppModule,

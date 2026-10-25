@@ -84,6 +84,10 @@ To take an actor out of the director's choices for a while, click the pause butt
 
 For an actor that should never be picked by a director, switch off "automatic" in its Conversation settings (it is on by default). Such an actor speaks only when you click it under "Let speak", in every session it is in, since the setting belongs to the actor rather than to one session.
 
+## Refining what you type
+
+A **Refiner** actor (the Refiner skill) rewrites what is in the input box before you send it. Add one to the session, type something, then click it under "refine with:". Its answer replaces the text in the input box and nothing is posted, so you can change it further, refine again or send it. It never acts on its own. In the actor editor you set its command (by default "Please refine this text: "; your text is appended to it) and whether it also reads the session so far for context (on by default).
+
 ## Automations
 
 An **Automation** actor runs a small script of AI calls that you write in its settings, then posts what came out as one message. Each line is one step; text in quotes may span several lines:

@@ -10,6 +10,13 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 92,
+    date: '2026-10-25',
+    changes: [
+      'Refiner: a new kind of actor that rewrites what you are typing before you send it. Type something, then click the refiner under "refine with:" below the input box; its answer replaces your text and nothing is posted. In the actor editor you can change its command (by default "Please refine this text: ", with your text appended) and whether it also reads the session for context. A ready-made "Refiner" actor is offered on a fresh start, or via Settings > Save & load > "Update default actors…".',
+    ],
+  },
+  {
     build: 91,
     date: '2026-10-20',
     changes: [
