@@ -25,6 +25,8 @@ product is, and why that shapes every change, is in [vision.md](vision.md).
 | `@virtuocity/skill-gallery`           | Gallery: every picture in a space; serves `picture-source@1.0` (the current picture).  |
 | `@virtuocity/contract-facts`          | `fact-gatherer@1.0` contract: the facts a session has established.                     |
 | `@virtuocity/skill-fact-gatherer`     | LLM skill implementing `fact-gatherer@1.0`; shows facts in its space.                  |
+| `@virtuocity/contract-refiner`        | `refiner@1.0` contract: refines a draft (the input box) and returns the new draft.     |
+| `@virtuocity/skill-refiner`           | LLM skill implementing `refiner@1.0`: command + draft, optionally the session.         |
 | `@virtuocity/contract-analytics`      | `session-analytics@1.0` contract and the `session-outline` output kind.                |
 | `@virtuocity/skill-session-analytics` | Code skill implementing `session-analytics@1.0`: an outline of the posts in its space. |
 | `@virtuocity/book-room`               | Walking skeleton: `manuscript` document and `book-pipeline` flow.                      |

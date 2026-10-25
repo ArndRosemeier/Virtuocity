@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import { directorContract } from '@virtuocity/contract-director';
+import { refinerContract } from '@virtuocity/contract-refiner';
 import type { Actor, SessionRuntime } from '@virtuocity/core';
 import { textContent } from '@virtuocity/core';
 import type { TurnTakingInput } from '@virtuocity/turn-taking';
@@ -75,19 +76,55 @@ function ActorChip({
   );
 }
 
+/** Actors that can refine what the person is writing (`refiner@1.0`). */
+function refiners(session: SessionRuntime): Actor[] {
+  return session.actors.filter((a) => session.implementationFor(a.id, refinerContract));
+}
+
+/** The draft in the input box, which a refiner may rewrite. */
+interface Draft {
+  readonly text: string;
+  readonly set: (text: string) => void;
+}
+
+/** What the controls under the input box work with. */
+interface BarProps {
+  readonly session: SessionRuntime;
+  readonly busy: boolean;
+  readonly run: (work: () => Promise<unknown>) => Promise<void>;
+  readonly draft: Draft;
+}
+
+/** Refiners to rewrite the draft with; the result replaces it and nothing is posted. */
+function RefineChips({ session, busy, run, draft }: BarProps) {
+  const refining = refiners(session);
+  if (refining.length === 0) return null;
+  const refine = (actorId: string) =>
+    run(async () => {
+      const input = { draft: textContent(draft.text) };
+      const result = await session.invoke(actorId, refinerContract, 'refine', input);
+      draft.set(result.draft.text);
+    });
+  return (
+    <>
+      <span className="composer__label">refine with:</span>
+      {refining.map((a) => (
+        <ActorChip
+          key={a.id}
+          actor={a}
+          disabled={busy || !draft.text.trim()}
+          onPick={() => void refine(a.id)}
+        />
+      ))}
+    </>
+  );
+}
+
 /**
  * Pick exactly who speaks next, or ask a support actor (e.g. an illustrator) to
  * act. With a director in the session, passing lets it pick.
  */
-function TurnBar({
-  session,
-  busy,
-  run,
-}: {
-  session: SessionRuntime;
-  busy: boolean;
-  run: (work: () => Promise<unknown>) => Promise<void>;
-}) {
+function TurnBar({ session, busy, run, draft }: BarProps) {
   const speakers = session.speakers();
   const askable = session.askable();
   const directed = hasDirector(session);
@@ -120,6 +157,7 @@ function TurnBar({
       {askable.map((a) => (
         <ActorChip key={a.id} actor={a} disabled={busy} onPick={() => void pick(a.id)} />
       ))}
+      <RefineChips session={session} busy={busy} run={run} draft={draft} />
       <span className="composer__hint">
         <Icon name="lantern" />{' '}
         {directed
@@ -179,7 +217,7 @@ export function Composer({ session }: { session: SessionRuntime }) {
             Act
           </Button>
         </div>
-        <TurnBar session={session} busy={busy} run={run} />
+        <TurnBar session={session} busy={busy} run={run} draft={{ text: draft, set: setDraft }} />
       </div>
     </footer>
   );
