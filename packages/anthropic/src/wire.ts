@@ -95,6 +95,9 @@ export function toParams(
   maxTokens: number,
 ): Anthropic.MessageStreamParams {
   const { tools, toolChoice, responseSchema, reasoningEffort } = request;
+  if (reasoningEffort === 'none' || reasoningEffort === 'minimal') {
+    throw new Error(`Anthropic does not support reasoning effort "${reasoningEffort}"`);
+  }
   const system = systemText(request.messages);
   return {
     model: request.model,
