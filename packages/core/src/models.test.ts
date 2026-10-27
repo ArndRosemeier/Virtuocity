@@ -31,12 +31,15 @@ describe('resolveModel', () => {
       actor: { text: 'openai:actor' },
     };
     expect(resolveModelSelection('text', layers)).toEqual({ model: 'openai:actor' });
-    expect(resolveModelSelection('text', {
-      ...layers,
-      skill: { text: modelChoice('anthropic:skill', 'low') },
-    })).toEqual({ model: 'anthropic:skill', reasoningEffort: 'low' });
+    expect(
+      resolveModelSelection('text', {
+        ...layers,
+        skill: { text: modelChoice('anthropic:skill', 'low') },
+      }),
+    ).toEqual({ model: 'anthropic:skill', reasoningEffort: 'low' });
     expect(readModelChoice(modelChoice('openai:actor', 'medium'))).toEqual({
-      model: 'openai:actor', reasoningEffort: 'medium',
+      model: 'openai:actor',
+      reasoningEffort: 'medium',
     });
   });
 });

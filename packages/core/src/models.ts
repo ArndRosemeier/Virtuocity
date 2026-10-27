@@ -40,7 +40,15 @@ export function qualifyModel(value: string, provider: string): ModelRef {
 }
 
 /** Optional reasoning effort; omitted means the provider's model default. */
-export const REASONING_EFFORTS = ['none', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max'] as const;
+export const REASONING_EFFORTS = [
+  'none',
+  'minimal',
+  'low',
+  'medium',
+  'high',
+  'xhigh',
+  'max',
+] as const;
 export type ReasoningEffort = (typeof REASONING_EFFORTS)[number];
 
 /** Backwards compatible with model ids already stored as plain strings. */
@@ -64,7 +72,10 @@ export function qualifyOverrides(overrides: ModelOverrides, provider: string): M
   for (const [modality, choice] of Object.entries(overrides)) {
     const selected = readModelChoice(choice);
     if (selected?.model)
-      qualified[modality] = modelChoice(qualifyModel(selected.model, provider), selected.reasoningEffort);
+      qualified[modality] = modelChoice(
+        qualifyModel(selected.model, provider),
+        selected.reasoningEffort,
+      );
   }
   return qualified;
 }

@@ -123,11 +123,22 @@ describe('Anthropic requests', () => {
   it('sends reasoning effort together with a structured output schema', () => {
     const request = { modality: 'text', model: 'claude-test', messages: [] };
     expect(toParams(request, 100)).not.toHaveProperty('output_config');
-    expect(toParams({ ...request, reasoningEffort: 'high', responseSchema: {
-      name: 'answer', schema: { type: 'object' },
-    } }, 100)).toMatchObject({
+    expect(
+      toParams(
+        {
+          ...request,
+          reasoningEffort: 'high',
+          responseSchema: {
+            name: 'answer',
+            schema: { type: 'object' },
+          },
+        },
+        100,
+      ),
+    ).toMatchObject({
       output_config: {
-        effort: 'high', format: { type: 'json_schema', schema: { type: 'object' } },
+        effort: 'high',
+        format: { type: 'json_schema', schema: { type: 'object' } },
       },
     });
   });

@@ -32,7 +32,8 @@ describe('settings', () => {
     expect(readSetting(modelSetting('text'))).toBe('openrouter:openai/gpt-6');
     expect(readSetting(reasoningSetting('text'))).toBe('high');
     expect(readModelDefaults(modalities).text).toEqual({
-      model: 'openrouter:openai/gpt-6', reasoningEffort: 'high',
+      model: 'openrouter:openai/gpt-6',
+      reasoningEffort: 'high',
     });
     writeModelDefaults(modalities, { text: 'openai:gpt-6' });
     expect(readSetting(reasoningSetting('text'))).toBe('');

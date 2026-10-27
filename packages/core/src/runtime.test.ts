@@ -140,14 +140,20 @@ describe('SessionRuntime', () => {
     });
     await session.join(ai('bard', ['echo']));
     await session.runTurn('bard');
-    expect(provider.complete).toHaveBeenCalledWith(expect.objectContaining({
-      model: 'skill-model', reasoningEffort: 'high',
-    }));
+    expect(provider.complete).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model: 'skill-model',
+        reasoningEffort: 'high',
+      }),
+    );
     vi.mocked(provider.complete).mockClear();
     await session.assist({ modality: 'text', messages: [] }, 'transform');
-    expect(provider.complete).toHaveBeenCalledWith(expect.objectContaining({
-      model: 'default-model', reasoningEffort: 'low',
-    }));
+    expect(provider.complete).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model: 'default-model',
+        reasoningEffort: 'low',
+      }),
+    );
   });
 
   it('lets actors leave at any time', async () => {

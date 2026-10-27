@@ -1,5 +1,11 @@
 import { useSyncExternalStore } from 'react';
-import type { ModalityInfo, Modality, ModelChoice, ModelOverrides, ReasoningEffort } from '@virtuocity/core';
+import type {
+  ModalityInfo,
+  Modality,
+  ModelChoice,
+  ModelOverrides,
+  ReasoningEffort,
+} from '@virtuocity/core';
 import { REASONING_EFFORTS, modelChoice, qualifyModel, readModelChoice } from '@virtuocity/core';
 import { listenerSet } from './listeners';
 
@@ -43,7 +49,6 @@ export function reasoningSetting(modality: Modality): Setting {
 function validEffort(value: string): ReasoningEffort | undefined {
   return REASONING_EFFORTS.find((effort) => effort === value);
 }
-
 
 const memory = new Map<string, string>();
 const changes = listenerSet();

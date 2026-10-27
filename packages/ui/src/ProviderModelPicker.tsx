@@ -92,7 +92,8 @@ function ReasoningPicker({
         <option value="">Model default</option>
         {options.map((value) => (
           <option key={value} value={value}>
-            {value[0]?.toUpperCase()}{value.slice(1)}
+            {value[0]?.toUpperCase()}
+            {value.slice(1)}
           </option>
         ))}
       </select>

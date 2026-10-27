@@ -47,7 +47,10 @@ export function ModelLayerEditor({
                 modality={modality.id}
                 value={selected?.model}
                 onChange={(model) =>
-                  set(modality.id, model ? modelChoice(model, selected?.reasoningEffort) : undefined)
+                  set(
+                    modality.id,
+                    model ? modelChoice(model, selected?.reasoningEffort) : undefined,
+                  )
                 }
                 reasoningEffort={selected?.reasoningEffort}
                 onReasoningEffortChange={(effort) => {

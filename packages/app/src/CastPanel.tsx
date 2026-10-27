@@ -1,5 +1,12 @@
 import type { Actor } from '@virtuocity/core';
-import { CAST, castDoc, isSessionType, pauseActor, pausedIds, readModelChoice } from '@virtuocity/core';
+import {
+  CAST,
+  castDoc,
+  isSessionType,
+  pauseActor,
+  pausedIds,
+  readModelChoice,
+} from '@virtuocity/core';
 import { Avatar, Button, IconButton, Pill } from '@virtuocity/ui';
 import { useAppActions } from './actions';
 import { useActorTips } from './actorTips';
