@@ -315,12 +315,13 @@ export class SessionRuntime {
 
   /** Runs one model call for a skill: picks the model, traces the call, records its cost. */
   async #complete(actor: Actor, skill: Skill, request: ModelRequest): Promise<CompletionResult> {
-    const { model, reasoningEffort } = resolveModelSelection(request.modality, this.#models(actor, skill));
+    const selection = resolveModelSelection(request.modality, this.#models(actor, skill));
     const messages = await this.#instructed(actor, skill, request);
-    return this.#call(
-      { actorId: actor.id, skillId: skill.id },
-      { ...request, messages, model, ...(reasoningEffort ? { reasoningEffort } : {}) },
-    );
+    return this.#call({ actorId: actor.id, skillId: skill.id }, {
+      ...request,
+      messages,
+      ...selection,
+    });
   }
 
   /** The model choices that apply to a skill's calls, from the defaults to the skill's own. */
@@ -347,13 +348,10 @@ export class SessionRuntime {
    * instructions, and is traced and counted like any other call.
    */
   assist(request: ModelRequest, purpose: string): Promise<CompletionResult> {
-    const { model, reasoningEffort } = resolveModelSelection(request.modality, {
+    const selection = resolveModelSelection(request.modality, {
       defaults: this.config.modelDefaults(),
     });
-    return this.#call(
-      { actorId: 'user', skillId: purpose },
-      { ...request, model, ...(reasoningEffort ? { reasoningEffort } : {}) },
-    );
+    return this.#call({ actorId: 'user', skillId: purpose }, { ...request, ...selection });
   }
 
   async #call(

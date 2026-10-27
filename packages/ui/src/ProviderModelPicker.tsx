@@ -60,6 +60,44 @@ function ProviderSelect({
   );
 }
 
+/** Text-model-specific effort control, shared by defaults and actor model pickers. */
+function ReasoningPicker({
+  providerId,
+  model,
+  effort,
+  onChange,
+}: {
+  providerId: string;
+  model: string | undefined;
+  effort: ReasoningEffort | undefined;
+  onChange: ((effort: ReasoningEffort | undefined) => void) | undefined;
+}) {
+  if (!onChange) return null;
+  const options = REASONING_EFFORTS.filter(
+    (value) => providerId !== 'anthropic' || (value !== 'none' && value !== 'minimal'),
+  );
+  return (
+    <label className="v-provider-picker__reasoning">
+      <span>Reasoning effort</span>
+      <select
+        className="v-input"
+        aria-label="Reasoning effort"
+        value={effort ?? ''}
+        disabled={!model}
+        title="Only reasoning-capable models accept this setting; supported levels vary by model."
+        onChange={(e) => onChange((e.target.value || undefined) as ReasoningEffort | undefined)}
+      >
+        <option value="">Model default</option>
+        {options.map((value) => (
+          <option key={value} value={value}>
+            {value[0]?.toUpperCase()}{value.slice(1)}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
 /** Two steps: first the provider, then one of its models for the modality. */
 export function ProviderModelPicker(props: ProviderModelPickerProps) {
   const current = props.value === undefined ? undefined : readModelRef(props.value);
@@ -88,31 +126,13 @@ export function ProviderModelPicker(props: ProviderModelPickerProps) {
         error={provider ? catalog.error : 'Add a key for this provider in Settings'}
         defaultLabel={props.defaultLabel}
       />
-      {props.modality === 'text' && props.onReasoningEffortChange && (
-        <label className="v-provider-picker__reasoning">
-          <span>Reasoning effort</span>
-          <select
-            className="v-input"
-            aria-label="Reasoning effort"
-            value={props.reasoningEffort ?? ''}
-            disabled={!current?.model}
-            title="Only reasoning-capable models accept this setting; supported levels vary by model."
-            onChange={(e) =>
-              props.onReasoningEffortChange?.(
-                (e.target.value || undefined) as ReasoningEffort | undefined,
-              )
-            }
-          >
-            <option value="">Model default</option>
-            {REASONING_EFFORTS.filter(
-              (effort) => providerId !== 'anthropic' || (effort !== 'none' && effort !== 'minimal'),
-            ).map((effort) => (
-              <option key={effort} value={effort}>
-                {effort[0]?.toUpperCase()}{effort.slice(1)}
-              </option>
-            ))}
-          </select>
-        </label>
+      {props.modality === 'text' && (
+        <ReasoningPicker
+          providerId={providerId}
+          model={current?.model}
+          effort={props.reasoningEffort}
+          onChange={props.onReasoningEffortChange}
+        />
       )}
     </div>
   );

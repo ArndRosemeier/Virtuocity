@@ -89,15 +89,29 @@ const CHOICES = {
   none: { type: 'none' },
 } as const;
 
+/** Optional Anthropic output config, including reasoning effort when explicitly selected. */
+function outputConfig(request: CompletionRequest) {
+  const { responseSchema, reasoningEffort } = request;
+  if (reasoningEffort === 'none' || reasoningEffort === 'minimal') {
+    throw new Error(`Anthropic does not support reasoning effort "${reasoningEffort}"`);
+  }
+  if (!responseSchema && !reasoningEffort) return {};
+  return {
+    output_config: {
+      ...(responseSchema
+        ? { format: { type: 'json_schema' as const, schema: { ...responseSchema.schema } } }
+        : {}),
+      ...(reasoningEffort ? { effort: reasoningEffort } : {}),
+    },
+  };
+}
+
 /** The Messages API request for one call; `maxTokens` is the model's output limit. */
 export function toParams(
   request: CompletionRequest,
   maxTokens: number,
 ): Anthropic.MessageStreamParams {
-  const { tools, toolChoice, responseSchema, reasoningEffort } = request;
-  if (reasoningEffort === 'none' || reasoningEffort === 'minimal') {
-    throw new Error(`Anthropic does not support reasoning effort "${reasoningEffort}"`);
-  }
+  const { tools, toolChoice } = request;
   const system = systemText(request.messages);
   return {
     model: request.model,
@@ -114,16 +128,7 @@ export function toParams(
         }
       : {}),
     ...(toolChoice && tools?.length ? { tool_choice: CHOICES[toolChoice] } : {}),
-    ...(responseSchema || reasoningEffort
-      ? {
-          output_config: {
-            ...(responseSchema
-              ? { format: { type: 'json_schema', schema: { ...responseSchema.schema } } }
-              : {}),
-            ...(reasoningEffort ? { effort: reasoningEffort } : {}),
-          },
-        }
-      : {}),
+    ...outputConfig(request),
   };
 }
 
