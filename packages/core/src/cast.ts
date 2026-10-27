@@ -4,6 +4,7 @@ import type { ContextContributor } from './context-assembly';
 import { defineDocType } from './doc-type';
 import type { ProfileField } from './settings';
 import { profileValue } from './settings';
+import { REASONING_EFFORTS } from './models';
 import type { Workspace } from './workspace';
 
 /**
@@ -43,7 +44,15 @@ export const actorSchema = z.object({
   controller: z.enum(['human', 'ai']),
   personality: z.object({ name: z.string(), description: z.string() }),
   skillIds: z.array(z.string()),
-  models: z.record(z.string(), z.string()).optional(),
+  models: z
+    .record(
+      z.string(),
+      z.union([
+        z.string(),
+        z.object({ model: z.string(), reasoningEffort: z.enum(REASONING_EFFORTS).optional() }),
+      ]),
+    )
+    .optional(),
   settings: z.record(z.string(), z.unknown()).optional(),
   profile: z.record(z.string(), z.unknown()).optional(),
 });
