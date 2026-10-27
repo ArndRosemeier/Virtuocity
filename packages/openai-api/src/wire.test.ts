@@ -36,4 +36,12 @@ describe('chat requests on the wire', () => {
     expect(requestBody(request, ['image', 'text']).modalities).toEqual(['image', 'text']);
     expect(requestBody(request, ['text'])).not.toHaveProperty('modalities');
   });
+
+  it('sends explicit effort to OpenAI and OpenRouter but not when unset', () => {
+    const request = { modality: 'text', model: 'm', messages: [] };
+    expect(requestBody(request)).not.toHaveProperty('reasoning_effort');
+    expect(requestBody({ ...request, reasoningEffort: 'high' })).toMatchObject({
+      reasoning_effort: 'high',
+    });
+  });
 });

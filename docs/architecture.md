@@ -83,7 +83,7 @@ app ──► any module ──► ui ──────────► core
   a removed one lists it in `replaces`; `upgradeActor` (`skill-upgrade.ts`)
   moves actors onto it, and the app's `Library` applies that to stored actors
   and to every actor it adopts, sessions' casts included.
-- **Models** (`models.ts`): `resolveModel` picks skill override, then actor
+- **Models** (`models.ts`): `resolveModelSelection` picks a model and optional reasoning effort together: skill override, then actor
   override, then the core default for the modality. A model is stored as a
   reference `provider:model` (`parseModelRef`); the runtime hands each call to
   the provider it names. `qualifyModel` upgrades ids saved before there were

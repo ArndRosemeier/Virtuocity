@@ -94,7 +94,7 @@ export function toParams(
   request: CompletionRequest,
   maxTokens: number,
 ): Anthropic.MessageStreamParams {
-  const { tools, toolChoice, responseSchema } = request;
+  const { tools, toolChoice, responseSchema, reasoningEffort } = request;
   const system = systemText(request.messages);
   return {
     model: request.model,
@@ -111,8 +111,15 @@ export function toParams(
         }
       : {}),
     ...(toolChoice && tools?.length ? { tool_choice: CHOICES[toolChoice] } : {}),
-    ...(responseSchema
-      ? { output_config: { format: { type: 'json_schema', schema: { ...responseSchema.schema } } } }
+    ...(responseSchema || reasoningEffort
+      ? {
+          output_config: {
+            ...(responseSchema
+              ? { format: { type: 'json_schema', schema: { ...responseSchema.schema } } }
+              : {}),
+            ...(reasoningEffort ? { effort: reasoningEffort } : {}),
+          },
+        }
       : {}),
   };
 }
