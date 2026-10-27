@@ -63,16 +63,18 @@ function ProviderSelect({
 /** Text-model-specific effort control, shared by defaults and actor model pickers. */
 function ReasoningPicker({
   providerId,
+  modality,
   model,
   effort,
   onChange,
 }: {
   providerId: string;
+  modality: Modality;
   model: string | undefined;
   effort: ReasoningEffort | undefined;
   onChange: ((effort: ReasoningEffort | undefined) => void) | undefined;
 }) {
-  if (!onChange) return null;
+  if (modality !== 'text' || !onChange) return null;
   const options = REASONING_EFFORTS.filter(
     (value) => providerId !== 'anthropic' || (value !== 'none' && value !== 'minimal'),
   );
@@ -126,14 +128,13 @@ export function ProviderModelPicker(props: ProviderModelPickerProps) {
         error={provider ? catalog.error : 'Add a key for this provider in Settings'}
         defaultLabel={props.defaultLabel}
       />
-      {props.modality === 'text' && (
-        <ReasoningPicker
-          providerId={providerId}
-          model={current?.model}
-          effort={props.reasoningEffort}
-          onChange={props.onReasoningEffortChange}
-        />
-      )}
+      <ReasoningPicker
+        providerId={providerId}
+        modality={props.modality}
+        model={current?.model}
+        effort={props.reasoningEffort}
+        onChange={props.onReasoningEffortChange}
+      />
     </div>
   );
 }

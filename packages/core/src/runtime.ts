@@ -316,12 +316,10 @@ export class SessionRuntime {
   /** Runs one model call for a skill: picks the model, traces the call, records its cost. */
   async #complete(actor: Actor, skill: Skill, request: ModelRequest): Promise<CompletionResult> {
     const selection = resolveModelSelection(request.modality, this.#models(actor, skill));
-    const messages = await this.#instructed(actor, skill, request);
-    return this.#call({ actorId: actor.id, skillId: skill.id }, {
-      ...request,
-      messages,
-      ...selection,
-    });
+    return this.#call(
+      { actorId: actor.id, skillId: skill.id },
+      { ...request, ...selection, messages: await this.#instructed(actor, skill, request) },
+    );
   }
 
   /** The model choices that apply to a skill's calls, from the defaults to the skill's own. */
