@@ -100,10 +100,14 @@ function ReasoningPicker({
   );
 }
 
+function initialProvider(props: ProviderModelPickerProps): string {
+  return readModelRef(props.value ?? '')?.provider ?? props.providers[0]?.id ?? '';
+}
+
 /** Two steps: first the provider, then one of its models for the modality. */
 export function ProviderModelPicker(props: ProviderModelPickerProps) {
   const current = props.value === undefined ? undefined : readModelRef(props.value);
-  const [chosen, setChosen] = useState(current?.provider ?? props.providers[0]?.id ?? '');
+  const [chosen, setChosen] = useState(() => initialProvider(props));
   const providerId = current?.provider ?? chosen;
   const provider = props.providers.find((p) => p.id === providerId);
   const catalog = provider?.catalog ?? NO_CATALOG;
