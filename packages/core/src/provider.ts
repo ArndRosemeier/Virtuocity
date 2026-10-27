@@ -1,7 +1,7 @@
 import type { DecisionRequest, DecisionResult } from './decisions';
 import type { Identified } from './registry';
 import type { GeneratedMedia } from './media';
-import type { Modality } from './models';
+import type { Modality, ReasoningEffort } from './models';
 import type { CallStats } from './stats';
 
 /** A function the model may call, described by a JSON Schema for its arguments. */
@@ -48,6 +48,8 @@ export interface CompletionRequest {
   readonly modality: Modality;
   readonly model: string;
   readonly messages: readonly ChatMessage[];
+  /** Optional reasoning depth; absent means use the model/provider default. */
+  readonly reasoningEffort?: ReasoningEffort;
   readonly signal?: AbortSignal;
   /** Functions the model may call instead of (or before) answering. */
   readonly tools?: readonly ToolSpec[];

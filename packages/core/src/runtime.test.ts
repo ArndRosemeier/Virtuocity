@@ -126,6 +126,36 @@ describe('SessionRuntime', () => {
     expect(session.allStats()).toHaveLength(1);
   });
 
+  it('forwards effort from skill choices and default choices to the provider', async () => {
+    vi.mocked(provider.complete).mockClear();
+    const host = loadModules(new ModuleHost(), [coreModule]);
+    host.providers.register(provider);
+    host.skills.register({
+      ...echo,
+      models: { text: { model: 'fake:skill-model', reasoningEffort: 'high' } },
+    });
+    const session = new SessionRuntime({
+      host,
+      modelDefaults: () => ({ text: { model: 'fake:default-model', reasoningEffort: 'low' } }),
+    });
+    await session.join(ai('bard', ['echo']));
+    await session.runTurn('bard');
+    expect(provider.complete).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model: 'skill-model',
+        reasoningEffort: 'high',
+      }),
+    );
+    vi.mocked(provider.complete).mockClear();
+    await session.assist({ modality: 'text', messages: [] }, 'transform');
+    expect(provider.complete).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model: 'default-model',
+        reasoningEffort: 'low',
+      }),
+    );
+  });
+
   it('lets actors leave at any time', async () => {
     const session = setup();
     await session.join(ai('bard', ['echo']));

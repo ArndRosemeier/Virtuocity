@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
+  modelChoice,
+  readModelChoice,
+  resolveModelSelection,
   parseModelRef,
   qualifyModel,
   qualifyOverrides,
@@ -20,6 +23,24 @@ describe('resolveModel', () => {
 
   it('throws when nothing is configured', () => {
     expect(() => resolveModel('music', { defaults })).toThrow(/music/);
+  });
+
+  it('keeps effort with the winning model instead of inheriting it across overrides', () => {
+    const layers = {
+      defaults: { text: modelChoice('openrouter:default', 'high') },
+      actor: { text: 'openai:actor' },
+    };
+    expect(resolveModelSelection('text', layers)).toEqual({ model: 'openai:actor' });
+    expect(
+      resolveModelSelection('text', {
+        ...layers,
+        skill: { text: modelChoice('anthropic:skill', 'low') },
+      }),
+    ).toEqual({ model: 'anthropic:skill', reasoningEffort: 'low' });
+    expect(readModelChoice(modelChoice('openai:actor', 'medium'))).toEqual({
+      model: 'openai:actor',
+      reasoningEffort: 'medium',
+    });
   });
 });
 
@@ -42,6 +63,9 @@ describe('model references', () => {
     expect(qualifyOverrides({ text: 'x/y', image: 'openai:gpt-image-1' }, 'openrouter')).toEqual({
       text: 'openrouter:x/y',
       image: 'openai:gpt-image-1',
+    });
+    expect(qualifyOverrides({ text: modelChoice('x/y', 'high') }, 'openrouter')).toEqual({
+      text: { model: 'openrouter:x/y', reasoningEffort: 'high' },
     });
   });
 });

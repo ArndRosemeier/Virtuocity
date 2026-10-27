@@ -1,4 +1,5 @@
-import type { ModalityInfo, ModelOverrides } from '@virtuocity/core';
+import type { ModalityInfo, ModelChoice, ModelOverrides } from '@virtuocity/core';
+import { modelChoice, readModelChoice } from '@virtuocity/core';
 import { Field } from './Field';
 import type { ProviderCatalog } from './ProviderModelPicker';
 import { ProviderModelPicker } from './ProviderModelPicker';
@@ -26,29 +27,41 @@ export function ModelLayerEditor({
   onChange,
   inheritLabel,
 }: ModelLayerEditorProps) {
-  const set = (modality: string, id: string | undefined) => {
-    const next: Record<string, string> = {};
-    for (const [key, model] of Object.entries(value))
-      if (model && key !== modality) next[key] = model;
-    if (id) next[modality] = id;
+  const set = (modality: string, choice: ModelChoice | undefined) => {
+    const next: Record<string, ModelChoice> = {};
+    for (const [key, existing] of Object.entries(value))
+      if (existing && key !== modality) next[key] = existing;
+    if (choice) next[modality] = choice;
     onChange(next);
   };
   return (
     <>
-      {modalities.map((modality) => (
-        <Field key={modality.id} label={modality.label} hint={modality.description}>
-          {(id) => (
-            <ProviderModelPicker
-              id={id}
-              providers={providers}
-              modality={modality.id}
-              value={value[modality.id]}
-              onChange={(model) => set(modality.id, model)}
-              defaultLabel={inheritLabel}
-            />
-          )}
-        </Field>
-      ))}
+      {modalities.map((modality) => {
+        const selected = readModelChoice(value[modality.id]);
+        return (
+          <Field key={modality.id} label={modality.label} hint={modality.description}>
+            {(id) => (
+              <ProviderModelPicker
+                id={id}
+                providers={providers}
+                modality={modality.id}
+                value={selected?.model}
+                onChange={(model) =>
+                  set(
+                    modality.id,
+                    model ? modelChoice(model, selected?.reasoningEffort) : undefined,
+                  )
+                }
+                reasoningEffort={selected?.reasoningEffort}
+                onReasoningEffortChange={(effort) => {
+                  if (selected) set(modality.id, modelChoice(selected.model, effort));
+                }}
+                defaultLabel={inheritLabel}
+              />
+            )}
+          </Field>
+        );
+      })}
     </>
   );
 }

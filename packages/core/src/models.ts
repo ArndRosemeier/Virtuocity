@@ -39,16 +39,49 @@ export function qualifyModel(value: string, provider: string): ModelRef {
   return REF.test(value) ? value : modelRef(provider, value);
 }
 
+/** Optional reasoning effort; omitted means the provider's model default. */
+export const REASONING_EFFORTS = [
+  'none',
+  'minimal',
+  'low',
+  'medium',
+  'high',
+  'xhigh',
+  'max',
+] as const;
+export type ReasoningEffort = (typeof REASONING_EFFORTS)[number];
+
+/** Backwards compatible with model ids already stored as plain strings. */
+export interface ModelSelection {
+  readonly model: ModelRef;
+  readonly reasoningEffort?: ReasoningEffort;
+}
+export type ModelChoice = ModelRef | ModelSelection;
+
+export function readModelChoice(choice: ModelChoice | undefined): ModelSelection | undefined {
+  return typeof choice === 'string' ? { model: choice } : choice;
+}
+
+export function modelChoice(model: ModelRef, reasoningEffort?: ReasoningEffort): ModelChoice {
+  return reasoningEffort ? { model, reasoningEffort } : model;
+}
+
 /** `qualifyModel` for every entry of a layer. */
 export function qualifyOverrides(overrides: ModelOverrides, provider: string): ModelOverrides {
-  const qualified: Record<string, string> = {};
-  for (const [modality, model] of Object.entries(overrides))
-    if (model) qualified[modality] = qualifyModel(model, provider);
+  const qualified: Record<string, ModelChoice> = {};
+  for (const [modality, choice] of Object.entries(overrides)) {
+    const selected = readModelChoice(choice);
+    if (selected?.model)
+      qualified[modality] = modelChoice(
+        qualifyModel(selected.model, provider),
+        selected.reasoningEffort,
+      );
+  }
   return qualified;
 }
 
-/** Model references per modality, e.g. `{ text: 'openrouter:anthropic/claude-sonnet-5.5' }`. */
-export type ModelOverrides = Partial<Record<Modality, string>>;
+/** Model choices per modality, optionally including reasoning effort. */
+export type ModelOverrides = Partial<Record<Modality, ModelChoice>>;
 
 export interface ModelLayers {
   /** Core defaults per modality. */
@@ -57,11 +90,17 @@ export interface ModelLayers {
   readonly skill?: ModelOverrides | undefined;
 }
 
-/** Resolves which model to use: skill override, then actor override, then core default. */
+/** Skill choice beats actor choice, which beats the default; effort follows its model. */
+export function resolveModelSelection(modality: Modality, layers: ModelLayers): ModelSelection {
+  const choice = layers.skill?.[modality] ?? layers.actor?.[modality] ?? layers.defaults[modality];
+  const selected = readModelChoice(choice);
+  if (!selected?.model) throw new Error(`No model configured for modality "${modality}"`);
+  return selected;
+}
+
+/** Compatibility helper for callers needing only the model reference. */
 export function resolveModel(modality: Modality, layers: ModelLayers): string {
-  const model = layers.skill?.[modality] ?? layers.actor?.[modality] ?? layers.defaults[modality];
-  if (!model) throw new Error(`No model configured for modality "${modality}"`);
-  return model;
+  return resolveModelSelection(modality, layers).model;
 }
 
 /** A modality the app offers a default model for. Modules register the ones they use. */

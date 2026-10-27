@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import type { Modality, ModelInfo } from '@virtuocity/core';
-import { modelRef, modelsFor, readModelRef } from '@virtuocity/core';
+import type { Modality, ModelInfo, ReasoningEffort } from '@virtuocity/core';
+import { REASONING_EFFORTS, modelRef, modelsFor, readModelRef } from '@virtuocity/core';
 import { ModelPicker } from './ModelPicker';
 
 export interface ModelCatalogState {
@@ -23,6 +23,8 @@ export interface ProviderModelPickerProps {
   /** A model reference (`provider:model`); `undefined` means "use the default". */
   readonly value: string | undefined;
   readonly onChange: (ref: string | undefined) => void;
+  readonly reasoningEffort?: ReasoningEffort | undefined;
+  readonly onReasoningEffortChange?: ((effort: ReasoningEffort | undefined) => void) | undefined;
   /** Label of the "no override" choice; omit to make a model required. */
   readonly defaultLabel?: string | undefined;
   readonly id?: string | undefined;
@@ -58,10 +60,55 @@ function ProviderSelect({
   );
 }
 
+/** Text-model-specific effort control, shared by defaults and actor model pickers. */
+function ReasoningPicker({
+  providerId,
+  modality,
+  model,
+  effort,
+  onChange,
+}: {
+  providerId: string;
+  modality: Modality;
+  model: string | undefined;
+  effort: ReasoningEffort | undefined;
+  onChange: ((effort: ReasoningEffort | undefined) => void) | undefined;
+}) {
+  if (modality !== 'text' || !onChange) return null;
+  const options = REASONING_EFFORTS.filter(
+    (value) => providerId !== 'anthropic' || (value !== 'none' && value !== 'minimal'),
+  );
+  return (
+    <label className="v-provider-picker__reasoning">
+      <span>Reasoning effort</span>
+      <select
+        className="v-input"
+        aria-label="Reasoning effort"
+        value={effort ?? ''}
+        disabled={!model}
+        title="Only reasoning-capable models accept this setting; supported levels vary by model."
+        onChange={(e) => onChange((e.target.value || undefined) as ReasoningEffort | undefined)}
+      >
+        <option value="">Model default</option>
+        {options.map((value) => (
+          <option key={value} value={value}>
+            {value[0]?.toUpperCase()}
+            {value.slice(1)}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function initialProvider(props: ProviderModelPickerProps): string {
+  return readModelRef(props.value ?? '')?.provider ?? props.providers[0]?.id ?? '';
+}
+
 /** Two steps: first the provider, then one of its models for the modality. */
 export function ProviderModelPicker(props: ProviderModelPickerProps) {
   const current = props.value === undefined ? undefined : readModelRef(props.value);
-  const [chosen, setChosen] = useState(current?.provider ?? props.providers[0]?.id ?? '');
+  const [chosen, setChosen] = useState(() => initialProvider(props));
   const providerId = current?.provider ?? chosen;
   const provider = props.providers.find((p) => p.id === providerId);
   const catalog = provider?.catalog ?? NO_CATALOG;
@@ -85,6 +132,13 @@ export function ProviderModelPicker(props: ProviderModelPickerProps) {
         loading={catalog.loading}
         error={provider ? catalog.error : 'Add a key for this provider in Settings'}
         defaultLabel={props.defaultLabel}
+      />
+      <ReasoningPicker
+        providerId={providerId}
+        modality={props.modality}
+        model={current?.model}
+        effort={props.reasoningEffort}
+        onChange={props.onReasoningEffortChange}
       />
     </div>
   );

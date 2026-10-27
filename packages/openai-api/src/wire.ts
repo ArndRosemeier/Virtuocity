@@ -77,6 +77,7 @@ export function requestBody(
   return {
     model: request.model,
     messages: request.messages.map(toWireMessage),
+    ...(request.reasoningEffort ? { reasoning_effort: request.reasoningEffort } : {}),
     ...(request.modality === 'image' || outputs?.includes('image')
       ? { modalities: imageModalities(outputs) }
       : {}),

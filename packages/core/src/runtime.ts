@@ -25,7 +25,7 @@ import { SessionCast } from './session-cast';
 import { actorJoined, actorLeft, messagePosted, turnEnded, turnStarted } from './session-events';
 import { beginIfEmpty } from './session-events';
 import type { ModelOverrides } from './models';
-import { parseModelRef, resolveModel } from './models';
+import { parseModelRef, resolveModel, resolveModelSelection } from './models';
 import type { ModuleHost } from './module';
 import type { Content } from './output';
 import type { CompletionRequest, CompletionResult, ModelRequest } from './provider';
@@ -315,9 +315,11 @@ export class SessionRuntime {
 
   /** Runs one model call for a skill: picks the model, traces the call, records its cost. */
   async #complete(actor: Actor, skill: Skill, request: ModelRequest): Promise<CompletionResult> {
-    const model = resolveModel(request.modality, this.#models(actor, skill));
-    const messages = await this.#instructed(actor, skill, request);
-    return this.#call({ actorId: actor.id, skillId: skill.id }, { ...request, messages, model });
+    const selection = resolveModelSelection(request.modality, this.#models(actor, skill));
+    return this.#call(
+      { actorId: actor.id, skillId: skill.id },
+      { ...request, ...selection, messages: await this.#instructed(actor, skill, request) },
+    );
   }
 
   /** The model choices that apply to a skill's calls, from the defaults to the skill's own. */
@@ -344,8 +346,10 @@ export class SessionRuntime {
    * instructions, and is traced and counted like any other call.
    */
   assist(request: ModelRequest, purpose: string): Promise<CompletionResult> {
-    const model = resolveModel(request.modality, { defaults: this.config.modelDefaults() });
-    return this.#call({ actorId: 'user', skillId: purpose }, { ...request, model });
+    const selection = resolveModelSelection(request.modality, {
+      defaults: this.config.modelDefaults(),
+    });
+    return this.#call({ actorId: 'user', skillId: purpose }, { ...request, ...selection });
   }
 
   async #call(

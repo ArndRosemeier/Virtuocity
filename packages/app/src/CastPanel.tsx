@@ -1,5 +1,12 @@
 import type { Actor } from '@virtuocity/core';
-import { CAST, castDoc, isSessionType, pauseActor, pausedIds } from '@virtuocity/core';
+import {
+  CAST,
+  castDoc,
+  isSessionType,
+  pauseActor,
+  pausedIds,
+  readModelChoice,
+} from '@virtuocity/core';
 import { Avatar, Button, IconButton, Pill } from '@virtuocity/ui';
 import { useAppActions } from './actions';
 import { useActorTips } from './actorTips';
@@ -55,7 +62,7 @@ function CastRow({ actor: a, speaking, onLeave, paused, onPause }: CastRowProps)
         <span className="cast__meta">
           {Object.entries(a.models ?? {}).map(([modality, model]) => (
             <Pill key={modality} title={`${modality} model`}>
-              {model}
+              {readModelChoice(model)?.model}
             </Pill>
           ))}
           {speaking && <Pill tone="accent">writing…</Pill>}

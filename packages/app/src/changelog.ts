@@ -10,6 +10,13 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 93,
+    date: '2026-10-27',
+    changes: [
+      'Every text model picker now offers reasoning effort. Leave Model default to use the provider setting, or choose an explicit effort level supported by the model. The choice applies to default and actor models and works with OpenRouter, OpenAI, and Anthropic.',
+    ],
+  },
+  {
     build: 92,
     date: '2026-10-25',
     changes: [
