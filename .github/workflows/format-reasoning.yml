@@ -1,0 +1,31 @@
+name: Format reasoning branch (temporary)
+
+on:
+  push:
+    branches: [feature/model-reasoning-effort]
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx prettier --write packages/anthropic/src/index.test.ts packages/app/src/CastPanel.tsx packages/app/src/settings.test.ts packages/app/src/settings.ts packages/core/src/models.test.ts packages/core/src/models.ts packages/core/src/runtime.test.ts packages/ui/src/ModelLayerEditor.tsx packages/ui/src/ProviderModelPicker.tsx packages/ui/src/styles/components.css
+      - name: Commit formatting on this feature branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add packages
+          if ! git diff --cached --quiet; then
+            git commit -m "Format reasoning-effort changes"
+            git push origin HEAD:feature/model-reasoning-effort
+          fi
