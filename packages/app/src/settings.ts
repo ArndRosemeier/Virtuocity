@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
-import type { ModalityInfo, Modality, ModelOverrides } from '@virtuocity/core';
-import { qualifyModel } from '@virtuocity/core';
+import type { ModalityInfo, Modality, ModelChoice, ModelOverrides, ReasoningEffort } from '@virtuocity/core';
+import { REASONING_EFFORTS, modelChoice, qualifyModel, readModelChoice } from '@virtuocity/core';
 import { listenerSet } from './listeners';
 
 /** Settings live in this browser only; a provider's key never leaves it except to that provider. */
@@ -35,6 +35,16 @@ export function modelSetting(modality: Modality): Setting {
   return { key: `${MODEL_PREFIX}${modality}`, fallback: FALLBACK_MODELS[modality] ?? '' };
 }
 
+/** Separate from model ids so existing browser settings stay compatible. */
+export function reasoningSetting(modality: Modality): Setting {
+  return { key: `virtuocity.reasoning.${modality}`, fallback: '' };
+}
+
+function validEffort(value: string): ReasoningEffort | undefined {
+  return REASONING_EFFORTS.find((effort) => effort === value);
+}
+
+
 const memory = new Map<string, string>();
 const changes = listenerSet();
 
@@ -64,10 +74,10 @@ export function useSetting(setting: Setting): [string, (value: string) => void] 
 
 /** The core default layer: one model per registered modality, unset ones left out. */
 export function readModelDefaults(modalities: readonly ModalityInfo[]): ModelOverrides {
-  const defaults: Record<string, string> = {};
+  const defaults: Record<string, ModelChoice> = {};
   for (const { id } of modalities) {
     const model = readSetting(modelSetting(id));
-    if (model) defaults[id] = model;
+    if (model) defaults[id] = modelChoice(model, validEffort(readSetting(reasoningSetting(id))));
   }
   return defaults;
 }
@@ -76,13 +86,19 @@ export function writeModelDefaults(
   modalities: readonly ModalityInfo[],
   value: ModelOverrides,
 ): void {
-  for (const { id } of modalities) writeSetting(modelSetting(id), value[id] ?? '');
+  for (const { id } of modalities) {
+    const selected = readModelChoice(value[id]);
+    writeSetting(modelSetting(id), selected?.model ?? '');
+    writeSetting(reasoningSetting(id), selected?.reasoningEffort ?? '');
+  }
 }
 
 /** Re-renders when any setting changes and returns the current default layer. */
 export function useModelDefaults(modalities: readonly ModalityInfo[]): ModelOverrides {
   useSyncExternalStore(changes.subscribe, () =>
-    modalities.map((m) => readSetting(modelSetting(m.id))).join('|'),
+    modalities
+      .map((m) => `${readSetting(modelSetting(m.id))}|${readSetting(reasoningSetting(m.id))}`)
+      .join('|'),
   );
   return readModelDefaults(modalities);
 }

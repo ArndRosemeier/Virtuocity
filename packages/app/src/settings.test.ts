@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   keySetting,
   modelSetting,
+  reasoningSetting,
+  readModelDefaults,
+  writeModelDefaults,
   readAllSettings,
   readSetting,
   replaceAllSettings,
@@ -19,6 +22,21 @@ describe('settings', () => {
     expect(readSetting({ key: 'virtuocity.openrouterKey', fallback: '' })).toBe('');
     expect(readSetting(modelSetting('text'))).toBe('openrouter:anthropic/claude-x');
     expect(readSetting(modelSetting('image'))).toBe('openai:gpt-image-1');
+  });
+
+  it('saves effort beside model ids and keeps old string choices compatible', () => {
+    const modalities = [{ id: 'text', label: 'Text', description: '' }];
+    writeModelDefaults(modalities, {
+      text: { model: 'openrouter:openai/gpt-6', reasoningEffort: 'high' },
+    });
+    expect(readSetting(modelSetting('text'))).toBe('openrouter:openai/gpt-6');
+    expect(readSetting(reasoningSetting('text'))).toBe('high');
+    expect(readModelDefaults(modalities).text).toEqual({
+      model: 'openrouter:openai/gpt-6', reasoningEffort: 'high',
+    });
+    writeModelDefaults(modalities, { text: 'openai:gpt-6' });
+    expect(readSetting(reasoningSetting('text'))).toBe('');
+    expect(readModelDefaults(modalities).text).toBe('openai:gpt-6');
   });
 
   it('never saves or replaces provider keys', () => {

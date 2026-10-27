@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import type { Modality, ModelInfo } from '@virtuocity/core';
-import { modelRef, modelsFor, readModelRef } from '@virtuocity/core';
+import type { Modality, ModelInfo, ReasoningEffort } from '@virtuocity/core';
+import { REASONING_EFFORTS, modelRef, modelsFor, readModelRef } from '@virtuocity/core';
 import { ModelPicker } from './ModelPicker';
 
 export interface ModelCatalogState {
@@ -23,6 +23,8 @@ export interface ProviderModelPickerProps {
   /** A model reference (`provider:model`); `undefined` means "use the default". */
   readonly value: string | undefined;
   readonly onChange: (ref: string | undefined) => void;
+  readonly reasoningEffort?: ReasoningEffort | undefined;
+  readonly onReasoningEffortChange?: ((effort: ReasoningEffort | undefined) => void) | undefined;
   /** Label of the "no override" choice; omit to make a model required. */
   readonly defaultLabel?: string | undefined;
   readonly id?: string | undefined;
@@ -86,6 +88,32 @@ export function ProviderModelPicker(props: ProviderModelPickerProps) {
         error={provider ? catalog.error : 'Add a key for this provider in Settings'}
         defaultLabel={props.defaultLabel}
       />
+      {props.modality === 'text' && props.onReasoningEffortChange && (
+        <label className="v-provider-picker__reasoning">
+          <span>Reasoning effort</span>
+          <select
+            className="v-input"
+            aria-label="Reasoning effort"
+            value={props.reasoningEffort ?? ''}
+            disabled={!current?.model}
+            title="Only reasoning-capable models accept this setting; supported levels vary by model."
+            onChange={(e) =>
+              props.onReasoningEffortChange?.(
+                (e.target.value || undefined) as ReasoningEffort | undefined,
+              )
+            }
+          >
+            <option value="">Model default</option>
+            {REASONING_EFFORTS.filter(
+              (effort) => providerId !== 'anthropic' || (effort !== 'none' && effort !== 'minimal'),
+            ).map((effort) => (
+              <option key={effort} value={effort}>
+                {effort[0]?.toUpperCase()}{effort.slice(1)}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
     </div>
   );
 }
