@@ -18,3 +18,5 @@ export * from './schemaFields';
 export * from './Tabs';
 export * from './TagPicker';
 export * from './cx';
+export * from './TouchTips';
+export * from './touchTip';

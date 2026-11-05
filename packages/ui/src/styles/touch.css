@@ -1,0 +1,68 @@
+/* Touch screens and iOS: tooltips by long press, fingers-sized targets, no zoom on focus. */
+
+/* ---------- Touch tooltip (TouchTips) ---------- */
+.v-touch-tip {
+  position: fixed;
+  z-index: 1000;
+  width: max-content;
+  transform: translate(-50%, 0);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-3);
+  color: var(--text);
+  box-shadow: var(--shadow-2);
+  font-size: var(--text-sm);
+  line-height: var(--leading-ui);
+  white-space: pre-line;
+  pointer-events: none;
+  animation: v-rise var(--dur-fast) var(--ease);
+}
+.v-touch-tip[data-above='true'] {
+  transform: translate(-50%, -100%);
+}
+
+@media (pointer: coarse) {
+  /* Resting a finger shows the tooltip; keep iOS from also selecting or showing its menu. */
+  button[title],
+  label[title],
+  [role='button'][title],
+  .v-pill[title] {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .v-btn {
+    min-height: 40px;
+  }
+  .v-btn--icon {
+    min-width: 40px;
+  }
+  .v-btn--sm {
+    min-height: 34px;
+  }
+  .v-btn--icon.v-btn--sm {
+    min-width: 34px;
+  }
+  .v-tag {
+    min-height: 34px;
+  }
+  .v-tabs__tab {
+    min-height: 40px;
+  }
+  input[type='checkbox'],
+  input[type='radio'] {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* iOS zooms into any field whose text is smaller than 16px when it gets focus, and
+   stays zoomed. Important, since every field's own class sets a smaller size. */
+@supports (-webkit-touch-callout: none) {
+  input,
+  select,
+  textarea {
+    font-size: max(16px, 1em) !important;
+  }
+}
