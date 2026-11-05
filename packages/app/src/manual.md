@@ -33,6 +33,8 @@ On a fresh start your Library already holds some ready-made actors: the Open, Ro
 
 Which of these a session shows is decided by its session type.
 
+On a tablet or phone, hover texts work by touch: rest a finger on a button for half a second and its tooltip appears without pressing it. In portrait the sidebars move below the input.
+
 ## Actors: one name, one actor
 
 This is the most important idea in Virtuocity.

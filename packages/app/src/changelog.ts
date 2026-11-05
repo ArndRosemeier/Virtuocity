@@ -10,6 +10,15 @@ export type { Release } from './changelog-earlier';
  */
 export const RELEASES: readonly Release[] = [
   {
+    build: 94,
+    date: '2026-11-05',
+    changes: [
+      'Works on tablets. On iPad, Settings and every other dialog showed only their title and buttons; they now use the full height and scroll inside.',
+      'The header fits on a tablet in portrait: the session name shortens instead of pushing Settings off the screen. Sidebars are a little narrower up to laptop width, so the session keeps room between them.',
+      'Touch screens: rest a finger on a button for half a second to read its tooltip (actor descriptions, contracts and the like); the button is not pressed. Buttons, tabs, checkboxes and the resize edges are larger for fingers, and iPad no longer zooms in when you tap into a text field.',
+    ],
+  },
+  {
     build: 93,
     date: '2026-10-27',
     changes: [
@@ -273,13 +282,6 @@ export const RELEASES: readonly Release[] = [
       'One name, one actor, now all the way down: sessions and templates no longer keep their own copies of actors, only which Library actors take part. Editing an actor changes it in every session at once, and retrying or going back to an earlier version never brings back older details. Sessions you already have are converted when you open them.',
       'A session saved to a file still carries its actors, so it works in another browser. Loading it asks about an actor only when your Library has that name with different details.',
       'New: a Manual in the header. It starts with the ideas that work differently from other apps, above all "one name, one actor".',
-    ],
-  },
-  {
-    build: 58,
-    date: '2026-10-13',
-    changes: [
-      'Fixed: reloading the page or opening a session no longer asks about "Actors with the same name" when an actor was only edited in your library since the session was last open. Your own sessions always use the library\'s current version of each actor; the question only comes up when you load a file.',
     ],
   },
   ...MIDDLE_RELEASES,

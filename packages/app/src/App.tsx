@@ -17,7 +17,7 @@ import { TypeStateContext, useTypeState } from './useSessionType';
 import { AssetsContext } from './media';
 import { ActorTipsContext, actorTips } from './actorTips';
 import { createHost } from './host';
-import { ChoicesContext } from '@virtuocity/ui';
+import { ChoicesContext, TouchTips } from '@virtuocity/ui';
 import { appChoices } from './choices';
 import { indexedDbStore } from './storage';
 import { useSession } from './useSession';
@@ -102,6 +102,7 @@ export function App() {
                       onClose={() => setDialog(null)}
                     />
                     {conflictDialog}
+                    <TouchTips />
                   </Screen>
                 </ActorTipsContext.Provider>
               </AskModelContext.Provider>

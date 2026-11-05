@@ -21,8 +21,14 @@ export function Header({ session, assets }: { session: SessionRuntime; assets: A
         <span className="brand__name">Virtuocity</span>
         <WhatsNew />
         <Manual />
-        <Button variant="ghost" icon="folder" title="Sessions" onClick={openSessions}>
-          {open?.name ?? 'Sessions'}
+        <Button
+          className="app-header__session"
+          variant="ghost"
+          icon="folder"
+          title="Sessions"
+          onClick={openSessions}
+        >
+          <span className="app-header__session-name">{open?.name ?? 'Sessions'}</span>
         </Button>
       </div>
       <div className="app-header__end">

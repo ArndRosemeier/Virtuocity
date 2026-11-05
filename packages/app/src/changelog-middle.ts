@@ -1,7 +1,14 @@
 import type { Release } from './changelog-earlier';
 
-/** Builds 34 to 57, newest first; kept apart so the changelog stays short. */
+/** Builds 34 to 58, newest first; kept apart so the changelog stays short. */
 export const MIDDLE_RELEASES: readonly Release[] = [
+  {
+    build: 58,
+    date: '2026-10-13',
+    changes: [
+      'Fixed: reloading the page or opening a session no longer asks about "Actors with the same name" when an actor was only edited in your library since the session was last open. Your own sessions always use the library\'s current version of each actor; the question only comes up when you load a file.',
+    ],
+  },
   {
     build: 57,
     date: '2026-10-13',
